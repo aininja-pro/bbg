@@ -264,7 +264,14 @@ class DataTransformer:
         if new_columns:
             df = df.rename(columns=new_columns)
 
+        # Apply address_type business rule: blank = "RESIDENTIAL"
+        if 'address_type' in df.columns:
+            df['address_type'] = df['address_type'].apply(
+                lambda x: 'RESIDENTIAL' if pd.isna(x) or x == '' else str(x).strip()
+            )
+
         return df
+
 
     def add_placeholder_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Add any missing columns with null values.

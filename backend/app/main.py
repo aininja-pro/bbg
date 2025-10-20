@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_db, close_db
+from app.routers import lookup
 
 
 @asynccontextmanager
@@ -35,6 +36,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(lookup.router)
 
 
 @app.get("/")

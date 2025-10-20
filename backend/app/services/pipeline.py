@@ -68,6 +68,16 @@ class ProcessingPipeline:
             # Step 8: Identify warnings
             self.warnings = self.enricher.identify_warnings(df)
 
+            # Step 9: Select only the required output columns (remove extras like product_name, proof_point)
+            output_columns = [
+                'member_name', 'bbg_member_id', 'confirmed_occupancy', 'job_code',
+                'address1', 'city', 'state', 'zip_postal', 'address_type', 'quantity',
+                'product_id', 'supplier_name', 'tradenet_supplier_id',
+                'pp_dist_subcontractor', 'tradenet_company_id'
+            ]
+            # Only keep columns that exist
+            df = df[[col for col in output_columns if col in df.columns]]
+
             self.result = df
 
             return {

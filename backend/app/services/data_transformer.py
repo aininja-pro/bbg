@@ -10,7 +10,7 @@ from app.utils.exceptions import TransformationError
 class DataTransformer:
     """Transforms wide-format rebate data to long format and enriches it."""
 
-    # Standard output columns for transformed data
+    # Standard output columns for transformed data (exact client format - 15 columns)
     OUTPUT_COLUMNS = [
         'member_name',
         'bbg_member_id',
@@ -28,6 +28,8 @@ class DataTransformer:
         'pp_dist_subcontractor',
         'tradenet_company_id',
     ]
+
+    # Note: product_name and proof_point are enriched but not included in final output
 
     def __init__(self):
         """Initialize the data transformer."""
@@ -91,17 +93,23 @@ class DataTransformer:
         Returns:
             Long-format DataFrame with one row per product per transaction
         """
-        # Get product column names from indices
+        # Get product column names from indices (preserve Excel column order)
         product_columns = []
         product_id_map = {}
         distributor_map = {}
+        product_order_map = {}  # Maps product_id to its Excel column order
 
-        for col_idx, product_info in active_products.items():
+        # Sort active_products by column index to preserve left-to-right order
+        sorted_products = sorted(active_products.items(), key=lambda x: x[0])
+
+        for order_num, (col_idx, product_info) in enumerate(sorted_products):
             if col_idx - 1 < len(df.columns):
                 col_name = df.columns[col_idx - 1]  # Convert 1-indexed to 0-indexed
                 product_columns.append(col_name)
                 product_id_map[col_name] = product_info['product_id']
                 distributor_map[col_name] = product_info.get('distributor')
+                # Store the Excel column order for sorting
+                product_order_map[product_info['product_id']] = order_num
 
         if not product_columns:
             raise TransformationError("No product columns found to unpivot")
@@ -110,13 +118,19 @@ class DataTransformer:
         expected_base_columns = [
             'date', 'jobcode', 'job code', 'job_code',
             'address', 'city', 'state', 'zip', 'postal',
-            'multi-unit', 'comm', 'address_type', 'occupancy'
+            'multi-unit', 'comm', 'address_type', 'occupancy',
+            '_date_sort', '_product_order'  # Include sorting columns
         ]
 
         # Select only the base columns that exist in the DataFrame
         base_columns = []
         for col in df.columns:
             if col not in product_columns and col is not None:
+                # Always include sorting columns
+                if col in ['_date_sort', '_product_order']:
+                    base_columns.append(col)
+                    continue
+
                 # Check if this column name matches expected base columns
                 col_lower = str(col).lower().strip()
                 if any(expected in col_lower for expected in expected_base_columns):
@@ -147,6 +161,9 @@ class DataTransformer:
         # Add product ID and distributor based on column name
         df_long['product_id'] = df_long['product_column'].map(product_id_map)
         df_long['pp_dist_subcontractor'] = df_long['product_column'].map(distributor_map)
+
+        # Add product order for sorting (to match Excel column order)
+        df_long['_product_order'] = df_long['product_id'].map(product_order_map)
 
         # Add metadata
         df_long['bbg_member_id'] = metadata['bbg_member_id']
@@ -196,24 +213,24 @@ class DataTransformer:
             return df  # No date column to convert
 
         def convert_date(val):
-            """Convert various date formats to MM/DD/YYYY string."""
+            """Convert various date formats to M/D/YY string (no leading zeros)."""
             if pd.isna(val) or val == '':
                 return None
 
             try:
                 # If it's already a datetime
                 if isinstance(val, datetime):
-                    return val.strftime('%m/%d/%Y')
+                    return val.strftime('%-m/%-d/%y')  # Mac/Linux: no leading zeros, 2-digit year
 
                 # If it's an Excel serial number
                 if isinstance(val, (int, float)):
                     # Excel epoch starts at 1899-12-30
                     dt = pd.Timestamp('1899-12-30') + pd.Timedelta(days=val)
-                    return dt.strftime('%m/%d/%Y')
+                    return dt.strftime('%-m/%-d/%y')
 
                 # Try parsing as string
                 dt = pd.to_datetime(val)
-                return dt.strftime('%m/%d/%Y')
+                return dt.strftime('%-m/%-d/%y')
 
             except Exception:
                 return str(val)  # Return as-is if conversion fails
@@ -312,7 +329,11 @@ class DataTransformer:
         # Step 1: Extract data
         df = self.extract_data_from_sheet(sheet, header_row, active_products, metadata)
 
-        # Step 2: Convert dates BEFORE renaming
+        # Step 2: Store original dates for sorting BEFORE converting to strings
+        if 'Date' in df.columns:
+            df['_date_sort'] = df['Date']  # Keep as datetime for sorting
+
+        # Step 2b: Convert dates to string format
         df = self.convert_excel_dates(df)
 
         # Step 3: Standardize column names (Date → confirmed_occupancy)
@@ -323,6 +344,39 @@ class DataTransformer:
 
         # Step 5: Add missing columns
         df = self.add_placeholder_columns(df)
+
+        # Step 6: Sort rows to match expected output format
+        # Group by address (date + job_code) then by Excel column order
+
+        # Convert confirmed_occupancy back to datetime for proper sorting
+        if 'confirmed_occupancy' in df.columns:
+            df['_date_sort_temp'] = pd.to_datetime(df['confirmed_occupancy'], format='%m/%d/%y', errors='coerce')
+
+        sort_columns = []
+        if '_date_sort_temp' in df.columns:
+            sort_columns.append('_date_sort_temp')
+        if 'job_code' in df.columns:
+            sort_columns.append('job_code')
+        if '_product_order' in df.columns:
+            sort_columns.append('_product_order')  # Use Excel column order
+
+        if sort_columns:
+            df = df.sort_values(by=sort_columns).reset_index(drop=True)
+            # Remove temporary sorting columns
+            df = df.drop(columns=['_product_order', '_date_sort', '_date_sort_temp'], errors='ignore')
+
+        # Step 7: Format numeric fields (remove unnecessary decimals)
+        # Convert zip_postal to int (remove .0)
+        if 'zip_postal' in df.columns:
+            df['zip_postal'] = df['zip_postal'].apply(
+                lambda x: int(x) if pd.notna(x) and str(x) != 'nan' else x
+            )
+
+        # Convert quantity to int (remove .0)
+        if 'quantity' in df.columns:
+            df['quantity'] = df['quantity'].apply(
+                lambda x: int(x) if pd.notna(x) and float(x) == int(float(x)) else x
+            )
 
         self.df = df
         return df

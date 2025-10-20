@@ -12,25 +12,21 @@ class DataTransformer:
 
     # Standard output columns for transformed data
     OUTPUT_COLUMNS = [
-        'bbg_member_id',
         'member_name',
-        'tradenet_company_id',
-        'date',
+        'bbg_member_id',
+        'confirmed_occupancy',
         'job_code',
-        'job_name',
         'address1',
-        'address2',
         'city',
         'state',
         'zip_postal',
-        'confirmed_occupancy',
         'address_type',
-        'product_id',
-        'product_name',
         'quantity',
-        'tradenet_supplier_id',
+        'product_id',
         'supplier_name',
-        'proof_point',
+        'tradenet_supplier_id',
+        'pp_dist_subcontractor',
+        'tradenet_company_id',
     ]
 
     def __init__(self):
@@ -82,14 +78,14 @@ class DataTransformer:
     def unpivot_products(
         self,
         df: pd.DataFrame,
-        active_products: Dict[int, str],
+        active_products: Dict[int, Dict[str, str]],
         metadata: Dict[str, str]
     ) -> pd.DataFrame:
         """Unpivot wide format to long format for product columns.
 
         Args:
             df: Wide-format DataFrame
-            active_products: Dictionary of column index -> product ID
+            active_products: Dictionary of column index -> dict with product_id and distributor
             metadata: Dictionary with member info
 
         Returns:
@@ -98,12 +94,14 @@ class DataTransformer:
         # Get product column names from indices
         product_columns = []
         product_id_map = {}
+        distributor_map = {}
 
-        for col_idx, product_id in active_products.items():
+        for col_idx, product_info in active_products.items():
             if col_idx - 1 < len(df.columns):
                 col_name = df.columns[col_idx - 1]  # Convert 1-indexed to 0-indexed
                 product_columns.append(col_name)
-                product_id_map[col_name] = product_id
+                product_id_map[col_name] = product_info['product_id']
+                distributor_map[col_name] = product_info.get('distributor')
 
         if not product_columns:
             raise TransformationError("No product columns found to unpivot")
@@ -146,19 +144,38 @@ class DataTransformer:
         except Exception as e:
             raise TransformationError(f"Failed to unpivot data: {str(e)}. Base columns: {len(base_columns)}, Product columns: {len(product_columns)}")
 
-        # Add product ID based on column name
+        # Add product ID and distributor based on column name
         df_long['product_id'] = df_long['product_column'].map(product_id_map)
+        df_long['pp_dist_subcontractor'] = df_long['product_column'].map(distributor_map)
 
         # Add metadata
         df_long['bbg_member_id'] = metadata['bbg_member_id']
         df_long['member_name'] = metadata['member_name']
 
-        # Remove rows with null/zero quantity
+        # Filter out junk rows
+        # 1. Remove rows with null/zero/empty quantity
         df_long = df_long[
             (df_long['quantity'].notna()) &
             (df_long['quantity'] != 0) &
             (df_long['quantity'] != '')
         ]
+
+        # 2. Remove rows with non-numeric quantities (like "Hide", "Show", etc.)
+        def is_valid_quantity(val):
+            """Check if quantity is a valid number."""
+            try:
+                float(val)
+                return True
+            except (ValueError, TypeError):
+                return False
+
+        df_long = df_long[df_long['quantity'].apply(is_valid_quantity)]
+
+        # 3. Remove rows with missing dates (these are usually Excel UI elements)
+        # Check for either 'date' or 'confirmed_occupancy' column
+        date_col = 'confirmed_occupancy' if 'confirmed_occupancy' in df_long.columns else 'date'
+        if date_col in df_long.columns:
+            df_long = df_long[df_long[date_col].notna()]
 
         # Drop the temporary product_column
         df_long = df_long.drop(columns=['product_column'])
@@ -215,7 +232,7 @@ class DataTransformer:
         """
         # Mapping of common variations to standard names
         column_mapping = {
-            'date': 'date',
+            'date': 'confirmed_occupancy',  # Date becomes confirmed_occupancy in output
             'job code': 'job_code',
             'jobcode': 'job_code',
             'job name': 'job_name',
@@ -231,10 +248,10 @@ class DataTransformer:
             'postal': 'zip_postal',
             'zip code': 'zip_postal',
             'postal code': 'zip_postal',
+            'multi-unit/comm': 'address_type',
+            'multi-unit': 'address_type',
             'qty': 'quantity',
             'quantity': 'quantity',
-            'occupancy': 'confirmed_occupancy',
-            'confirmed occupancy': 'confirmed_occupancy',
         }
 
         # Rename columns (case-insensitive)
@@ -271,7 +288,7 @@ class DataTransformer:
         self,
         sheet: Worksheet,
         header_row: int,
-        active_products: Dict[int, str],
+        active_products: Dict[int, Dict[str, str]],
         metadata: Dict[str, str]
     ) -> pd.DataFrame:
         """Complete transformation pipeline.
@@ -288,11 +305,11 @@ class DataTransformer:
         # Step 1: Extract data
         df = self.extract_data_from_sheet(sheet, header_row, active_products, metadata)
 
-        # Step 2: Standardize column names
-        df = self.standardize_columns(df)
-
-        # Step 3: Convert dates
+        # Step 2: Convert dates BEFORE renaming
         df = self.convert_excel_dates(df)
+
+        # Step 3: Standardize column names (Date → confirmed_occupancy)
+        df = self.standardize_columns(df)
 
         # Step 4: Unpivot products
         df = self.unpivot_products(df, active_products, metadata)

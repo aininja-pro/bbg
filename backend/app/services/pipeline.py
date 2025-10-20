@@ -41,8 +41,8 @@ class ProcessingPipeline:
             self.processor = ExcelProcessor(file_path)
             self.processor.open_file()
 
-            # Step 2: Find reformatter sheet
-            self.processor.find_reformatter_sheet()
+            # Step 2: Find Usage-Reporting sheet
+            self.processor.find_usage_reporting_sheet()
 
             # Step 3: Extract metadata (B6, B7)
             metadata = self.processor.extract_metadata()
@@ -121,6 +121,8 @@ class ProcessingPipeline:
         if self.result is None:
             return {'status': 'not_processed'}
 
+        date_col = 'confirmed_occupancy' if 'confirmed_occupancy' in self.result.columns else 'date'
+
         return {
             'status': 'completed',
             'member_id': self.metadata.get('bbg_member_id'),
@@ -128,8 +130,8 @@ class ProcessingPipeline:
             'total_rows': len(self.result),
             'unique_products': self.result['product_id'].nunique() if 'product_id' in self.result.columns else 0,
             'date_range': {
-                'start': self.result['date'].min() if 'date' in self.result.columns else None,
-                'end': self.result['date'].max() if 'date' in self.result.columns else None,
+                'start': self.result[date_col].min() if date_col in self.result.columns else None,
+                'end': self.result[date_col].max() if date_col in self.result.columns else None,
             },
             'warnings_count': len(self.warnings),
             'warnings': self.warnings

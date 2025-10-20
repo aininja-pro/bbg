@@ -171,12 +171,14 @@ class DataEnricher:
             })
 
         # Check for missing dates
-        missing_dates = df[df['date'].isna()]
-        if not missing_dates.empty:
-            warnings.append({
-                'type': 'missing_date',
-                'count': len(missing_dates),
-                'message': f"{len(missing_dates)} rows with missing dates"
-            })
+        date_col = 'confirmed_occupancy' if 'confirmed_occupancy' in df.columns else 'date'
+        if date_col in df.columns:
+            missing_dates = df[df[date_col].isna()]
+            if not missing_dates.empty:
+                warnings.append({
+                    'type': 'missing_date',
+                    'count': len(missing_dates),
+                    'message': f"{len(missing_dates)} rows with missing dates"
+                })
 
         return warnings

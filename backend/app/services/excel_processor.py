@@ -123,14 +123,14 @@ class ExcelProcessor:
             f"Expected keywords: {', '.join(self.HEADER_KEYWORDS[:5])}"
         )
 
-    def identify_active_products(self, header_row: int) -> Dict[int, str]:
-        """Identify active product columns using Row 2 (active flag = 1) and Row 7 (product IDs).
+    def identify_active_products(self, header_row: int) -> Dict[int, Dict[str, str]]:
+        """Identify active product columns and extract product IDs and distributor info.
 
         Args:
             header_row: The row number where headers are located
 
         Returns:
-            Dictionary mapping column index to product ID
+            Dictionary mapping column index to dict with product_id and distributor
         """
         if not self.reformatter_sheet:
             raise ExcelProcessingError("Usage-Reporting sheet not loaded.")
@@ -138,14 +138,17 @@ class ExcelProcessor:
         active_products = {}
 
         # Row 2 indicates active products (value = 1)
+        # Row 5 contains distributor/subcontractor names
         # Row 7 contains product IDs
         row_2 = self.reformatter_sheet[2]
+        row_5 = self.reformatter_sheet[5]
         row_7 = self.reformatter_sheet[7]
 
         # Iterate through all columns
         max_col = self.reformatter_sheet.max_column
         for col_idx in range(1, max_col + 1):
             active_flag = row_2[col_idx - 1].value if col_idx <= len(row_2) else None
+            distributor = row_5[col_idx - 1].value if col_idx <= len(row_5) else None
             product_id = row_7[col_idx - 1].value if col_idx <= len(row_7) else None
 
             # Check if this column is active (Row 2 = 1) AND has a product ID in Row 7
@@ -153,9 +156,17 @@ class ExcelProcessor:
                 # Validate it's a real product ID (numeric)
                 try:
                     if isinstance(product_id, (int, float)):
-                        active_products[col_idx] = str(int(product_id))
+                        pid_str = str(int(product_id))
                     elif str(product_id).isdigit():
-                        active_products[col_idx] = str(product_id).strip()
+                        pid_str = str(product_id).strip()
+                    else:
+                        continue  # Skip non-numeric product IDs
+
+                    # Store product info with distributor
+                    active_products[col_idx] = {
+                        'product_id': pid_str,
+                        'distributor': str(distributor).strip() if distributor else None
+                    }
                 except:
                     pass  # Skip invalid entries
 

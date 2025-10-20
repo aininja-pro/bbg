@@ -1,0 +1,36 @@
+# App Flow Document for BBG Rebate Processing Automation Tool
+
+## Onboarding and Access
+A new user arrives at the application by navigating to a secure, internal URL provided by Builders Buying Group. There is no public landing page or registration required in Phase 1, as the tool is only accessible to a small internal team. The user lands directly on the home screen without signing in or creating an account. In this phase, all staff share the same access level and there are no credentials to manage. In future phases, an email/password or single sign-on layer can be added without changing the core flows.
+
+## Main Dashboard or Home Page
+Upon loading the application, the user sees a clean interface with a header displaying the BBG logo and the current version. Below the header is a primary content area divided into tabs labeled “Upload,” “Preview,” “Rules,” “Lookups,” “Activity Log,” and “Export.” The “Upload” tab is active by default. A drag-and-drop zone occupies the center of the page, inviting the user to drop one or more .xlsm files. At the top right of the page, a simple settings icon opens global preferences such as export options and data retention settings. A footer displays processing constraints, such as maximum file size and timeout limit.
+
+## Detailed Feature Flows and Page Transitions
+
+### Excel Upload & Validation
+When the user drags files into the drop-zone or clicks to browse, each file is sent to the backend via multipart/form-data. As soon as a file is received, the application transitions into a real-time progress indicator that lists each step: locating the hidden “reformatter” tab, validating cells B6 and B7, finding the header row, and identifying active products. If any structural requirement fails, the user remains on the upload tab and sees an inline error message describing the problem. A “Replace File” button appears next to each rejected file so the user can correct it immediately.
+
+### Data Preview and Transformation
+When all files pass validation, the interface automatically switches to the “Preview” tab. Here the first ten unpivoted rows appear in a tanstack table with columns for date (formatted MM/DD/YYYY), job code, address fields, quantity, product ID, supplier, and lookup fields. Any rows with missing lookups or data-quality issues are highlighted in amber. Above the table, a summary message reports total rows processed and the number of warnings. The user scrolls through the preview to confirm that the unpivot logic, field extractions, date conversions, and lookups look correct.
+
+### Rules Management
+From the preview screen, the user clicks the “Rules” tab. A list of active rules appears in execution order. Each rule shows its name, type, priority, and whether it is enabled. When the user clicks a rule, a modal opens containing a form with fields specific to that rule type (Search & Replace, Conditional Update, Filter, etc.). The user edits parameters, changes priority, toggles enable/disable, and clicks “Save.” The modal closes and the preview table refreshes automatically to reflect the updated rules. To add a new rule, the user clicks “New Rule,” selects the type from a dropdown, fills the same form, and saves. The table reorders based on priority.
+
+### Lookup Management
+By selecting the “Lookups” tab, the user sees three subtabs for TradeNet Members, TradeNet Suppliers, and Programs & Products. Each subtab shows an editable grid powered by ag-Grid or TanStack Table. The user can upload a full CSV replacement for that table, triggering a confirmation dialog and updating the last-updated timestamp badge. Inline controls allow adding, editing, or deleting individual records. When changes are saved, the new lookup data takes effect immediately in any subsequent transformation.
+
+### Activity Log and Monitoring
+Clicking the “Activity Log” tab reveals a history of recent processing runs, showing the timestamp, input file names or batch count, total rows processed, warnings count, and final status. Each entry has a “View Details” link that opens a pane showing run metadata, processing duration, warning details, and links to download associated output files. A filter control allows the user to see only errors or only successful runs. Old entries older than the configured retention period are automatically purged overnight.
+
+### Export and Download
+After validating the preview, the user navigates to the “Export” tab. The interface displays two primary buttons: “Download Merged CSV” and “Download Individual Files (ZIP).” A checkbox above allows excluding rows with warnings. Clicking “Download Merged CSV” streams a single file named with the BBG_Rebates prefix, quarter, year, and timestamp. Clicking “Download ZIP” creates a ZIP archive containing one CSV per member plus a manifest.txt summary. The ZIP is named similarly, with an additional `_Batch_` suffix when multiple files were processed. A browser-native save dialog then prompts for download.
+
+## Settings and Account Management
+In Phase 1, there is no user account or authentication to manage. The settings icon on the header opens a panel where the user can configure export preferences, such as defaulting to ZIP or merged CSV, retaining rows with warnings by default, and choosing the activity log retention period (30, 90, or 180 days). These settings persist in local browser storage or the backend configuration store. In later phases, this panel can expand to include notification preferences, user profiles, and role-based access controls.
+
+## Error States and Alternate Paths
+Structural errors during upload—like missing the reformatter tab or empty metadata cells—block progress and show inline error messages on the upload tab. In the preview phase, data issues trigger warnings only, allowing the user to continue or exclude those rows via a toggle. If connectivity is lost mid-upload, a modal warns of network failure and offers a “Retry” button. If a backend processing error occurs, a full-screen error page with a “Return to Upload” button appears. When a user attempts to export without any processed data, the export buttons are disabled and a tooltip explains to first upload and validate files.
+
+## Conclusion and Overall App Journey
+A typical user journey begins at the private URL, where the user quickly drags in one or more rebate submission Excel files. The application validates structure in real time, and upon success, shows an interactive preview of transformed data with any warnings highlighted. The user refines business logic in the Rules tab and updates reference data in the Lookups tab as needed. After confirming results, the user goes to the Export tab to choose between a merged CSV or a neatly packaged ZIP of individual files. The downloaded files are named with a clear convention that includes quarter, year, and timestamp, ready for FMS import. Routine use consists of repeating this flow each quarter or in batch mode, with activity logs capturing each run for quick auditing and troubleshooting.

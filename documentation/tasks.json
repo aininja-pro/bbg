@@ -1,0 +1,341 @@
+[
+  {
+    "id": 1,
+    "title": "Backend API Foundation and Database Setup",
+    "status": "pending",
+    "details": "Create FastAPI application with Python 3.11+, set up PostgreSQL database with tables for lookup data (TradeNet Members, Suppliers, Programs & Products) and activity logging. Implement Pydantic models for data validation, basic file upload endpoint with validation for .xlsm files, and database connection management. Include environment configuration for Render.com deployment, error handling middleware, and CORS setup for React frontend integration.",
+    "priority": "high",
+    "subtasks": [
+      {
+        "id": 1,
+        "title": "FastAPI Application Setup and Configuration",
+        "status": "pending",
+        "details": "Create main.py with FastAPI app instance, set up environment configuration using pydantic-settings for database URL, secret keys, and deployment settings. Configure CORS middleware to allow React frontend requests, implement global exception handler middleware for consistent error responses, and create config.py for centralized settings management. Set up logging configuration and health check endpoint.",
+        "description": "Initialize the FastAPI application with Python 3.11+, configure environment variables, and set up basic middleware including CORS for React frontend integration and error handling.",
+        "dependencies": [],
+        "testStrategy": "Unit tests for configuration loading, CORS functionality tests, and health check endpoint validation"
+      },
+      {
+        "id": 2,
+        "title": "PostgreSQL Database Connection and Management",
+        "status": "pending",
+        "details": "Install and configure SQLAlchemy with asyncpg driver for PostgreSQL. Create database.py with async engine setup, connection pooling configuration, and session factory. Implement dependency injection for database sessions in FastAPI endpoints. Set up database URL configuration for both local development and Render.com deployment. Include connection retry logic and proper connection cleanup.",
+        "description": "Establish PostgreSQL database connection using SQLAlchemy, implement connection pooling, and create database session management with proper connection lifecycle handling.",
+        "dependencies": [
+          1
+        ],
+        "testStrategy": "Database connection tests, connection pooling validation, and session lifecycle tests"
+      },
+      {
+        "id": 3,
+        "title": "Database Schema and Models Creation",
+        "status": "pending",
+        "details": "Create models.py with SQLAlchemy declarative models for TradeNet Members (id, name, code, status), Suppliers (id, name, contact_info, status), Programs & Products (id, program_name, product_code, description), and ActivityLog (id, timestamp, action, user_id, details). Include proper indexing, foreign key relationships, and constraints. Implement Alembic for database migrations and create initial migration scripts. Add created_at and updated_at timestamps to all models.",
+        "description": "Design and implement PostgreSQL database tables for TradeNet Members, Suppliers, Programs & Products lookup data, and activity logging using SQLAlchemy ORM models.",
+        "dependencies": [
+          2
+        ],
+        "testStrategy": "Database schema validation tests, model relationship tests, and migration script testing"
+      },
+      {
+        "id": 4,
+        "title": "Pydantic Models and Data Validation",
+        "status": "pending",
+        "details": "Create schemas.py with Pydantic models corresponding to database models: TradeNetMemberSchema, SupplierSchema, ProgramProductSchema, and ActivityLogSchema. Include both input (create/update) and output schemas with appropriate validation rules, field constraints, and custom validators. Implement BaseModel configurations for JSON serialization, alias generation, and validation error handling. Add file upload validation schema for .xlsm files with size and format constraints.",
+        "description": "Create Pydantic models for request/response validation, data serialization, and input sanitization for all API endpoints and database operations.",
+        "dependencies": [
+          3
+        ],
+        "testStrategy": "Pydantic model validation tests, serialization/deserialization tests, and input sanitization verification"
+      },
+      {
+        "id": 5,
+        "title": "File Upload API Endpoint and Basic CRUD Operations",
+        "status": "pending",
+        "details": "Create routers/upload.py with POST endpoint for .xlsm file uploads, implementing file validation (format, size limits, content type checking), temporary file storage, and error responses. Create routers/lookup.py with GET, POST, PUT, DELETE endpoints for TradeNet Members, Suppliers, and Programs & Products. Implement proper HTTP status codes, pagination for GET endpoints, bulk operations support, and consistent JSON response format. Add request logging and activity tracking for all operations.",
+        "description": "Implement file upload endpoint with .xlsm validation and basic CRUD API endpoints for lookup data management with proper error handling and response formatting.",
+        "dependencies": [
+          4
+        ],
+        "testStrategy": "File upload validation tests, CRUD operation tests, error handling verification, and API response format validation"
+      }
+    ],
+    "description": "Set up the FastAPI backend service with PostgreSQL database, core models, and basic API endpoints for file upload and processing",
+    "dependencies": [],
+    "testStrategy": "Unit tests for API endpoints, database connection tests, file upload validation tests, and integration tests for basic CRUD operations on lookup tables"
+  },
+  {
+    "id": 2,
+    "title": "Excel Processing and Transformation Pipeline",
+    "status": "pending",
+    "details": "Build Excel processing module using openpyxl to read .xlsm files, locate hidden 'reformatter' sheet, extract B6/B7 metadata (bbg_member_id, member_name), auto-detect header rows via keyword matching, identify active product columns (Row 2=1) and product IDs (Row 7). Implement unpivot transformation from wide to long format, field extraction (confirmed_occupancy, job_code, address fields), Excel serial date conversion to MM/DD/YYYY format, and data enrichment via lookup tables. Include robust error handling for missing sheets or malformed data.",
+    "priority": "high",
+    "subtasks": [
+      {
+        "id": 1,
+        "title": "Excel File Reading and Sheet Discovery",
+        "status": "pending",
+        "details": "Use openpyxl.load_workbook() with data_only=True to read Excel files. Implement sheet discovery logic to find the 'reformatter' sheet, handling cases where it might be hidden. Add comprehensive error handling for file not found, corrupted files, password-protected files, and missing reformatter sheet scenarios. Create a FileProcessor class with methods for opening files and validating sheet existence.",
+        "description": "Implement Excel file ingestion using openpyxl to read .xlsm files and locate the hidden 'reformatter' sheet with proper error handling for missing or inaccessible files.",
+        "dependencies": [],
+        "testStrategy": "Unit tests with valid .xlsm files, tests for missing reformatter sheet, corrupted file handling, and file permission errors"
+      },
+      {
+        "id": 2,
+        "title": "Metadata Extraction and Header Detection",
+        "status": "pending",
+        "details": "Read specific cells B6 and B7 to extract bbg_member_id and member_name metadata. Implement header detection by scanning rows for predefined keywords (e.g., 'Product', 'Date', 'ID') using fuzzy string matching or exact matches. Store detected header row index and validate that required columns are present. Handle cases where headers might be in different rows or missing entirely.",
+        "description": "Extract metadata from cells B6 and B7 (bbg_member_id, member_name) and implement auto-detection of header rows using keyword matching algorithms.",
+        "dependencies": [
+          1
+        ],
+        "testStrategy": "Tests for correct metadata extraction, header detection with various keyword patterns, and validation of missing or malformed headers"
+      },
+      {
+        "id": 3,
+        "title": "Product Column and ID Identification",
+        "status": "pending",
+        "details": "Scan Row 2 across all columns to identify cells containing the value '1', marking these as active product columns. For each active column, extract the product ID from the corresponding cell in Row 7. Create a mapping dictionary linking column indices to product IDs. Validate that product IDs are not null or empty and handle cases where Row 2 or Row 7 data is inconsistent.",
+        "description": "Identify active product columns by checking Row 2 for value '1' and extract corresponding product IDs from Row 7 to build the product mapping structure.",
+        "dependencies": [
+          2
+        ],
+        "testStrategy": "Tests for correct identification of active columns, product ID extraction accuracy, and handling of missing or invalid product data"
+      },
+      {
+        "id": 4,
+        "title": "Data Transformation and Unpivot Implementation",
+        "status": "pending",
+        "details": "Use pandas melt() function or custom unpivot logic to transform wide-format data to long format using the identified product columns. Extract and parse specific fields like confirmed_occupancy, job_code, and address components using regex patterns or string manipulation. Implement Excel serial date conversion using pandas.to_datetime() with origin='1899-12-30' for Excel dates, then format as MM/DD/YYYY strings. Handle various date formats and invalid date values gracefully.",
+        "description": "Implement unpivot transformation to convert data from wide format to long format, extract specific fields (confirmed_occupancy, job_code, address fields), and perform Excel serial date conversion to MM/DD/YYYY format.",
+        "dependencies": [
+          3
+        ],
+        "testStrategy": "Transformation accuracy tests comparing input/output data, date conversion validation with known Excel serial dates, and field extraction tests"
+      },
+      {
+        "id": 5,
+        "title": "Data Enrichment and Pipeline Integration",
+        "status": "pending",
+        "details": "Create lookup table functionality to enrich transformed data with additional attributes based on product IDs, member IDs, or other key fields. Integrate all previous components into a single ExcelProcessor class with methods for the complete pipeline: read_file(), extract_metadata(), transform_data(), and enrich_data(). Add logging throughout the pipeline and implement rollback mechanisms for failed transformations. Create configuration options for lookup table paths and transformation parameters.",
+        "description": "Implement data enrichment using lookup tables, integrate all transformation components into a cohesive pipeline, and add comprehensive error handling for the entire process.",
+        "dependencies": [
+          4
+        ],
+        "testStrategy": "End-to-end pipeline tests with complete .xlsm files, lookup enrichment accuracy tests, error handling tests for malformed data, and performance tests with large files"
+      }
+    ],
+    "description": "Implement Excel file ingestion, validation, and core transformation pipeline using openpyxl and pandas",
+    "dependencies": [
+      1
+    ],
+    "testStrategy": "Unit tests with sample .xlsm files, transformation accuracy tests, date conversion validation, lookup enrichment tests, and error handling tests for malformed files"
+  },
+  {
+    "id": 3,
+    "title": "Rules Engine Implementation",
+    "status": "pending",
+    "details": "Implement template-based rules engine supporting five rule types: Search & Replace, If/Then Update, If/Then Set Value, Row Filter, and Concatenate. Create rule management system with priority ordering, enable/disable toggles, and conflict detection. Build rule execution engine that applies rules sequentially after unpivot and before enrichment. Include rule validation to prevent circular logic and overlapping conflicts. Store rules in database with versioning support and provide API endpoints for CRUD operations.",
+    "priority": "medium",
+    "subtasks": [
+      {
+        "id": 1,
+        "title": "Database Schema and Rule Storage System",
+        "status": "pending",
+        "details": "Create tables for rules (id, name, type, priority, enabled, created_at, updated_at), rule_versions (rule_id, version, config_json, is_active), and rule_execution_logs (rule_id, execution_time, status, affected_rows). Implement database migrations and establish indexing strategy for performance. Include soft delete functionality and audit trails.",
+        "description": "Design and implement the database schema for storing rules with versioning support, including tables for rule definitions, rule versions, execution history, and metadata tracking.",
+        "dependencies": [],
+        "testStrategy": "Database migration tests, schema validation tests, and data integrity tests for versioning system"
+      },
+      {
+        "id": 2,
+        "title": "Rule Type Implementations and Core Logic",
+        "status": "pending",
+        "details": "Create abstract Rule base class and concrete implementations for each rule type. Implement rule-specific validation logic, parameter parsing, and execution methods. Include support for column targeting, condition evaluation, and data transformation operations. Handle edge cases like null values, data type conversions, and pattern matching.",
+        "description": "Implement the five core rule types: Search & Replace, If/Then Update, If/Then Set Value, Row Filter, and Concatenate with their specific processing logic and validation.",
+        "dependencies": [
+          1
+        ],
+        "testStrategy": "Unit tests for each rule type with various input scenarios, edge case testing, and data type validation tests"
+      },
+      {
+        "id": 3,
+        "title": "Rule Management System and API Endpoints",
+        "status": "pending",
+        "details": "Implement API endpoints for creating, reading, updating, and deleting rules. Add priority management with drag-and-drop reordering capability. Include bulk operations for enabling/disabling rules. Implement rule import/export functionality and validation middleware for API requests. Add pagination and filtering for rule listings.",
+        "description": "Build the rule management system with CRUD operations, priority ordering, enable/disable toggles, and REST API endpoints for rule configuration.",
+        "dependencies": [
+          1,
+          2
+        ],
+        "testStrategy": "API integration tests, rule CRUD operation tests, priority ordering validation, and bulk operation testing"
+      },
+      {
+        "id": 4,
+        "title": "Rule Conflict Detection and Validation Engine",
+        "status": "pending",
+        "details": "Create conflict detection algorithms to identify rules that modify the same columns with conflicting logic. Implement circular dependency detection for rule chains. Build validation engine that checks rule syntax, column references, and logical consistency. Include warning system for potential conflicts and blocking validation for critical issues.",
+        "description": "Implement conflict detection system to identify overlapping rules, circular dependencies, and validation logic to prevent invalid rule configurations.",
+        "dependencies": [
+          2,
+          3
+        ],
+        "testStrategy": "Conflict detection tests with various rule combinations, circular dependency validation tests, and rule syntax validation testing"
+      },
+      {
+        "id": 5,
+        "title": "Sequential Rule Execution Engine Integration",
+        "status": "pending",
+        "details": "Implement sequential rule processor that executes enabled rules in priority order. Add execution context tracking, error handling, and rollback capabilities. Integrate with existing transformation pipeline, ensuring proper data flow between unpivot and enrichment stages. Include performance optimization for large datasets and parallel processing where applicable.",
+        "description": "Build the rule execution engine that applies rules sequentially in priority order and integrate it into the transformation pipeline between unpivot and enrichment stages.",
+        "dependencies": [
+          2,
+          3,
+          4
+        ],
+        "testStrategy": "Sequential execution validation tests, pipeline integration tests, performance tests with large datasets, and error handling verification"
+      }
+    ],
+    "description": "Build the no-code rules engine with support for search/replace, if/then updates, filters, and concatenation operations",
+    "dependencies": [
+      2
+    ],
+    "testStrategy": "Unit tests for each rule type, rule conflict detection tests, sequential execution validation, performance tests with large datasets, and integration tests with transformation pipeline"
+  },
+  {
+    "id": 4,
+    "title": "React Frontend with File Upload and Preview Interface",
+    "status": "pending",
+    "details": "Create React 18+ application with TailwindCSS and shadcn/ui components. Implement React Dropzone for .xlsm file uploads with drag-and-drop support, real-time progress indicators for validation/transformation stages, and preview interface showing first 10 rows with warning highlights. Build tabbed interface for Rules and Lookups management, warning banner system, and export options (merged CSV or ZIP download). Include responsive design for desktop browsers, accessibility compliance (WCAG 2.1 AA), and integration with Browser Notification API for completion alerts.",
+    "priority": "medium",
+    "subtasks": [
+      {
+        "id": 1,
+        "title": "Setup React Application with TailwindCSS and shadcn/ui",
+        "status": "pending",
+        "details": "Create new React app using Vite or Create React App with TypeScript template. Install and configure TailwindCSS with PostCSS. Set up shadcn/ui CLI and install core components (Button, Card, Tabs, Progress, Alert). Configure theme colors and responsive breakpoints. Set up project structure with components, hooks, and utils folders.",
+        "description": "Initialize React 18+ application with TypeScript, configure TailwindCSS for styling, and integrate shadcn/ui component library for consistent UI components",
+        "dependencies": [],
+        "testStrategy": "Unit tests for component rendering, TailwindCSS class application verification, and shadcn/ui component integration tests"
+      },
+      {
+        "id": 2,
+        "title": "Implement File Upload Interface with React Dropzone",
+        "status": "pending",
+        "details": "Install and configure React Dropzone for .xlsm file handling. Create FileUpload component with drag-and-drop zone, file validation (type, size limits), and visual feedback states. Implement file preview showing filename, size, and upload status. Add error handling for invalid file types and oversized files. Include accessibility features like keyboard navigation and screen reader support.",
+        "description": "Build drag-and-drop file upload interface specifically for .xlsm files with validation, file type checking, and upload progress tracking",
+        "dependencies": [
+          1
+        ],
+        "testStrategy": "File upload integration tests, drag-and-drop functionality testing, file validation unit tests, and accessibility compliance testing"
+      },
+      {
+        "id": 3,
+        "title": "Build Real-time Progress Tracking System",
+        "status": "pending",
+        "details": "Implement ProgressTracker component using shadcn/ui Progress component. Create status management system with stages (upload, validation, transformation, preview). Add real-time progress updates using WebSocket or polling mechanism. Integrate Browser Notification API for completion alerts with permission handling. Include loading states, error states, and success confirmations with appropriate visual feedback.",
+        "description": "Create progress indicators and status tracking for file validation and transformation stages with real-time updates and Browser Notification API integration",
+        "dependencies": [
+          2
+        ],
+        "testStrategy": "Progress tracking unit tests, notification API integration tests, real-time update functionality testing, and cross-browser notification compatibility tests"
+      },
+      {
+        "id": 4,
+        "title": "Develop Data Preview Interface with Warning System",
+        "status": "pending",
+        "details": "Build DataPreview component using shadcn/ui Table component to display first 10 rows of processed data. Implement warning highlight system for data validation issues using conditional styling. Create WarningBanner component for displaying validation messages and errors. Add data formatting and cell-level error indicators. Include responsive table design with horizontal scrolling for large datasets.",
+        "description": "Create data preview component showing first 10 rows of uploaded data with warning highlights, validation error display, and warning banner system",
+        "dependencies": [
+          3
+        ],
+        "testStrategy": "Data preview rendering tests, warning highlight functionality tests, responsive design testing, and data validation display verification"
+      },
+      {
+        "id": 5,
+        "title": "Build Tabbed Management Interface and Export Functionality",
+        "status": "pending",
+        "details": "Implement TabsInterface component using shadcn/ui Tabs for Rules and Lookups management. Create RulesManager and LookupsManager components with CRUD operations. Build ExportOptions component with CSV merge and ZIP download functionality using file-saver library. Ensure WCAG 2.1 AA compliance with proper ARIA labels, keyboard navigation, and color contrast. Implement responsive design for desktop browsers with mobile-friendly fallbacks.",
+        "description": "Create tabbed interface for Rules and Lookups management with export options for merged CSV or ZIP download, ensuring responsive design and accessibility compliance",
+        "dependencies": [
+          4
+        ],
+        "testStrategy": "Tabbed interface navigation tests, export functionality integration tests, accessibility compliance testing (WCAG 2.1 AA), responsive design testing, and end-to-end user flow testing"
+      }
+    ],
+    "description": "Build React SPA with TailwindCSS, file upload interface, real-time progress tracking, and data preview functionality",
+    "dependencies": [
+      3
+    ],
+    "testStrategy": "Component unit tests, file upload integration tests, UI/UX testing for accessibility compliance, cross-browser compatibility tests, and end-to-end user flow testing"
+  },
+  {
+    "id": 5,
+    "title": "Lookup Management and Export System",
+    "status": "pending",
+    "details": "Build lookup management system for three tables (TradeNet Members, Suppliers, Programs & Products) with CSV upload for full replacement, inline add/edit/delete functionality, search/filter capabilities, and optional auto-backup of last 3 CSV snapshots. Implement export system generating merged CSV files with naming convention BBG_Rebates_Q{quarter}_{year}_{timestamp}.csv or individual CSV files in ZIP format with manifest.txt. Create activity logging system with 90-day retention, auto-cleanup, and run details tracking (run_id, timestamp, files processed, row counts, warnings, duration, status).",
+    "priority": "medium",
+    "subtasks": [
+      {
+        "id": 1,
+        "title": "Implement Lookup Table Management Interface",
+        "status": "pending",
+        "details": "Build web interface with data grids for each lookup table supporting inline add/edit/delete operations. Implement search and filter functionality with real-time updates. Create modal dialogs for complex edits. Use appropriate validation for each table's data structure and business rules. Implement pagination for large datasets and ensure responsive design.",
+        "description": "Create the core lookup table management interface for TradeNet Members, Suppliers, and Programs & Products tables with CRUD operations, search/filter capabilities, and inline editing functionality.",
+        "dependencies": [],
+        "testStrategy": "Unit tests for CRUD operations, UI automation tests for inline editing, search/filter functionality tests, and validation rule tests"
+      },
+      {
+        "id": 2,
+        "title": "Develop CSV Upload and Backup System",
+        "status": "pending",
+        "details": "Create file upload component with CSV parsing and validation. Implement full table replacement logic with transaction rollback on errors. Build backup system that automatically saves the last 3 CSV snapshots before replacement. Include comprehensive error reporting for invalid data, duplicate entries, and format issues. Ensure atomic operations to prevent partial updates.",
+        "description": "Implement CSV file upload functionality for full table replacement with validation, error handling, and optional auto-backup of the last 3 CSV snapshots for each lookup table.",
+        "dependencies": [
+          1
+        ],
+        "testStrategy": "CSV format validation tests, file upload error handling tests, backup creation and rotation tests, and transaction rollback tests"
+      },
+      {
+        "id": 3,
+        "title": "Build Export System with CSV and ZIP Generation",
+        "status": "pending",
+        "details": "Implement export service that can generate single merged CSV or multiple individual CSV files. Create ZIP packaging functionality with manifest.txt containing file metadata. Implement proper file naming conventions with quarter/year/timestamp formatting. Add export options UI allowing users to select merge vs individual file export. Ensure proper handling of large datasets with streaming for memory efficiency.",
+        "description": "Create export functionality that generates merged CSV files with BBG_Rebates_Q{quarter}_{year}_{timestamp}.csv naming convention or individual CSV files packaged in ZIP format with manifest.txt.",
+        "dependencies": [
+          1
+        ],
+        "testStrategy": "Export file generation tests, ZIP packaging tests, naming convention validation tests, and large dataset handling tests"
+      },
+      {
+        "id": 4,
+        "title": "Implement Activity Logging System",
+        "status": "pending",
+        "details": "Design and implement logging database schema with fields for run_id, timestamp, operation type, files processed, row counts, warnings, duration, and status. Create logging service that captures all CRUD operations, CSV uploads, exports, and system events. Implement structured logging with proper categorization and severity levels. Ensure logging is non-blocking and doesn't impact system performance.",
+        "description": "Create comprehensive activity logging system that tracks all lookup table operations, export activities, and system events with detailed run information including run_id, timestamp, files processed, row counts, warnings, duration, and status.",
+        "dependencies": [
+          1,
+          2,
+          3
+        ],
+        "testStrategy": "Logging accuracy tests, performance impact tests, log data integrity tests, and concurrent operation logging tests"
+      },
+      {
+        "id": 5,
+        "title": "Implement Data Retention and Auto-Cleanup System",
+        "status": "pending",
+        "details": "Implement scheduled cleanup job that automatically removes activity logs older than 90 days. Create configurable retention policies with different rules for different log types. Build maintenance dashboard showing cleanup statistics and system health. Implement safe deletion with archival options and recovery mechanisms. Add monitoring and alerting for cleanup job failures.",
+        "description": "Create automated data retention system with 90-day retention policy for activity logs, auto-cleanup functionality, and maintenance scheduling to ensure optimal system performance.",
+        "dependencies": [
+          4
+        ],
+        "testStrategy": "Retention policy tests, auto-cleanup scheduling tests, data archival and recovery tests, and cleanup job monitoring tests"
+      }
+    ],
+    "description": "Implement lookup table management interface and CSV/ZIP export functionality with activity logging",
+    "dependencies": [
+      4
+    ],
+    "testStrategy": "CRUD operation tests for lookup tables, CSV import/export validation, ZIP file generation tests, activity logging accuracy tests, and data retention/cleanup automation tests"
+  }
+]

@@ -95,30 +95,56 @@ class DataTransformer:
         Returns:
             Long-format DataFrame with one row per product per transaction
         """
-        # Identify base columns (non-product columns)
-        # These typically include: Date, Job Code, Job Name, Address fields, etc.
-        base_columns = [col for col in df.columns if col and 'product' not in str(col).lower()]
-
         # Get product column names from indices
         product_columns = []
         product_id_map = {}
 
         for col_idx, product_id in active_products.items():
-            col_name = df.columns[col_idx - 1]  # Convert 1-indexed to 0-indexed
-            product_columns.append(col_name)
-            product_id_map[col_name] = product_id
+            if col_idx - 1 < len(df.columns):
+                col_name = df.columns[col_idx - 1]  # Convert 1-indexed to 0-indexed
+                product_columns.append(col_name)
+                product_id_map[col_name] = product_id
 
         if not product_columns:
             raise TransformationError("No product columns found to unpivot")
 
+        # Expected base column names (case-insensitive matching)
+        expected_base_columns = [
+            'date', 'jobcode', 'job code', 'job_code',
+            'address', 'city', 'state', 'zip', 'postal',
+            'multi-unit', 'comm', 'address_type', 'occupancy'
+        ]
+
+        # Select only the base columns that exist in the DataFrame
+        base_columns = []
+        for col in df.columns:
+            if col not in product_columns and col is not None:
+                # Check if this column name matches expected base columns
+                col_lower = str(col).lower().strip()
+                if any(expected in col_lower for expected in expected_base_columns):
+                    base_columns.append(col)
+
+        # If we didn't find enough base columns, just take the first N columns that aren't products
+        if len(base_columns) < 5:
+            # Fallback: take first 10 non-product columns
+            base_columns = []
+            for col in df.columns[:20]:  # Check first 20 columns
+                if col not in product_columns and col is not None and str(col).strip():
+                    base_columns.append(col)
+                if len(base_columns) >= 10:
+                    break
+
         # Unpivot using pandas melt
-        df_long = pd.melt(
-            df,
-            id_vars=base_columns,
-            value_vars=product_columns,
-            var_name='product_column',
-            value_name='quantity'
-        )
+        try:
+            df_long = pd.melt(
+                df,
+                id_vars=base_columns,
+                value_vars=product_columns,
+                var_name='product_column',
+                value_name='quantity'
+            )
+        except Exception as e:
+            raise TransformationError(f"Failed to unpivot data: {str(e)}. Base columns: {len(base_columns)}, Product columns: {len(product_columns)}")
 
         # Add product ID based on column name
         df_long['product_id'] = df_long['product_column'].map(product_id_map)

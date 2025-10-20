@@ -46,19 +46,20 @@ class ExcelProcessor:
         except Exception as e:
             raise ExcelProcessingError(f"Failed to open Excel file: {str(e)}")
 
-    def find_reformatter_sheet(self) -> None:
-        """Locate the 'reformatter' sheet (may be hidden)."""
+    def find_usage_reporting_sheet(self) -> None:
+        """Locate the 'Usage-Reporting' sheet with the actual data."""
         if not self.workbook:
             raise ExcelProcessingError("Workbook not loaded. Call open_file() first.")
 
-        # Try to find sheet by name (case-insensitive)
+        # Try to find Usage-Reporting sheet (case-insensitive)
         for sheet_name in self.workbook.sheetnames:
-            if 'reformatter' in sheet_name.lower():
+            sheet_lower = sheet_name.lower()
+            if 'usage' in sheet_lower and 'report' in sheet_lower:
                 self.reformatter_sheet = self.workbook[sheet_name]
                 return
 
         raise ExcelProcessingError(
-            "Reformatter sheet not found. Expected a sheet with 'reformatter' in the name."
+            "Usage-Reporting sheet not found. Expected a sheet with 'usage' and 'report' in the name."
         )
 
     def extract_metadata(self) -> Dict[str, str]:
@@ -68,9 +69,9 @@ class ExcelProcessor:
             Dictionary with bbg_member_id and member_name
         """
         if not self.reformatter_sheet:
-            raise ExcelProcessingError("Reformatter sheet not loaded.")
+            raise ExcelProcessingError("Usage-Reporting sheet not loaded.")
 
-        # Extract B6 and B7
+        # In Usage-Reporting: B6 = Member ID, B7 = Member Name
         bbg_member_id = self.reformatter_sheet['B6'].value
         member_name = self.reformatter_sheet['B7'].value
 
@@ -123,7 +124,7 @@ class ExcelProcessor:
         )
 
     def identify_active_products(self, header_row: int) -> Dict[int, str]:
-        """Identify active product columns (Row 2=1) and extract product IDs (Row 7).
+        """Identify active product columns using Row 2 (active flag = 1) and Row 7 (product IDs).
 
         Args:
             header_row: The row number where headers are located
@@ -132,7 +133,7 @@ class ExcelProcessor:
             Dictionary mapping column index to product ID
         """
         if not self.reformatter_sheet:
-            raise ExcelProcessingError("Reformatter sheet not loaded.")
+            raise ExcelProcessingError("Usage-Reporting sheet not loaded.")
 
         active_products = {}
 
@@ -141,18 +142,26 @@ class ExcelProcessor:
         row_2 = self.reformatter_sheet[2]
         row_7 = self.reformatter_sheet[7]
 
-        for idx, (active_cell, product_cell) in enumerate(zip(row_2, row_7), start=1):
-            # Check if this column is active (Row 2 = 1)
-            if active_cell.value == 1:
-                product_id = product_cell.value
+        # Iterate through all columns
+        max_col = self.reformatter_sheet.max_column
+        for col_idx in range(1, max_col + 1):
+            active_flag = row_2[col_idx - 1].value if col_idx <= len(row_2) else None
+            product_id = row_7[col_idx - 1].value if col_idx <= len(row_7) else None
 
-                if product_id:
-                    active_products[idx] = str(product_id).strip()
+            # Check if this column is active (Row 2 = 1) AND has a product ID in Row 7
+            if active_flag == 1 and product_id:
+                # Validate it's a real product ID (numeric)
+                try:
+                    if isinstance(product_id, (int, float)):
+                        active_products[col_idx] = str(int(product_id))
+                    elif str(product_id).isdigit():
+                        active_products[col_idx] = str(product_id).strip()
+                except:
+                    pass  # Skip invalid entries
 
         if not active_products:
             raise ExcelProcessingError(
-                "No active products found. Expected Row 2 to contain '1' for active products "
-                "and Row 7 to contain product IDs."
+                "No active products found. Expected Row 2 = 1 for active columns and numeric product IDs in Row 7."
             )
 
         return active_products

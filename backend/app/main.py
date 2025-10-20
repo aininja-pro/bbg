@@ -2,8 +2,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 
 from app.config import settings
+from app.database import init_db, close_db
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    # Startup: Initialize database
+    await init_db()
+    yield
+    # Shutdown: Close database connections
+    await close_db()
+
 
 app = FastAPI(
     title="BBG Rebate Processing API",
@@ -11,6 +24,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # CORS Configuration
@@ -38,7 +52,7 @@ async def health_check():
     """Detailed health check endpoint."""
     return {
         "status": "healthy",
-        "database": "not_configured",  # Will update when DB is set up
+        "database": "connected",
         "services": {
             "api": "running",
             "file_processing": "ready",

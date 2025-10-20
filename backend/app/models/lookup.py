@@ -1,0 +1,51 @@
+"""Lookup table models for TradeNet Members, Suppliers, and Programs & Products."""
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, DateTime, Text
+from app.database import Base
+
+
+class TradeNetMember(Base):
+    """TradeNet Members lookup table."""
+
+    __tablename__ = "lookup_members"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tradenet_company_id = Column(String(100), nullable=False, index=True)
+    bbg_member_id = Column(String(100), nullable=False, index=True)
+    member_name = Column(String(255), nullable=False)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<TradeNetMember(id={self.id}, name={self.member_name})>"
+
+
+class Supplier(Base):
+    """TradeNet Suppliers lookup table."""
+
+    __tablename__ = "lookup_suppliers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    tradenet_supplier_id = Column(String(100), nullable=False, index=True, unique=True)
+    supplier_name = Column(String(255), nullable=False)
+    contact_info = Column(Text, nullable=True)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<Supplier(id={self.id}, name={self.supplier_name})>"
+
+
+class ProgramProduct(Base):
+    """Programs & Products lookup table."""
+
+    __tablename__ = "lookup_products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    program_id = Column(String(100), nullable=False, index=True)
+    program_name = Column(String(255), nullable=False)
+    product_id = Column(String(100), nullable=False, index=True)
+    product_name = Column(String(255), nullable=False)
+    proof_point = Column(String(255), nullable=True)
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<ProgramProduct(id={self.id}, product={self.product_name})>"

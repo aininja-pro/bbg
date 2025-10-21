@@ -44,23 +44,39 @@ function App() {
   const handleDownload = async () => {
     if (!selectedFile) return
 
+    setIsProcessing(true)
+    setError(null)
+
     try {
+      console.log('Starting download...')
       // Process and download CSV
       const blob = await api.processAndDownload(selectedFile)
+      console.log('Got blob:', blob.size, 'bytes')
 
       // Create download link
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${selectedFile.name.replace('.xlsm', '')}_processed.csv`
+      const filename = `${selectedFile.name.replace('.xlsm', '').replace('.xlsx', '')}_processed.csv`
+      a.download = filename
       document.body.appendChild(a)
+
+      console.log('Triggering download:', filename)
       a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+
+      // Clean up
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }, 100)
 
       setDownloadSuccess(true)
+      setPreviewData(null) // Clear preview after download
     } catch (err) {
-      setError(err.message)
+      console.error('Download error:', err)
+      setError(err.message || 'Download failed')
+    } finally {
+      setIsProcessing(false)
     }
   }
 

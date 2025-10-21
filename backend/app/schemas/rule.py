@@ -7,6 +7,7 @@ from enum import Enum
 
 class RuleType(str, Enum):
     """Supported rule types."""
+    SUPPLIER_OVERRIDE = "supplier_override"  # Supplier mapping rules
     SEARCH_REPLACE = "search_replace"
     IF_THEN_UPDATE = "if_then_update"
     IF_THEN_SET = "if_then_set"

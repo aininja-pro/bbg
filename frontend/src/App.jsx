@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { FileUpload } from './components/upload/FileUpload'
+import { DataPreview } from './components/preview/DataPreview'
 import { Button } from './components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/Card'
 import { api } from './services/api'
@@ -7,13 +8,15 @@ import { api } from './services/api'
 function App() {
   const [selectedFile, setSelectedFile] = useState(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [result, setResult] = useState(null)
+  const [previewData, setPreviewData] = useState(null)
   const [error, setError] = useState(null)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
 
   const handleFileSelect = (file) => {
     setSelectedFile(file)
-    setResult(null)
+    setPreviewData(null)
     setError(null)
+    setDownloadSuccess(false)
   }
 
   const handleProcess = async () => {
@@ -21,6 +24,25 @@ function App() {
 
     setIsProcessing(true)
     setError(null)
+
+    try {
+      // Upload file and get preview
+      const result = await api.uploadFile(selectedFile)
+
+      if (result.success) {
+        setPreviewData(result.data)
+      } else {
+        setError('Processing failed')
+      }
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleDownload = async () => {
+    if (!selectedFile) return
 
     try {
       // Process and download CSV
@@ -36,15 +58,17 @@ function App() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
 
-      setResult({
-        success: true,
-        filename: a.download,
-      })
+      setDownloadSuccess(true)
     } catch (err) {
       setError(err.message)
-    } finally {
-      setIsProcessing(false)
     }
+  }
+
+  const handleReset = () => {
+    setSelectedFile(null)
+    setPreviewData(null)
+    setError(null)
+    setDownloadSuccess(false)
   }
 
   return (
@@ -73,23 +97,34 @@ function App() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          {/* Upload Section */}
-          <FileUpload onFileSelect={handleFileSelect} isProcessing={isProcessing} />
+          {/* Upload Section - Only show if no preview */}
+          {!previewData && (
+            <FileUpload onFileSelect={handleFileSelect} isProcessing={isProcessing} />
+          )}
 
           {/* Process Button */}
-          {selectedFile && !isProcessing && !result && (
+          {selectedFile && !isProcessing && !previewData && (
             <div className="flex justify-center">
               <Button onClick={handleProcess} size="lg" className="px-12">
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Process File
+                Process & Preview
               </Button>
             </div>
           )}
 
+          {/* Preview Section */}
+          {previewData && !downloadSuccess && (
+            <DataPreview
+              data={previewData}
+              onDownload={handleDownload}
+              onCancel={handleReset}
+            />
+          )}
+
           {/* Success Message */}
-          {result && result.success && (
+          {downloadSuccess && (
             <Card className="max-w-2xl mx-auto border-green-200 bg-green-50">
               <CardContent className="pt-6">
                 <div className="flex items-start space-x-4">
@@ -103,13 +138,10 @@ function App() {
                       Processing Complete!
                     </h3>
                     <p className="mt-1 text-sm text-green-700">
-                      Your CSV file has been downloaded: <span className="font-mono font-semibold">{result.filename}</span>
+                      Your CSV file has been downloaded successfully. Ready for FMS import!
                     </p>
                     <Button
-                      onClick={() => {
-                        setSelectedFile(null)
-                        setResult(null)
-                      }}
+                      onClick={handleReset}
                       variant="outline"
                       size="sm"
                       className="mt-4"
@@ -154,7 +186,7 @@ function App() {
           )}
 
           {/* Info Cards */}
-          {!selectedFile && !isProcessing && (
+          {!selectedFile && !isProcessing && !previewData && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
               <Card>
                 <CardHeader>

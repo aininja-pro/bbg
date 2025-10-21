@@ -1,91 +1,9 @@
 import { useState } from 'react'
-import { FileUpload } from './components/upload/FileUpload'
-import { DataPreview } from './components/preview/DataPreview'
-import { Button } from './components/ui/Button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/Card'
-import { api } from './services/api'
+import { UploadPage } from './pages/UploadPage'
+import { RulesManager } from './components/rules/RulesManager'
 
 function App() {
-  const [selectedFile, setSelectedFile] = useState(null)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [previewData, setPreviewData] = useState(null)
-  const [error, setError] = useState(null)
-  const [downloadSuccess, setDownloadSuccess] = useState(false)
-
-  const handleFileSelect = (file) => {
-    setSelectedFile(file)
-    setPreviewData(null)
-    setError(null)
-    setDownloadSuccess(false)
-  }
-
-  const handleProcess = async () => {
-    if (!selectedFile) return
-
-    setIsProcessing(true)
-    setError(null)
-
-    try {
-      // Upload file and get preview
-      const result = await api.uploadFile(selectedFile)
-
-      if (result.success) {
-        setPreviewData(result.data)
-      } else {
-        setError('Processing failed')
-      }
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const handleDownload = async () => {
-    if (!selectedFile) return
-
-    setIsProcessing(true)
-    setError(null)
-
-    try {
-      console.log('Starting download...')
-      // Process and download CSV
-      const blob = await api.processAndDownload(selectedFile)
-      console.log('Got blob:', blob.size, 'bytes')
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      const filename = `${selectedFile.name.replace('.xlsm', '').replace('.xlsx', '')}_processed.csv`
-      a.download = filename
-      document.body.appendChild(a)
-
-      console.log('Triggering download:', filename)
-      a.click()
-
-      // Clean up
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      }, 100)
-
-      setDownloadSuccess(true)
-      setPreviewData(null) // Clear preview after download
-    } catch (err) {
-      console.error('Download error:', err)
-      setError(err.message || 'Download failed')
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  const handleReset = () => {
-    setSelectedFile(null)
-    setPreviewData(null)
-    setError(null)
-    setDownloadSuccess(false)
-  }
+  const [activeTab, setActiveTab] = useState('upload')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
@@ -110,144 +28,49 @@ function App() {
         </div>
       </header>
 
+      {/* Navigation Tabs */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('upload')}
+              className={`
+                py-4 px-1 inline-flex items-center border-b-2 font-medium text-sm transition-colors
+                ${activeTab === 'upload'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              Upload & Process
+            </button>
+
+            <button
+              onClick={() => setActiveTab('rules')}
+              className={`
+                py-4 px-1 inline-flex items-center border-b-2 font-medium text-sm transition-colors
+                ${activeTab === 'rules'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              Rules Engine
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="space-y-8">
-          {/* Upload Section - Only show if no preview */}
-          {!previewData && (
-            <FileUpload onFileSelect={handleFileSelect} isProcessing={isProcessing} />
-          )}
-
-          {/* Process Button */}
-          {selectedFile && !isProcessing && !previewData && (
-            <div className="flex justify-center">
-              <Button onClick={handleProcess} size="lg" className="px-12">
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Process & Preview
-              </Button>
-            </div>
-          )}
-
-          {/* Preview Section */}
-          {previewData && !downloadSuccess && (
-            <DataPreview
-              data={previewData}
-              onDownload={handleDownload}
-              onCancel={handleReset}
-            />
-          )}
-
-          {/* Success Message */}
-          {downloadSuccess && (
-            <Card className="max-w-2xl mx-auto border-green-200 bg-green-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-green-900">
-                      Processing Complete!
-                    </h3>
-                    <p className="mt-1 text-sm text-green-700">
-                      Your CSV file has been downloaded successfully. Ready for FMS import!
-                    </p>
-                    <Button
-                      onClick={handleReset}
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                    >
-                      Process Another File
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Error Message */}
-          {error && (
-            <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
-              <CardContent className="pt-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-red-900">
-                      Processing Error
-                    </h3>
-                    <p className="mt-1 text-sm text-red-700">
-                      {error}
-                    </p>
-                    <Button
-                      onClick={() => setError(null)}
-                      variant="outline"
-                      size="sm"
-                      className="mt-4"
-                    >
-                      Dismiss
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Info Cards */}
-          {!selectedFile && !isProcessing && !previewData && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-              <Card>
-                <CardHeader>
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                  <CardTitle className="text-lg">Fast Processing</CardTitle>
-                  <CardDescription>
-                    Process files in under 2 minutes. What used to take weeks now takes seconds.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <CardTitle className="text-lg">Automatic Validation</CardTitle>
-                  <CardDescription>
-                    Built-in data validation and enrichment with TradeNet lookups.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                  </div>
-                  <CardTitle className="text-lg">FMS Ready</CardTitle>
-                  <CardDescription>
-                    CSV output is formatted and ready for direct FMS import.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-          )}
-        </div>
+        {activeTab === 'upload' && <UploadPage />}
+        {activeTab === 'rules' && <RulesManager />}
       </main>
 
       {/* Footer */}

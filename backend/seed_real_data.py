@@ -39,7 +39,7 @@ async def load_suppliers(csv_path: str) -> list[Supplier]:
 
             supplier = Supplier(
                 tradenet_supplier_id=row['TradeNet Company ID'],
-                supplier_name=row['Full Company Name'],
+                supplier_name=row['Company Name'],  # Use short name (Column D), not Full Company Name
                 contact_info=row.get('Website', '') or None,
                 last_updated=datetime.utcnow()
             )

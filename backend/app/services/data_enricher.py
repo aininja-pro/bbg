@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.lookup import TradeNetMember, Supplier, ProgramProduct
+from app.models.rule import Rule
 from app.utils.exceptions import LookupError
 
 
@@ -21,13 +22,23 @@ class DataEnricher:
         self.members_cache: Dict[str, TradeNetMember] = {}
         self.suppliers_cache: Dict[str, Supplier] = {}
         self.products_cache: Dict[str, ProgramProduct] = {}
+        self.supplier_rules: List[Rule] = []
 
     async def load_lookups(self) -> None:
-        """Pre-load all lookup tables into memory for fast access."""
+        """Pre-load all lookup tables and rules into memory for fast access."""
         # Load members
         result = await self.db.execute(select(TradeNetMember))
         members = result.scalars().all()
         self.members_cache = {m.bbg_member_id: m for m in members}
+
+        # Load supplier rules (enabled only, ordered by priority)
+        result = await self.db.execute(
+            select(Rule)
+            .where(Rule.enabled == True)
+            .where(Rule.rule_type == 'supplier_override')
+            .order_by(Rule.priority)
+        )
+        self.supplier_rules = list(result.scalars().all())
 
         # Load suppliers
         result = await self.db.execute(select(Supplier))
@@ -94,49 +105,42 @@ class DataEnricher:
         return df
 
     def apply_supplier_rules(self, product_id: str, default_supplier: str) -> str:
-        """Apply business rules for supplier name overrides.
+        """Apply business rules for supplier name overrides from database.
 
         Args:
             product_id: The product ID
             default_supplier: Default supplier name from Programs-Products Column A
 
         Returns:
-            Final supplier name after applying rules
+            Final supplier name after applying enabled rules
         """
-        # Special rule: "Day & Night Heating & Cooling" is Carrier
-        if default_supplier == "Day & Night Heating & Cooling":
-            return "Carrier"
+        supplier_name = default_supplier
 
-        # Rule 1: Product 5534 → Air Vent
-        if '5534' in product_id:
-            return 'Air Vent'
+        # Apply each enabled rule in priority order
+        for rule in self.supplier_rules:
+            config = rule.config
+            condition = config.get('condition', {})
 
-        # Rule 2: Product 5531 → CertainTeed
-        if '5531' in product_id:
-            return 'CertainTeed'
+            # Check if rule condition matches
+            rule_applies = False
 
-        # Rule 3: Product 5406 → Air Vent
-        if '5406' in product_id:
-            return 'Air Vent'
+            # Check supplier_name_equals condition
+            if 'supplier_name_equals' in condition:
+                if supplier_name == condition['supplier_name_equals']:
+                    rule_applies = True
 
-        # Rule 4: Product 5407 → CertainTeed
-        if '5407' in product_id:
-            return 'CertainTeed'
+            # Check product_id_contains condition
+            if 'product_id_contains' in condition:
+                if condition['product_id_contains'] in product_id:
+                    rule_applies = True
 
-        # Rule 5: Product 5255 → Heatilator (Hearth & Home)
-        if '5255' in product_id:
-            return 'Heatilator (Hearth & Home)'
+            # If rule applies, update supplier name
+            if rule_applies:
+                supplier_name = config.get('set_supplier', supplier_name)
+                # Stop after first matching rule (rules are in priority order)
+                break
 
-        # Rule 7: Product 5270 → Leading Edge
-        if '5270' in product_id:
-            return 'Leading Edge'
-
-        # Rule 8: Product 5350 → Leading Edge
-        if '5350' in product_id:
-            return 'Leading Edge'
-
-        # Default: Use program name from Programs-Products Column A (98% of cases)
-        return default_supplier
+        return supplier_name
 
     async def enrich_product_info(self, df: pd.DataFrame) -> pd.DataFrame:
         """Enrich with Program & Product information, including supplier mapping.

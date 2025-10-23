@@ -244,12 +244,12 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null }) {
             <div className="space-y-3">
               {conditions.map((condition, index) => (
                 <div key={index} className="flex items-start space-x-2">
-                  <div className="flex-1 grid grid-cols-3 gap-2">
+                  <div className="flex-1 flex gap-2">
                     {/* Field */}
                     <select
                       value={condition.field}
                       onChange={(e) => updateCondition(index, 'field', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                       {AVAILABLE_FIELDS.map(field => (
                         <option key={field} value={field}>{field}</option>
@@ -260,7 +260,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null }) {
                     <select
                       value={condition.operator}
                       onChange={(e) => updateCondition(index, 'operator', e.target.value)}
-                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                     >
                       {getOperatorsForField(condition.field).map(op => (
                         <option key={op.value} value={op.value}>{op.label}</option>
@@ -274,7 +274,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null }) {
                         value={condition.value}
                         onChange={(e) => updateCondition(index, 'value', e.target.value)}
                         placeholder="Value"
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                       />
                     )}
                   </div>

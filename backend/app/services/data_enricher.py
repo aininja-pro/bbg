@@ -381,6 +381,55 @@ class DataEnricher:
 
         return df
 
+    def apply_flexible_rules(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply flexible IF-THEN-ELSE rules to the entire DataFrame.
+
+        This runs AFTER all enrichment is complete, so all fields are available.
+        Applies rules in priority order to each row.
+
+        Args:
+            df: Fully enriched DataFrame
+
+        Returns:
+            DataFrame with rules applied
+        """
+        # Apply each enabled rule in priority order
+        for rule in self.supplier_rules:
+            # Only process if_then_else rules (new format)
+            if rule.rule_type != 'if_then_else':
+                continue
+
+            config = rule.config
+            condition = config.get('condition', {})
+            then_action = config.get('then_action', {})
+            else_action = config.get('else_action', {})
+
+            # Skip if no then_action
+            if not then_action:
+                continue
+
+            target_field = then_action.get('field')
+            then_value = then_action.get('value')
+
+            # Apply rule to each row
+            for idx, row in df.iterrows():
+                # Convert row to dict for condition evaluation
+                row_data = row.to_dict()
+
+                # Evaluate condition
+                if self._evaluate_condition(row_data, condition):
+                    # Condition matched - apply THEN action
+                    df.at[idx, target_field] = then_value
+                else:
+                    # Condition didn't match - apply ELSE action if exists
+                    if else_action:
+                        else_value = else_action.get('value')
+                        # Handle $(field_name) references - keep original value
+                        if not (else_value and else_value.startswith('$(') and else_value.endswith(')')):
+                            df.at[idx, target_field] = else_value
+
+        return df
+
     async def enrich_all(self, df: pd.DataFrame, file_products: Dict[str, Dict[str, Any]] = None) -> pd.DataFrame:
         """Run all enrichment steps.
 
@@ -406,6 +455,9 @@ class DataEnricher:
 
         # Match supplier name to TradeNet directory
         df = await self.match_supplier_from_name(df)
+
+        # Apply flexible rules AFTER all enrichment (so all fields are available)
+        df = self.apply_flexible_rules(df)
 
         return df
 

@@ -134,13 +134,51 @@ export function RulesManager() {
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{rule.name}</h4>
                   <p className="text-sm text-gray-500 mt-1">
-                    {rule.config.condition && Object.entries(rule.config.condition).map(([key, value]) => (
-                      <span key={key}>
-                        {key.replace(/_/g, ' ')}: <span className="font-mono">{value}</span>
-                        {' → '}
-                      </span>
-                    ))}
-                    <span className="font-semibold">{rule.config.set_supplier}</span>
+                    {/* Display rule condition summary */}
+                    {rule.config.condition && (() => {
+                      const condition = rule.config.condition;
+
+                      // OLD FORMAT: supplier_name_equals or product_id_contains
+                      if (condition.supplier_name_equals) {
+                        return (
+                          <span>
+                            supplier name equals: <span className="font-mono">{condition.supplier_name_equals}</span>
+                            {' → '}
+                          </span>
+                        );
+                      }
+                      if (condition.product_id_contains) {
+                        return (
+                          <span>
+                            product id contains: <span className="font-mono">{condition.product_id_contains}</span>
+                            {' → '}
+                          </span>
+                        );
+                      }
+
+                      // NEW FORMAT: flexible rules
+                      if (condition.logic && condition.rules) {
+                        return (
+                          <span>
+                            {condition.rules.map((r, i) => (
+                              <span key={i}>
+                                {i > 0 && <span className="font-semibold"> {condition.logic} </span>}
+                                <span className="font-mono">{r.field} {r.operator} {r.value}</span>
+                              </span>
+                            ))}
+                            {' → '}
+                          </span>
+                        );
+                      }
+
+                      return null;
+                    })()}
+
+                    {/* Display action */}
+                    <span className="font-semibold">
+                      {rule.config.set_supplier ||
+                       (rule.config.then_action && `${rule.config.then_action.field} = ${rule.config.then_action.value}`)}
+                    </span>
                   </p>
                 </div>
 

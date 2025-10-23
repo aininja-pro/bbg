@@ -186,13 +186,22 @@ class DataEnricher:
 
             product = self.products_cache.get(str(product_id))
             if product:
-                # Get supplier name from Program (Column A) - 98% of cases
-                supplier_name = product.program_name
+                # Handle both database objects and file dicts
+                if isinstance(product, dict):
+                    # File-based product (dict)
+                    product_name = product.get('product_name')
+                    proof_point = product.get('proof_point')
+                    supplier_name = product.get('program_name')  # Program = Supplier in 98% of cases
+                else:
+                    # Database product (object)
+                    product_name = product.product_name
+                    proof_point = product.proof_point
+                    supplier_name = product.program_name
 
                 # Apply business rule overrides (2% of cases)
                 supplier_name = self.apply_supplier_rules(str(product_id), supplier_name)
 
-                return product.product_name, product.proof_point, supplier_name
+                return product_name, proof_point, supplier_name
             return None, None, None
 
         # Apply lookup
@@ -251,17 +260,23 @@ class DataEnricher:
 
         return df
 
-    async def enrich_all(self, df: pd.DataFrame) -> pd.DataFrame:
+    async def enrich_all(self, df: pd.DataFrame, file_products: Dict[str, Dict[str, Any]] = None) -> pd.DataFrame:
         """Run all enrichment steps.
 
         Args:
             df: Transformed DataFrame
+            file_products: Optional dict of products from the uploaded file
 
         Returns:
             Fully enriched DataFrame
         """
         # Load all lookups once
         await self.load_lookups()
+
+        # Use file products if provided, otherwise use database products
+        if file_products:
+            # Override products_cache with file-specific products
+            self.products_cache = file_products
 
         # Enrich in sequence
         df = await self.enrich_member_info(df)

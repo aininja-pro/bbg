@@ -51,10 +51,13 @@ class ProcessingPipeline:
             # Step 4: Detect header row
             header_row = self.processor.detect_header_row()
 
-            # Step 5: Identify active products
+            # Step 5: Extract Programs-Products from this file
+            file_products = self.processor.extract_programs_products()
+
+            # Step 6: Identify active products
             active_products = self.processor.identify_active_products(header_row)
 
-            # Step 6: Transform data (unpivot, convert dates, standardize)
+            # Step 7: Transform data (unpivot, convert dates, standardize)
             df = self.transformer.transform(
                 self.processor.reformatter_sheet,
                 header_row,
@@ -62,8 +65,8 @@ class ProcessingPipeline:
                 metadata
             )
 
-            # Step 7: Enrich with lookup tables
-            df = await self.enricher.enrich_all(df)
+            # Step 8: Enrich with lookup tables (pass file-specific products)
+            df = await self.enricher.enrich_all(df, file_products=file_products)
 
             # Step 8: Identify warnings
             self.warnings = self.enricher.identify_warnings(df)

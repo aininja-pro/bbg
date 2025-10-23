@@ -26,7 +26,9 @@ class ExcelProcessor:
         self.file_path = Path(file_path)
         self.workbook: Optional[openpyxl.Workbook] = None
         self.reformatter_sheet: Optional[Worksheet] = None
+        self.programs_products_sheet: Optional[Worksheet] = None
         self.metadata: Dict[str, Any] = {}
+        self.file_products: Dict[str, Dict[str, Any]] = {}  # Product lookup from this file
 
     def open_file(self) -> None:
         """Open the Excel file and validate it exists."""
@@ -188,6 +190,63 @@ class ExcelProcessor:
             )
 
         return active_products
+
+    def extract_programs_products(self) -> Dict[str, Dict[str, Any]]:
+        """Extract Programs-Products data from the Excel file.
+
+        Returns:
+            Dictionary mapping product_id to product info (program, name, proof_point)
+        """
+        if not self.workbook:
+            raise ExcelProcessingError("Workbook not loaded.")
+
+        # Find Programs-Products sheet
+        programs_sheet = None
+        for sheet_name in self.workbook.sheetnames:
+            if 'program' in sheet_name.lower() and 'product' in sheet_name.lower():
+                programs_sheet = self.workbook[sheet_name]
+                break
+
+        if not programs_sheet:
+            # If no Programs-Products sheet, return empty dict
+            return {}
+
+        self.programs_products_sheet = programs_sheet
+        products = {}
+
+        # Read using cell references directly (more reliable than iter_rows)
+        # Row 1 = headers, Row 2+ = data
+        max_row = programs_sheet.max_row
+
+        for row_num in range(2, max_row + 1):  # Start at row 2 (skip headers)
+            program = programs_sheet.cell(row_num, 1).value  # Column A
+            product_id = programs_sheet.cell(row_num, 2).value  # Column B
+            product_name = programs_sheet.cell(row_num, 3).value  # Column C
+            proof_point = programs_sheet.cell(row_num, 4).value  # Column D
+
+            # Skip empty rows
+            if not product_id or not product_name:
+                continue
+
+            # Skip header rows that might be repeated (Program="Product ID" is a header)
+            if str(program).strip() == 'Product ID' or str(program).strip() == 'Program':
+                continue
+
+            # Convert product_id to string
+            if isinstance(product_id, (int, float)):
+                product_id_str = str(int(product_id))
+            else:
+                product_id_str = str(product_id).strip()
+
+
+            products[product_id_str] = {
+                'program_name': str(program).strip() if program else None,
+                'product_name': str(product_name).strip() if product_name else None,
+                'proof_point': str(proof_point).strip() if proof_point and str(proof_point) != 'None' else None,
+            }
+
+        self.file_products = products
+        return products
 
     def get_column_letter(self, col_idx: int) -> str:
         """Convert column index to Excel column letter (e.g., 1 -> A, 27 -> AA).

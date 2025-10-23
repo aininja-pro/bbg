@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card'
 import { Button } from '../ui/Button'
+import { AddRuleModal } from './AddRuleModal'
 
 export function RulesManager() {
   const [rules, setRules] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingRule, setEditingRule] = useState(null)
 
   useEffect(() => {
     fetchRules()
@@ -49,6 +52,41 @@ export function RulesManager() {
     }
   }
 
+  const handleSaveRule = async (ruleConfig) => {
+    try {
+      const url = editingRule
+        ? `http://localhost:8001/api/rules/${editingRule.id}`
+        : 'http://localhost:8001/api/rules'
+
+      const method = editingRule ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ruleConfig),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save rule')
+      }
+
+      fetchRules()
+      setEditingRule(null)
+    } catch (err) {
+      throw err
+    }
+  }
+
+  const handleEditRule = (rule) => {
+    setEditingRule(rule)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingRule(null)
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-12">
@@ -67,7 +105,7 @@ export function RulesManager() {
               Manage business rules for supplier name overrides. Rules are applied in priority order.
             </CardDescription>
           </div>
-          <Button>
+          <Button onClick={() => setIsModalOpen(true)}>
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -132,7 +170,7 @@ export function RulesManager() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => alert('Edit feature coming soon!')}
+                  onClick={() => handleEditRule(rule)}
                 >
                   Edit
                 </Button>
@@ -155,6 +193,13 @@ export function RulesManager() {
           )}
         </div>
       </CardContent>
+
+      <AddRuleModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveRule}
+        editingRule={editingRule}
+      />
     </Card>
   )
 }

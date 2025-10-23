@@ -31,11 +31,10 @@ class DataEnricher:
         members = result.scalars().all()
         self.members_cache = {m.bbg_member_id: m for m in members}
 
-        # Load supplier rules (enabled only, ordered by priority)
+        # Load ALL enabled rules (both old and new formats), ordered by priority
         result = await self.db.execute(
             select(Rule)
             .where(Rule.enabled == True)
-            .where(Rule.rule_type == 'supplier_override')
             .order_by(Rule.priority)
         )
         self.supplier_rules = list(result.scalars().all())
@@ -129,8 +128,116 @@ class DataEnricher:
 
         return df
 
+    def _evaluate_operator(self, field_value: Any, operator: str, compare_value: Any) -> bool:
+        """Evaluate a single operator condition.
+
+        Args:
+            field_value: The actual field value from the row
+            operator: The comparison operator
+            compare_value: The value to compare against
+
+        Returns:
+            True if condition matches, False otherwise
+        """
+        try:
+            # Handle None/empty values
+            if field_value is None:
+                field_value = ""
+
+            field_str = str(field_value).strip()
+
+            # Text operators
+            if operator == "equals":
+                return field_str == str(compare_value)
+            elif operator == "not_equals":
+                return field_str != str(compare_value)
+            elif operator == "contains":
+                return str(compare_value) in field_str
+            elif operator == "not_contains":
+                return str(compare_value) not in field_str
+            elif operator == "starts_with":
+                return field_str.startswith(str(compare_value))
+            elif operator == "ends_with":
+                return field_str.endswith(str(compare_value))
+            elif operator == "is_empty":
+                return field_str == ""
+            elif operator == "is_not_empty":
+                return field_str != ""
+
+            # Numeric operators
+            elif operator in ["greater_than", "less_than", "greater_or_equal", "less_or_equal"]:
+                try:
+                    field_num = float(field_value)
+                    compare_num = float(compare_value)
+                    if operator == "greater_than":
+                        return field_num > compare_num
+                    elif operator == "less_than":
+                        return field_num < compare_num
+                    elif operator == "greater_or_equal":
+                        return field_num >= compare_num
+                    elif operator == "less_or_equal":
+                        return field_num <= compare_num
+                except (ValueError, TypeError):
+                    return False
+
+            # List operators
+            elif operator == "in":
+                return field_value in compare_value  # compare_value should be a list
+            elif operator == "not_in":
+                return field_value not in compare_value
+
+            return False
+        except Exception:
+            return False
+
+    def _evaluate_condition(self, row_data: Dict[str, Any], condition: Dict[str, Any]) -> bool:
+        """Evaluate a condition (supports both old and new formats).
+
+        Args:
+            row_data: Dictionary with field values for current row
+            condition: Condition configuration
+
+        Returns:
+            True if condition matches, False otherwise
+        """
+        # OLD FORMAT: Check legacy supplier_name_equals
+        if 'supplier_name_equals' in condition:
+            supplier_name = row_data.get('supplier_name', '')
+            return supplier_name == condition['supplier_name_equals']
+
+        # OLD FORMAT: Check legacy product_id_contains
+        if 'product_id_contains' in condition:
+            product_id = str(row_data.get('product_id', ''))
+            return condition['product_id_contains'] in product_id
+
+        # NEW FORMAT: Flexible conditions with AND/OR logic
+        if 'logic' in condition and 'rules' in condition:
+            logic = condition.get('logic', 'AND')
+            rules = condition.get('rules', [])
+
+            results = []
+            for rule_condition in rules:
+                field = rule_condition.get('field')
+                operator = rule_condition.get('operator')
+                value = rule_condition.get('value')
+
+                field_value = row_data.get(field)
+                result = self._evaluate_operator(field_value, operator, value)
+                results.append(result)
+
+            # Apply logic
+            if logic == 'AND':
+                return all(results) if results else False
+            elif logic == 'OR':
+                return any(results) if results else False
+
+        return False
+
     def apply_supplier_rules(self, product_id: str, default_supplier: str) -> str:
         """Apply business rules for supplier name overrides from database.
+
+        LEGACY METHOD: Maintained for backwards compatibility.
+        Only handles supplier_name field transformations.
 
         Args:
             product_id: The product ID
@@ -139,31 +246,45 @@ class DataEnricher:
         Returns:
             Final supplier name after applying enabled rules
         """
+        row_data = {
+            'product_id': product_id,
+            'supplier_name': default_supplier
+        }
+
         supplier_name = default_supplier
 
         # Apply each enabled rule in priority order
         for rule in self.supplier_rules:
+            # Only process supplier_override and if_then_else rules that target supplier_name
+            if rule.rule_type not in ['supplier_override', 'if_then_else']:
+                continue
+
             config = rule.config
             condition = config.get('condition', {})
 
             # Check if rule condition matches
-            rule_applies = False
+            if self._evaluate_condition(row_data, condition):
+                # OLD FORMAT: set_supplier
+                if 'set_supplier' in config:
+                    supplier_name = config['set_supplier']
+                    break
 
-            # Check supplier_name_equals condition
-            if 'supplier_name_equals' in condition:
-                if supplier_name == condition['supplier_name_equals']:
-                    rule_applies = True
-
-            # Check product_id_contains condition
-            if 'product_id_contains' in condition:
-                if condition['product_id_contains'] in product_id:
-                    rule_applies = True
-
-            # If rule applies, update supplier name
-            if rule_applies:
-                supplier_name = config.get('set_supplier', supplier_name)
-                # Stop after first matching rule (rules are in priority order)
-                break
+                # NEW FORMAT: then_action
+                then_action = config.get('then_action', {})
+                if then_action.get('field') == 'supplier_name':
+                    supplier_name = then_action.get('value', supplier_name)
+                    break
+            else:
+                # ELSE action (NEW FORMAT only)
+                else_action = config.get('else_action', {})
+                if else_action and else_action.get('field') == 'supplier_name':
+                    value = else_action.get('value', supplier_name)
+                    # Handle $(field_name) references
+                    if value and value.startswith('$(') and value.endswith(')'):
+                        # Keep original value (e.g., $(supplier_name))
+                        pass
+                    else:
+                        supplier_name = value
 
         return supplier_name
 

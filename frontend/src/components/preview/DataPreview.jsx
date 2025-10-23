@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card'
 import { Button } from '../ui/Button'
 
@@ -7,16 +8,16 @@ export function DataPreview({ data, onDownload, onCancel }) {
   }
 
   const columns = Object.keys(data.preview[0])
-  const previewRows = data.preview.slice(0, 10) // First 10 rows
+  const allRows = data.preview
 
   return (
-    <Card className="w-full">
+    <Card className="w-full max-w-[95vw]">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Data Preview</CardTitle>
             <CardDescription>
-              Showing first 10 of {data.total_rows} rows processed for {data.member_name}
+              Scroll to view all {data.total_rows} rows processed for {data.member_name}
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
@@ -46,15 +47,15 @@ export function DataPreview({ data, onDownload, onCancel }) {
           </div>
         )}
 
-        {/* Table */}
-        <div className="overflow-x-auto rounded-lg border border-gray-200">
+        {/* Scrollable Table Container */}
+        <div className="overflow-auto rounded-lg border border-gray-200" style={{ maxHeight: '500px' }}>
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
                 {columns.map((col) => (
                   <th
                     key={col}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap bg-gray-50"
                   >
                     {col.replace(/_/g, ' ')}
                   </th>
@@ -62,7 +63,7 @@ export function DataPreview({ data, onDownload, onCancel }) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {previewRows.map((row, idx) => (
+              {allRows.map((row, idx) => (
                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                   {columns.map((col) => (
                     <td key={col} className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
@@ -73,6 +74,10 @@ export function DataPreview({ data, onDownload, onCancel }) {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="mt-2 text-sm text-gray-500 text-center">
+          Showing all {allRows.length} rows - scroll to view more
         </div>
 
         {/* Actions */}

@@ -66,7 +66,7 @@ async def upload_file(
                     "bbg_member_id": result['metadata']['bbg_member_id'],
                     "total_rows": result['total_rows'],
                     "active_products": result['active_products'],
-                    "preview": result['preview'][:10],  # First 10 rows
+                    "preview": result['preview'],  # All rows for frontend pagination
                     "warnings": result['warnings']
                 }
             }

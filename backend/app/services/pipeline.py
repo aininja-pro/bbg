@@ -89,7 +89,7 @@ class ProcessingPipeline:
                 'total_rows': len(df),
                 'active_products': len(active_products),
                 'warnings': self.warnings,
-                'preview': df.head(10).to_dict('records') if len(df) > 0 else []
+                'preview': df.to_dict('records') if len(df) > 0 else []  # Send ALL rows for preview
             }
 
         except Exception as e:

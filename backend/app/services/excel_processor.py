@@ -65,27 +65,39 @@ class ExcelProcessor:
     def extract_metadata(self) -> Dict[str, str]:
         """Extract metadata from cells B6 (bbg_member_id) and B7 (member_name).
 
+        Supports both OLD and NEW formats:
+        - NEW: B6 has member ID, B7 has member name
+        - OLD: B6 is blank, B7 has member name (ID must be looked up)
+
         Returns:
-            Dictionary with bbg_member_id and member_name
+            Dictionary with bbg_member_id and member_name (ID may be None for old format)
         """
         if not self.reformatter_sheet:
             raise ExcelProcessingError("Usage-Reporting sheet not loaded.")
 
-        # In Usage-Reporting: B6 = Member ID, B7 = Member Name
+        # Extract B6 and B7
         bbg_member_id = self.reformatter_sheet['B6'].value
         member_name = self.reformatter_sheet['B7'].value
 
-        # Validate metadata exists
-        if not bbg_member_id:
-            raise ExcelProcessingError("Cell B6 (BBG Member ID) is empty")
-
+        # Validate member name exists (required in both formats)
         if not member_name:
             raise ExcelProcessingError("Cell B7 (Member Name) is empty")
 
-        self.metadata = {
-            'bbg_member_id': str(bbg_member_id).strip(),
-            'member_name': str(member_name).strip(),
-        }
+        # Handle OLD format: B6 is blank, need to lookup ID by name later
+        if not bbg_member_id:
+            # Old format - store as None, will be looked up during enrichment
+            self.metadata = {
+                'bbg_member_id': None,
+                'member_name': str(member_name).strip(),
+                'format': 'OLD'  # Flag for old format
+            }
+        else:
+            # New format - has ID in B6
+            self.metadata = {
+                'bbg_member_id': str(bbg_member_id).strip(),
+                'member_name': str(member_name).strip(),
+                'format': 'NEW'
+            }
 
         return self.metadata
 

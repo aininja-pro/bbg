@@ -53,24 +53,49 @@ class DataEnricher:
     async def enrich_member_info(self, df: pd.DataFrame) -> pd.DataFrame:
         """Enrich with TradeNet Member information.
 
+        Handles both OLD and NEW formats:
+        - NEW: bbg_member_id is provided, just lookup tradenet_company_id
+        - OLD: bbg_member_id is None, lookup by member_name first
+
         Args:
-            df: DataFrame with bbg_member_id column
+            df: DataFrame with bbg_member_id and member_name columns
 
         Returns:
-            DataFrame with added tradenet_company_id
+            DataFrame with added tradenet_company_id and filled bbg_member_id
         """
         if not self.members_cache:
             await self.load_lookups()
 
-        def get_tradenet_id(bbg_id):
-            """Lookup tradenet company ID by BBG member ID."""
-            if not bbg_id:
-                return None
+        # Create reverse lookup: member_name → member
+        name_to_member = {}
+        for bbg_id, member in self.members_cache.items():
+            name_to_member[member.member_name] = member
 
-            member = self.members_cache.get(str(bbg_id))
-            return member.tradenet_company_id if member else None
+        def get_member_info(row):
+            """Lookup member info by ID or name."""
+            bbg_id = row['bbg_member_id']
+            member_name = row['member_name']
 
-        df['tradenet_company_id'] = df['bbg_member_id'].apply(get_tradenet_id)
+            # If bbg_id exists (NEW format), use it
+            if bbg_id:
+                member = self.members_cache.get(str(bbg_id))
+                if member:
+                    return member.tradenet_company_id, bbg_id
+                return None, bbg_id
+
+            # If bbg_id is None (OLD format), lookup by name
+            if member_name:
+                member = name_to_member.get(member_name)
+                if member:
+                    return member.tradenet_company_id, member.bbg_member_id
+
+            return None, None
+
+        # Apply lookup
+        member_info = df.apply(get_member_info, axis=1)
+        df['tradenet_company_id'] = member_info.apply(lambda x: x[0])
+        # Fill in bbg_member_id for OLD format files
+        df['bbg_member_id'] = member_info.apply(lambda x: x[1])
 
         return df
 

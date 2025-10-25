@@ -237,6 +237,7 @@ export function RulesManager() {
         onClose={handleCloseModal}
         onSave={handleSaveRule}
         editingRule={editingRule}
+        existingRules={rules}
       />
     </Card>
   )

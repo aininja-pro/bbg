@@ -41,7 +41,7 @@ const NUMERIC_OPERATORS = [
 
 const NUMERIC_FIELDS = ['bbg_member_id', 'quantity', 'tradenet_supplier_id', 'tradenet_company_id']
 
-export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null }) {
+export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, existingRules = [] }) {
   const [ruleName, setRuleName] = useState('')
   const [conditionLogic, setConditionLogic] = useState('AND')
   const [conditions, setConditions] = useState([
@@ -142,11 +142,17 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null }) {
       return
     }
 
+    // Calculate next priority (max + 1)
+    const maxPriority = existingRules.length > 0
+      ? Math.max(...existingRules.map(r => r.priority))
+      : 0
+    const nextPriority = maxPriority + 1
+
     // Build rule config
     const ruleConfig = {
       name: ruleName,
       rule_type: 'if_then_else',
-      priority: editingRule ? editingRule.priority : 999, // Will be auto-assigned by backend
+      priority: editingRule ? editingRule.priority : nextPriority,
       enabled: true,
       config: {
         condition: {

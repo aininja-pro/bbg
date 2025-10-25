@@ -2,6 +2,7 @@
 import os
 import tempfile
 import uuid
+import zipfile
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from fastapi.responses import FileResponse, StreamingResponse
@@ -156,3 +157,106 @@ async def process_and_download(
     finally:
         if temp_file_path and os.path.exists(temp_file_path):
             os.unlink(temp_file_path)
+
+
+@router.post("/batch-process")
+async def batch_process(
+    files: List[UploadFile] = File(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """Process multiple Excel files at once.
+
+    Returns a ZIP file with individual CSVs for each processed file.
+    """
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No files provided"
+        )
+
+    # Validate all files
+    for file in files:
+        if not file.filename.endswith(('.xlsm', '.xlsx')):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid file type: {file.filename}. Only .xlsm and .xlsx files are supported."
+            )
+
+    temp_files = []
+    processed_results = []
+
+    try:
+        # Process each file
+        for file in files:
+            # Save temp file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                temp_path = temp_file.name
+                temp_files.append(temp_path)
+                content = await file.read()
+                temp_file.write(content)
+
+            # Process file
+            pipeline = ProcessingPipeline(db)
+            result = await pipeline.process_file(temp_path)
+
+            if result['success']:
+                df = pipeline.get_dataframe()
+                processed_results.append({
+                    'filename': file.filename,
+                    'df': df,
+                    'metadata': result['metadata'],
+                    'rows': result['total_rows']
+                })
+            else:
+                # If any file fails, include it in response but continue
+                processed_results.append({
+                    'filename': file.filename,
+                    'error': result.get('error', 'Unknown error'),
+                    'rows': 0
+                })
+
+        # Create ZIP file with individual CSVs
+        zip_buffer = io.BytesIO()
+
+        # Create ZIP and write CSV files
+        with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
+            for result in processed_results:
+                if 'df' in result:
+                    # Create CSV for this file
+                    csv_data = result['df'].to_csv(index=False)
+
+                    # Generate filename
+                    original_name = result['filename'].replace('.xlsm', '').replace('.xlsx', '')
+                    csv_filename = f"{original_name}_processed.csv"
+
+                    # Add to ZIP - encode as bytes
+                    zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
+
+        # Get the full bytes AFTER closing the ZIP
+        zip_bytes = zip_buffer.getvalue()
+
+        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+        zip_filename = f"Batch_Processed_{len(processed_results)}_files_{timestamp}.zip"
+
+        return StreamingResponse(
+            io.BytesIO(zip_bytes),
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f"attachment; filename={zip_filename}"
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Batch processing error: {str(e)}"
+        )
+    finally:
+        # Clean up all temp files
+        for temp_path in temp_files:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+

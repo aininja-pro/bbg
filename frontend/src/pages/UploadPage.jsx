@@ -6,7 +6,9 @@ import { Card, CardContent } from '../components/ui/Card'
 import { api } from '../services/api'
 
 export function UploadPage() {
+  const [batchMode, setBatchMode] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
+  const [selectedFiles, setSelectedFiles] = useState([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [previewData, setPreviewData] = useState(null)
   const [error, setError] = useState(null)
@@ -17,6 +19,21 @@ export function UploadPage() {
     setPreviewData(null)
     setError(null)
     setDownloadSuccess(false)
+  }
+
+  const handleFilesSelect = (files) => {
+    setSelectedFiles(files)
+    setPreviewData(null)
+    setError(null)
+    setDownloadSuccess(false)
+  }
+
+  const handleBatchModeToggle = () => {
+    setBatchMode(!batchMode)
+    setSelectedFile(null)
+    setSelectedFiles([])
+    setPreviewData(null)
+    setError(null)
   }
 
   const handleProcess = async () => {
@@ -70,22 +87,88 @@ export function UploadPage() {
     }
   }
 
+  const handleBatchDownload = async () => {
+    if (selectedFiles.length === 0) return
+
+    setIsProcessing(true)
+    setError(null)
+
+    try {
+      const blob = await api.batchProcess(selectedFiles)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+      const filename = `Batch_Processed_${selectedFiles.length}_files_${timestamp}.zip`
+
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }, 100)
+
+      setDownloadSuccess(true)
+    } catch (err) {
+      setError(err.message || 'Batch processing failed')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
   const handleReset = () => {
     setSelectedFile(null)
+    setSelectedFiles([])
     setPreviewData(null)
     setError(null)
     setDownloadSuccess(false)
   }
 
+  const hasFiles = batchMode ? selectedFiles.length > 0 : selectedFile !== null
+
   return (
     <div className="space-y-8">
-      {/* Upload Section */}
-      {!previewData && (
-        <FileUpload onFileSelect={handleFileSelect} isProcessing={isProcessing} />
+      {/* Batch Mode Toggle */}
+      {!previewData && !downloadSuccess && (
+        <div className="flex justify-center">
+          <Card className="inline-block">
+            <CardContent className="pt-6">
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={batchMode}
+                  onChange={handleBatchModeToggle}
+                  disabled={isProcessing}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900">
+                    Batch Mode
+                  </span>
+                  <p className="text-xs text-gray-500">Process multiple files at once</p>
+                </div>
+              </label>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
+      {/* Upload Section */}
+      {!previewData && !downloadSuccess && (
+        <FileUpload
+          onFileSelect={handleFileSelect}
+          onFilesSelect={handleFilesSelect}
+          isProcessing={isProcessing}
+          batchMode={batchMode}
+        />
+      )}
+
+
       {/* Process Button */}
-      {selectedFile && !isProcessing && !previewData && (
+      {!batchMode && selectedFile && !isProcessing && !previewData && !downloadSuccess && (
         <div className="flex justify-center">
           <Button onClick={handleProcess} size="lg" className="px-12">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,6 +177,35 @@ export function UploadPage() {
             Process & Preview
           </Button>
         </div>
+      )}
+
+      {/* Batch Process Button */}
+      {batchMode && selectedFiles.length > 0 && !isProcessing && !downloadSuccess && (
+        <div className="flex justify-center">
+          <Button onClick={handleBatchDownload} size="lg" className="px-12">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Process & Download {selectedFiles.length} Files
+          </Button>
+        </div>
+      )}
+
+      {/* Processing Indicator */}
+      {isProcessing && (
+        <Card className="max-w-2xl mx-auto border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div>
+                <h3 className="text-lg font-medium text-blue-900">Processing...</h3>
+                <p className="text-sm text-blue-700">
+                  {batchMode ? `Processing ${selectedFiles.length} files...` : 'Processing file...'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Preview */}
@@ -116,10 +228,13 @@ export function UploadPage() {
               <div className="flex-1">
                 <h3 className="text-lg font-medium text-green-900">Processing Complete!</h3>
                 <p className="mt-1 text-sm text-green-700">
-                  Your CSV file has been downloaded successfully. Ready for FMS import!
+                  {batchMode
+                    ? `${selectedFiles.length} files processed successfully. Individual CSVs bundled in a ZIP file.`
+                    : 'Your CSV file has been downloaded successfully. Ready for FMS import!'
+                  }
                 </p>
                 <Button onClick={handleReset} variant="outline" size="sm" className="mt-4">
-                  Process Another File
+                  Process {batchMode ? 'More' : 'Another'} File{batchMode ? 's' : ''}
                 </Button>
               </div>
             </div>
@@ -148,7 +263,7 @@ export function UploadPage() {
       )}
 
       {/* Info Cards */}
-      {!selectedFile && !isProcessing && !previewData && (
+      {!hasFiles && !isProcessing && !previewData && !downloadSuccess && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
           <Card>
             <div className="p-6">
@@ -171,9 +286,9 @@ export function UploadPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Automatic Validation</h3>
+              <h3 className="text-lg font-semibold mb-2">Batch Processing</h3>
               <p className="text-sm text-gray-500">
-                Built-in data validation and enrichment with TradeNet lookups.
+                Process hundreds of files at once. Merged CSV or individual files in a ZIP.
               </p>
             </div>
           </Card>

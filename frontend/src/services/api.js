@@ -50,6 +50,30 @@ export const api = {
   },
 
   /**
+   * Batch process multiple files
+   * @param {File[]} files - Array of Excel files to process
+   * @returns {Promise<Blob>} - ZIP file blob containing individual CSVs
+   */
+  async batchProcess(files) {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/api/batch-process`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Batch processing failed' }));
+      throw new Error(error.detail || 'Failed to process files');
+    }
+
+    return await response.blob();
+  },
+
+  /**
    * Health check
    * @returns {Promise<Object>}
    */

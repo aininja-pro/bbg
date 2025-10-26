@@ -52,15 +52,16 @@ export const api = {
   /**
    * Batch process multiple files
    * @param {File[]} files - Array of Excel files to process
-   * @returns {Promise<Blob>} - ZIP file blob containing individual CSVs
+   * @param {string} outputMode - 'merged' for single CSV or 'zip' for ZIP archive
+   * @returns {Promise<Blob>} - ZIP or CSV file blob
    */
-  async batchProcess(files) {
+  async batchProcess(files, outputMode = 'zip') {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
     });
 
-    const response = await fetch(`${API_BASE_URL}/api/batch-process`, {
+    const response = await fetch(`${API_BASE_URL}/api/batch-process?output_mode=${outputMode}`, {
       method: 'POST',
       body: formData,
     });

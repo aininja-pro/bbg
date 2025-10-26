@@ -9,6 +9,7 @@ export function UploadPage() {
   const [batchMode, setBatchMode] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFiles, setSelectedFiles] = useState([])
+  const [outputMode, setOutputMode] = useState('zip')
   const [isProcessing, setIsProcessing] = useState(false)
   const [previewData, setPreviewData] = useState(null)
   const [error, setError] = useState(null)
@@ -22,6 +23,12 @@ export function UploadPage() {
   }
 
   const handleFilesSelect = (files) => {
+    // Check if exceeds limit
+    if (files.length > 50) {
+      setError(`Maximum batch size is 50 files. You selected ${files.length} files. Please reduce the number of files.`)
+      return
+    }
+
     setSelectedFiles(files)
     setPreviewData(null)
     setError(null)
@@ -87,20 +94,79 @@ export function UploadPage() {
     }
   }
 
-  const handleBatchDownload = async () => {
+  const handleBatchProcess = async () => {
     if (selectedFiles.length === 0) return
 
     setIsProcessing(true)
     setError(null)
 
     try {
-      const blob = await api.batchProcess(selectedFiles)
+      // If merged mode, get preview first (like single file mode)
+      if (outputMode === 'merged') {
+        const blob = await api.batchProcess(selectedFiles, outputMode)
+
+        // Parse CSV to show preview
+        const text = await blob.text()
+        const rows = text.split('\n').filter(row => row.trim())
+        const headers = rows[0].split(',')
+        const dataRows = rows.slice(1).map(row => {
+          const values = row.split(',')
+          return headers.reduce((obj, header, index) => {
+            obj[header] = values[index]
+            return obj
+          }, {})
+        })
+
+        // Show preview
+        setPreviewData({
+          preview: dataRows,
+          total_rows: dataRows.length,
+          member_name: `${selectedFiles.length} files merged`,
+          bbg_member_id: 'Batch',
+        })
+      } else {
+        // ZIP mode - direct download (no preview)
+        const blob = await api.batchProcess(selectedFiles, outputMode)
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+        const filename = `Batch_Processed_${selectedFiles.length}_files_${timestamp}.zip`
+
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }, 100)
+
+        setDownloadSuccess(true)
+      }
+    } catch (err) {
+      setError(err.message || 'Batch processing failed')
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleBatchDownload = async () => {
+    // This is called from preview after user confirms
+    if (selectedFiles.length === 0) return
+
+    setIsProcessing(true)
+    setError(null)
+
+    try {
+      const blob = await api.batchProcess(selectedFiles, 'merged')
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-      const filename = `Batch_Processed_${selectedFiles.length}_files_${timestamp}.zip`
+      const filename = `Batch_Merged_${selectedFiles.length}_files_${timestamp}.csv`
 
       a.download = filename
       document.body.appendChild(a)
@@ -112,8 +178,9 @@ export function UploadPage() {
       }, 100)
 
       setDownloadSuccess(true)
+      setPreviewData(null)
     } catch (err) {
-      setError(err.message || 'Batch processing failed')
+      setError(err.message || 'Batch download failed')
     } finally {
       setIsProcessing(false)
     }
@@ -131,26 +198,66 @@ export function UploadPage() {
 
   return (
     <div className="space-y-8">
-      {/* Batch Mode Toggle */}
+      {/* Batch Mode Toggle & Output Format */}
       {!previewData && !downloadSuccess && (
         <div className="flex justify-center">
           <Card className="inline-block">
             <CardContent className="pt-6">
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={batchMode}
-                  onChange={handleBatchModeToggle}
-                  disabled={isProcessing}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                />
-                <div>
-                  <span className="text-sm font-medium text-gray-900">
-                    Batch Mode
-                  </span>
-                  <p className="text-xs text-gray-500">Process multiple files at once</p>
-                </div>
-              </label>
+              <div className="space-y-4">
+                {/* Batch Mode Checkbox */}
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={batchMode}
+                    onChange={handleBatchModeToggle}
+                    disabled={isProcessing}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">
+                      Batch Mode
+                    </span>
+                    <p className="text-xs text-gray-500">Process up to 50 files at once</p>
+                  </div>
+                </label>
+
+                {/* Output Format (shown when batch mode is enabled) */}
+                {batchMode && (
+                  <div className="pt-4 border-t">
+                    <label className="block text-sm font-medium text-gray-700 mb-3">
+                      Output Format
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          value="merged"
+                          checked={outputMode === 'merged'}
+                          onChange={(e) => setOutputMode(e.target.value)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">Merged CSV</span>
+                          <p className="text-xs text-gray-500">Single CSV with all data combined</p>
+                        </div>
+                      </label>
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                          type="radio"
+                          value="zip"
+                          checked={outputMode === 'zip'}
+                          onChange={(e) => setOutputMode(e.target.value)}
+                          className="w-4 h-4 text-blue-600"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-gray-900">ZIP Archive</span>
+                          <p className="text-xs text-gray-500">Separate CSV files in a ZIP</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -180,13 +287,13 @@ export function UploadPage() {
       )}
 
       {/* Batch Process Button */}
-      {batchMode && selectedFiles.length > 0 && !isProcessing && !downloadSuccess && (
+      {batchMode && selectedFiles.length > 0 && !isProcessing && !downloadSuccess && !previewData && (
         <div className="flex justify-center">
-          <Button onClick={handleBatchDownload} size="lg" className="px-12">
+          <Button onClick={handleBatchProcess} size="lg" className="px-12">
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Process & Download {selectedFiles.length} Files
+            {outputMode === 'merged' ? `Process & Preview ${selectedFiles.length} Files` : `Process & Download ${selectedFiles.length} Files`}
           </Button>
         </div>
       )}
@@ -212,7 +319,7 @@ export function UploadPage() {
       {previewData && !downloadSuccess && (
         <DataPreview
           data={previewData}
-          onDownload={handleDownload}
+          onDownload={batchMode ? handleBatchDownload : handleDownload}
           onCancel={handleReset}
         />
       )}
@@ -229,7 +336,7 @@ export function UploadPage() {
                 <h3 className="text-lg font-medium text-green-900">Processing Complete!</h3>
                 <p className="mt-1 text-sm text-green-700">
                   {batchMode
-                    ? `${selectedFiles.length} files processed successfully. Individual CSVs bundled in a ZIP file.`
+                    ? `${selectedFiles.length} files processed successfully. ${outputMode === 'merged' ? 'All data merged into a single CSV.' : 'Individual CSVs bundled in a ZIP file.'}`
                     : 'Your CSV file has been downloaded successfully. Ready for FMS import!'
                   }
                 </p>

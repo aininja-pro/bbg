@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     # File Upload
     MAX_FILE_SIZE_MB: int = 50
+    MAX_BATCH_FILES: int = 50
     UPLOAD_TIMEOUT_SECONDS: int = 300
 
     # Activity Logs

@@ -156,7 +156,7 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
           <div className="mt-6 space-y-2">
             <div className="flex items-center justify-between mb-2">
               <h4 className="text-sm font-medium text-gray-700">
-                {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} ready
+                {selectedFiles.length} / 50 file{selectedFiles.length > 1 ? 's' : ''} ready
               </h4>
               <Button
                 onClick={() => {

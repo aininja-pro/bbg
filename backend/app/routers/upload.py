@@ -162,16 +162,29 @@ async def process_and_download(
 @router.post("/batch-process")
 async def batch_process(
     files: List[UploadFile] = File(...),
+    output_mode: str = "zip",  # "zip" or "merged" via query parameter
     db: AsyncSession = Depends(get_db)
 ):
     """Process multiple Excel files at once.
 
-    Returns a ZIP file with individual CSVs for each processed file.
+    Args:
+        files: List of Excel files to process
+        output_mode: "zip" for individual CSVs in ZIP, "merged" for single combined CSV
+
+    Returns:
+        ZIP file with individual CSVs OR single merged CSV
     """
     if not files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No files provided"
+        )
+
+    # Check batch size limit
+    if len(files) > settings.MAX_BATCH_FILES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Too many files. Maximum batch size is {settings.MAX_BATCH_FILES} files."
         )
 
     # Validate all files
@@ -215,36 +228,66 @@ async def batch_process(
                     'rows': 0
                 })
 
-        # Create ZIP file with individual CSVs
-        zip_buffer = io.BytesIO()
+        # Generate output based on mode
+        if output_mode == "merged":
+            # Merge all successful DataFrames into one CSV
+            dfs_to_merge = [r['df'] for r in processed_results if 'df' in r]
 
-        # Create ZIP and write CSV files
-        with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
-            for result in processed_results:
-                if 'df' in result:
-                    # Create CSV for this file
-                    csv_data = result['df'].to_csv(index=False)
+            if not dfs_to_merge:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No files were successfully processed"
+                )
 
-                    # Generate filename
-                    original_name = result['filename'].replace('.xlsm', '').replace('.xlsx', '')
-                    csv_filename = f"{original_name}_processed.csv"
+            merged_df = pd.concat(dfs_to_merge, ignore_index=True)
 
-                    # Add to ZIP - encode as bytes
-                    zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
+            # Create CSV
+            csv_buffer = io.StringIO()
+            merged_df.to_csv(csv_buffer, index=False)
+            csv_buffer.seek(0)
 
-        # Get the full bytes AFTER closing the ZIP
-        zip_bytes = zip_buffer.getvalue()
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"Batch_Merged_{len(dfs_to_merge)}_files_{timestamp}.csv"
 
-        timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-        zip_filename = f"Batch_Processed_{len(processed_results)}_files_{timestamp}.zip"
+            return StreamingResponse(
+                iter([csv_buffer.getvalue()]),
+                media_type="text/csv",
+                headers={
+                    "Content-Disposition": f"attachment; filename={filename}"
+                }
+            )
 
-        return StreamingResponse(
-            io.BytesIO(zip_bytes),
-            media_type="application/zip",
-            headers={
-                "Content-Disposition": f"attachment; filename={zip_filename}"
-            }
-        )
+        else:  # output_mode == "zip"
+            # Create ZIP file with individual CSVs
+            zip_buffer = io.BytesIO()
+
+            # Create ZIP and write CSV files
+            with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
+                for result in processed_results:
+                    if 'df' in result:
+                        # Create CSV for this file
+                        csv_data = result['df'].to_csv(index=False)
+
+                        # Generate filename
+                        original_name = result['filename'].replace('.xlsm', '').replace('.xlsx', '')
+                        csv_filename = f"{original_name}_processed.csv"
+
+                        # Add to ZIP - encode as bytes
+                        zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
+
+            # Get the full bytes AFTER closing the ZIP
+            zip_bytes = zip_buffer.getvalue()
+
+            timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
+            zip_filename = f"Batch_Processed_{len(processed_results)}_files_{timestamp}.zip"
+
+            return StreamingResponse(
+                io.BytesIO(zip_bytes),
+                media_type="application/zip",
+                headers={
+                    "Content-Disposition": f"attachment; filename={zip_filename}"
+                }
+            )
 
     except HTTPException:
         raise

@@ -168,14 +168,17 @@ export function MembersTable() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <Button onClick={handleAdd}>
+          <button
+            onClick={handleAdd}
+            className="inline-flex items-center px-4 py-2 bg-[#178dc3] text-white text-sm font-medium rounded-lg hover:bg-[#136a94] transition-colors"
+          >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add New Member
-          </Button>
+            Add New
+          </button>
 
-          <label className="cursor-pointer">
+          <label className={`inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
             <input
               type="file"
               accept=".csv"
@@ -183,31 +186,30 @@ export function MembersTable() {
               className="hidden"
               disabled={uploading}
             />
-            <Button variant="outline" disabled={uploading} asChild>
-              <span>
-                {uploading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#178dc3] mr-2"></div>
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    Bulk Upload CSV
-                  </>
-                )}
-              </span>
-            </Button>
+            {uploading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#178dc3] mr-2"></div>
+                Uploading...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Bulk Upload CSV
+              </>
+            )}
           </label>
 
-          <Button onClick={fetchMembers} variant="outline">
+          <button
+            onClick={fetchMembers}
+            className="inline-flex items-center px-4 py-2 bg-white text-gray-700 text-sm font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+          >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             Refresh
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -357,18 +359,21 @@ export function MembersTable() {
             </div>
 
             <div className="flex justify-end space-x-3 mt-6">
-              <Button
-                variant="outline"
+              <button
                 onClick={() => {
                   setEditingMember(null)
                   setShowAddModal(false)
                 }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
-              </Button>
-              <Button onClick={handleSave}>
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 text-sm font-medium text-white bg-[#178dc3] rounded-lg hover:bg-[#136a94]"
+              >
                 {editingMember ? 'Save Changes' : 'Add Member'}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

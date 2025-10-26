@@ -1,5 +1,6 @@
 """Application configuration management using Pydantic settings."""
-from typing import List
+from typing import List, Union
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,12 +15,20 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     DEBUG: bool = True
 
-    # CORS
-    ALLOWED_ORIGINS: List[str] = [
-        "http://localhost:3000",
-        "http://localhost:5173",
-        "http://localhost:5174",  # Frontend running on 5174
-    ]
+    # CORS - can be comma-separated string or list
+    ALLOWED_ORIGINS: Union[List[str], str] = "http://localhost:3000,http://localhost:5173,http://localhost:5174"
+
+    @field_validator('ALLOWED_ORIGINS', mode='before')
+    @classmethod
+    def parse_origins(cls, v):
+        """Parse ALLOWED_ORIGINS from string or list."""
+        if isinstance(v, str):
+            # Handle comma-separated string
+            if ',' in v:
+                return [origin.strip() for origin in v.split(',')]
+            # Handle single origin or wildcard
+            return [v.strip()]
+        return v
 
     # File Upload
     MAX_FILE_SIZE_MB: int = 50

@@ -127,7 +127,7 @@ export function RulesManager() {
               className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
             >
               <div className="flex items-center space-x-4 flex-1">
-                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded font-semibold text-sm">
+                <div className="flex items-center justify-center w-8 h-8 bg-[#178dc3] bg-opacity-20 text-[#178dc3] rounded font-semibold text-sm">
                   {rule.priority}
                 </div>
 

@@ -100,9 +100,9 @@ export function RulesManager() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Supplier Mapping Rules</CardTitle>
+            <CardTitle>Business Rules Engine</CardTitle>
             <CardDescription>
-              Manage business rules for supplier name overrides. Rules are applied in priority order.
+              Create flexible IF-THEN-ELSE rules on any field with AND/OR logic. Rules are applied in priority order.
             </CardDescription>
           </div>
           <Button onClick={() => setIsModalOpen(true)}>

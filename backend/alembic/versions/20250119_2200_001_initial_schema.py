@@ -24,7 +24,7 @@ def upgrade() -> None:
         'lookup_members',
         sa.Column('id', sa.Integer(), nullable=False),
         sa.Column('tradenet_company_id', sa.String(length=100), nullable=False),
-        sa.Column('bbg_member_id', sa.String(length=100), nullable=False),
+        sa.Column('bbg_member_id', sa.String(length=100), nullable=True),
         sa.Column('member_name', sa.String(length=255), nullable=False),
         sa.Column('last_updated', sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint('id')
@@ -32,6 +32,7 @@ def upgrade() -> None:
     op.create_index(op.f('ix_lookup_members_bbg_member_id'), 'lookup_members', ['bbg_member_id'], unique=False)
     op.create_index(op.f('ix_lookup_members_id'), 'lookup_members', ['id'], unique=False)
     op.create_index(op.f('ix_lookup_members_tradenet_company_id'), 'lookup_members', ['tradenet_company_id'], unique=False)
+    op.create_index(op.f('ix_lookup_members_member_name'), 'lookup_members', ['member_name'], unique=False)
 
     # Create lookup_suppliers table
     op.create_table(
@@ -46,6 +47,7 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_lookup_suppliers_id'), 'lookup_suppliers', ['id'], unique=False)
     op.create_index(op.f('ix_lookup_suppliers_tradenet_supplier_id'), 'lookup_suppliers', ['tradenet_supplier_id'], unique=True)
+    op.create_index(op.f('ix_lookup_suppliers_supplier_name'), 'lookup_suppliers', ['supplier_name'], unique=False)
 
     # Create lookup_products table
     op.create_table(

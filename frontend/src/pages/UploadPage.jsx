@@ -203,7 +203,7 @@ export function UploadPage() {
         <div className="flex justify-center">
           <Card className="inline-block">
             <CardContent className="pt-6">
-              <div className="space-y-4">
+              <div className="flex items-start gap-6">
                 {/* Batch Mode Checkbox */}
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
@@ -223,38 +223,33 @@ export function UploadPage() {
 
                 {/* Output Format (shown when batch mode is enabled) */}
                 {batchMode && (
-                  <div className="pt-4 border-t">
-                    <label className="block text-sm font-medium text-gray-700 mb-3">
-                      Output Format
+                  <div className="flex items-start gap-4 pl-6 border-l-2 border-gray-200">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="merged"
+                        checked={outputMode === 'merged'}
+                        onChange={(e) => setOutputMode(e.target.value)}
+                        className="w-4 h-4 text-[#178dc3]"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">Merged CSV</span>
+                        <p className="text-xs text-gray-500">Single combined file</p>
+                      </div>
                     </label>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          value="merged"
-                          checked={outputMode === 'merged'}
-                          onChange={(e) => setOutputMode(e.target.value)}
-                          className="w-4 h-4 text-[#178dc3]"
-                        />
-                        <div>
-                          <span className="text-sm font-medium text-gray-900">Merged CSV</span>
-                          <p className="text-xs text-gray-500">Single CSV with all data combined</p>
-                        </div>
-                      </label>
-                      <label className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          value="zip"
-                          checked={outputMode === 'zip'}
-                          onChange={(e) => setOutputMode(e.target.value)}
-                          className="w-4 h-4 text-[#178dc3]"
-                        />
-                        <div>
-                          <span className="text-sm font-medium text-gray-900">ZIP Archive</span>
-                          <p className="text-xs text-gray-500">Separate CSV files in a ZIP</p>
-                        </div>
-                      </label>
-                    </div>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="zip"
+                        checked={outputMode === 'zip'}
+                        onChange={(e) => setOutputMode(e.target.value)}
+                        className="w-4 h-4 text-[#178dc3]"
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">ZIP Archive</span>
+                        <p className="text-xs text-gray-500">Individual files</p>
+                      </div>
+                    </label>
                   </div>
                 )}
               </div>

@@ -211,7 +211,7 @@ export function UploadPage() {
                     checked={batchMode}
                     onChange={handleBatchModeToggle}
                     disabled={isProcessing}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-5 h-5 text-[#178dc3] rounded focus:ring-2 focus:ring-blue-500"
                   />
                   <div>
                     <span className="text-sm font-medium text-gray-900">
@@ -234,7 +234,7 @@ export function UploadPage() {
                           value="merged"
                           checked={outputMode === 'merged'}
                           onChange={(e) => setOutputMode(e.target.value)}
-                          className="w-4 h-4 text-blue-600"
+                          className="w-4 h-4 text-[#178dc3]"
                         />
                         <div>
                           <span className="text-sm font-medium text-gray-900">Merged CSV</span>
@@ -247,7 +247,7 @@ export function UploadPage() {
                           value="zip"
                           checked={outputMode === 'zip'}
                           onChange={(e) => setOutputMode(e.target.value)}
-                          className="w-4 h-4 text-blue-600"
+                          className="w-4 h-4 text-[#178dc3]"
                         />
                         <div>
                           <span className="text-sm font-medium text-gray-900">ZIP Archive</span>
@@ -303,7 +303,7 @@ export function UploadPage() {
         <Card className="max-w-2xl mx-auto border-blue-200 bg-blue-50">
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
               <div>
                 <h3 className="text-lg font-medium text-blue-900">Processing...</h3>
                 <p className="text-sm text-blue-700">
@@ -375,7 +375,7 @@ export function UploadPage() {
           <Card>
             <div className="p-6">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6 text-[#178dc3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
@@ -407,9 +407,9 @@ export function UploadPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold mb-2">FMS Ready</h3>
+              <h3 className="text-lg font-semibold mb-2">TradeNet Ready</h3>
               <p className="text-sm text-gray-500">
-                CSV output is formatted and ready for direct FMS import.
+                CSV output is formatted and ready for direct TradeNet import.
               </p>
             </div>
           </Card>

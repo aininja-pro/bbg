@@ -90,7 +90,7 @@ export function RulesManager() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
       </div>
     )
   }
@@ -188,7 +188,7 @@ export function RulesManager() {
                     onClick={() => toggleRule(rule.id, rule.enabled)}
                     className={`
                       relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                      ${rule.enabled ? 'bg-blue-600' : 'bg-gray-200'}
+                      ${rule.enabled ? 'bg-[#178dc3]' : 'bg-gray-200'}
                     `}
                   >
                     <span

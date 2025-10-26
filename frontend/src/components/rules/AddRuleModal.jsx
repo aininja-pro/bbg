@@ -345,7 +345,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
                   type="checkbox"
                   checked={hasElse}
                   onChange={(e) => setHasElse(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  className="w-4 h-4 text-[#178dc3] rounded focus:ring-2 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-700">Enable ELSE action</span>
               </label>

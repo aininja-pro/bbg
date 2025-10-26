@@ -144,7 +144,7 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
 
             {isProcessing && (
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#178dc3]"></div>
                 <span className="text-sm text-gray-600">Processing file...</span>
               </div>
             )}

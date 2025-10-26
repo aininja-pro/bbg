@@ -93,6 +93,19 @@ async def seed_supplier_rules():
                 "set_supplier": "Leading Edge"
             }
         ),
+        Rule(
+            name="Quadplex Rule",
+            rule_type="if_then_else",
+            priority=9,
+            enabled=True,
+            config={
+                "condition": {
+                    "logic": "AND",
+                    "rules": [{"field": "address_type", "operator": "contains", "value": "QuadPlex"}]
+                },
+                "then_action": {"field": "address_type", "value": "MULTI_UNIT"}
+            }
+        ),
     ]
 
     async with AsyncSessionLocal() as db:

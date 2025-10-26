@@ -112,17 +112,35 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
               />
             </svg>
 
-            <div className="space-y-2">
-              <p className="text-lg font-medium text-gray-700">
-                {isDragActive ? 'Drop your files here' : batchMode ? 'Drag & drop files or click to browse' : 'Drag & drop your rebate file'}
-              </p>
-              <p className="text-sm text-gray-500">
-                {batchMode && displayFiles.length > 0 ? 'Add more files by dragging or clicking' : 'or click to browse'}
-              </p>
-              <p className="text-xs text-gray-400 mt-2">
-                Supported formats: .xlsm, .xlsx (Max 50MB{batchMode ? ' per file' : ''})
-              </p>
-            </div>
+            {/* Show selected file in single mode */}
+            {!batchMode && selectedFile && !isProcessing ? (
+              <div className="space-y-2">
+                <svg className="w-12 h-12 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-lg font-medium text-gray-900">
+                  {selectedFile.name}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+                <p className="text-xs text-gray-400">
+                  Click to replace or drag a new file
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-lg font-medium text-gray-700">
+                  {isDragActive ? 'Drop your files here' : batchMode ? 'Drag & drop files or click to browse' : 'Drag & drop your rebate file'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {batchMode && displayFiles.length > 0 ? 'Add more files by dragging or clicking' : 'or click to browse'}
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  Supported formats: .xlsm, .xlsx (Max 50MB{batchMode ? ' per file' : ''})
+                </p>
+              </div>
+            )}
 
             {isProcessing && (
               <div className="flex items-center space-x-2">

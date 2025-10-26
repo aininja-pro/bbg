@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, ConfigDict
 class TradeNetMemberBase(BaseModel):
     """Base schema for TradeNet Member."""
     tradenet_company_id: str = Field(..., max_length=100)
-    bbg_member_id: str = Field(..., max_length=100)
+    bbg_member_id: Optional[str] = Field(None, max_length=100)
     member_name: str = Field(..., max_length=255)
 
 
@@ -97,3 +97,10 @@ class BulkDeleteResponse(BaseModel):
     """Response for bulk delete operations."""
     deleted_count: int
     message: str
+
+
+class BulkUploadResponse(BaseModel):
+    """Response for bulk upload operations."""
+    created_count: int
+    message: str
+    errors: list[str] = []

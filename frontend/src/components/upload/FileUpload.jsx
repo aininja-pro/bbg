@@ -11,13 +11,30 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
     console.log('onDrop called with', acceptedFiles.length, 'files, batchMode:', batchMode)
     if (acceptedFiles && acceptedFiles.length > 0) {
       if (batchMode) {
-        // Add to existing files instead of replacing
+        // Add to existing files, replacing duplicates based on filename + size
         setSelectedFiles(prev => {
-          const newFiles = [...prev, ...acceptedFiles]
+          let updatedFiles = [...prev]
+
+          acceptedFiles.forEach(newFile => {
+            // Check if file with same name and size already exists
+            const duplicateIndex = updatedFiles.findIndex(
+              existingFile => existingFile.name === newFile.name && existingFile.size === newFile.size
+            )
+
+            if (duplicateIndex !== -1) {
+              // Replace the existing file
+              updatedFiles[duplicateIndex] = newFile
+              console.log('Replaced duplicate file:', newFile.name)
+            } else {
+              // Add new file
+              updatedFiles.push(newFile)
+            }
+          })
+
           if (onFilesSelect) {
-            onFilesSelect(newFiles)
+            onFilesSelect(updatedFiles)
           }
-          return newFiles
+          return updatedFiles
         })
       } else {
         const file = acceptedFiles[0]
@@ -71,9 +88,9 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Upload Rebate {batchMode ? 'Files' : 'File'}</CardTitle>
-        <CardDescription>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg">Upload Rebate {batchMode ? 'Files' : 'File'}</CardTitle>
+        <CardDescription className="text-xs">
           {batchMode
             ? 'Drag and drop multiple Excel files (.xlsm) or click to browse'
             : 'Drag and drop your quarterly rebate Excel file (.xlsm) or click to browse'
@@ -85,21 +102,21 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
           {...getRootProps()}
           key={batchMode ? 'dropzone-batch' : 'dropzone-single'}
           className={`
-            relative border-2 border-dashed rounded-lg p-12 text-center cursor-pointer
+            relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
             transition-all duration-200 ease-in-out
             ${isDragActive
-              ? 'border-blue-500 bg-blue-50'
-              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+              ? 'border-[#178dc3] bg-blue-50'
+              : 'border-gray-300 hover:border-[#178dc3] hover:border-opacity-50 hover:bg-blue-50 hover:bg-opacity-30'
             }
             ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >
           <input {...getInputProps()} />
 
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center space-y-3">
             {/* Upload Icon */}
             <svg
-              className={`w-16 h-16 ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`}
+              className={`w-12 h-12 ${isDragActive ? 'text-[#178dc3]' : 'text-[#178dc3] opacity-60'}`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -114,14 +131,14 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
 
             {/* Show selected file in single mode */}
             {!batchMode && selectedFile && !isProcessing ? (
-              <div className="space-y-2">
-                <svg className="w-12 h-12 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="space-y-1.5">
+                <svg className="w-10 h-10 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-lg font-medium text-gray-900">
+                <p className="text-base font-medium text-gray-900">
                   {selectedFile.name}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-xs text-gray-500">
                   {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                 </p>
                 <p className="text-xs text-gray-400">
@@ -129,14 +146,14 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
                 </p>
               </div>
             ) : (
-              <div className="space-y-2">
-                <p className="text-lg font-medium text-gray-700">
+              <div className="space-y-1.5">
+                <p className="text-base font-medium text-gray-700">
                   {isDragActive ? 'Drop your files here' : batchMode ? 'Drag & drop files or click to browse' : 'Drag & drop your rebate file'}
                 </p>
                 <p className="text-sm text-gray-500">
                   {batchMode && displayFiles.length > 0 ? 'Add more files by dragging or clicking' : 'or click to browse'}
                 </p>
-                <p className="text-xs text-gray-400 mt-2">
+                <p className="text-xs text-gray-400">
                   Supported formats: .xlsm, .xlsx (Max 50MB{batchMode ? ' per file' : ''})
                 </p>
               </div>
@@ -177,7 +194,7 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
                 >
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <svg className="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-[#178dc3] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <div className="flex-1 min-w-0">

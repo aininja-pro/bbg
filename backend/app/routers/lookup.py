@@ -1,7 +1,10 @@
 """API endpoints for lookup table management."""
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+import csv
+import io
+from datetime import datetime
 
 from app.database import get_db
 from app.repositories.lookup import (
@@ -20,6 +23,7 @@ from app.schemas.lookup import (
     ProgramProductUpdate,
     ProgramProductResponse,
     BulkDeleteResponse,
+    BulkUploadResponse,
 )
 
 router = APIRouter(prefix="/api/lookups", tags=["Lookups"])
@@ -257,3 +261,144 @@ async def delete_all_products(db: AsyncSession = Depends(get_db)):
         deleted_count=count,
         message=f"Successfully deleted {count} products"
     )
+
+
+# Bulk Upload Endpoints
+@router.post("/members/bulk-upload", response_model=BulkUploadResponse)
+async def bulk_upload_members(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Bulk upload TradeNet members from CSV file.
+    This will DELETE all existing members and replace with the uploaded data.
+    """
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be a CSV file"
+        )
+
+    try:
+        # Read CSV file
+        contents = await file.read()
+        csv_data = contents.decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(csv_data))
+
+        # Collect all members from CSV
+        members = []
+        errors = []
+
+        for row_num, row in enumerate(csv_reader, start=2):
+            try:
+                # Map CSV columns to simple schema
+                # Use "Company Name" if available, otherwise "Full Company Name"
+                member_name = row.get('Company Name', '').strip() or row.get('Full Company Name', '').strip()
+
+                member_data = TradeNetMemberCreate(
+                    tradenet_company_id=row.get('TradeNet Company ID', '').strip(),
+                    bbg_member_id=row.get('Buying Group ID', '').strip() or None,
+                    member_name=member_name,
+                )
+                members.append(member_data)
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+
+        if errors:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"CSV parsing errors: {'; '.join(errors[:5])}"
+            )
+
+        # Delete all existing members
+        await TradeNetMemberRepository.delete_all(db)
+
+        # Create new members
+        created_count = 0
+        for member in members:
+            await TradeNetMemberRepository.create(db, member)
+            created_count += 1
+
+        return BulkUploadResponse(
+            created_count=created_count,
+            message=f"Successfully uploaded {created_count} members (full replace)",
+            errors=[]
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process file: {str(e)}"
+        )
+
+
+@router.post("/suppliers/bulk-upload", response_model=BulkUploadResponse)
+async def bulk_upload_suppliers(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Bulk upload suppliers from CSV file.
+    This will DELETE all existing suppliers and replace with the uploaded data.
+    """
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be a CSV file"
+        )
+
+    try:
+        # Read CSV file
+        contents = await file.read()
+        csv_data = contents.decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(csv_data))
+
+        # Collect all suppliers from CSV
+        suppliers = []
+        errors = []
+
+        for row_num, row in enumerate(csv_reader, start=2):
+            try:
+                # Map CSV columns to simple schema
+                # Use "Company Name" if available, otherwise "Full Company Name"
+                supplier_name = row.get('Company Name', '').strip() or row.get('Full Company Name', '').strip()
+
+                supplier_data = SupplierCreate(
+                    tradenet_supplier_id=row.get('TradeNet Company ID', '').strip(),
+                    supplier_name=supplier_name,
+                    contact_info=row.get('Website', '').strip() or None,  # Store website in contact_info
+                )
+                suppliers.append(supplier_data)
+            except Exception as e:
+                errors.append(f"Row {row_num}: {str(e)}")
+
+        if errors:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"CSV parsing errors: {'; '.join(errors[:5])}"
+            )
+
+        # Delete all existing suppliers
+        await SupplierRepository.delete_all(db)
+
+        # Create new suppliers
+        created_count = 0
+        for supplier in suppliers:
+            await SupplierRepository.create(db, supplier)
+            created_count += 1
+
+        return BulkUploadResponse(
+            created_count=created_count,
+            message=f"Successfully uploaded {created_count} suppliers (full replace)",
+            errors=[]
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to process file: {str(e)}"
+        )

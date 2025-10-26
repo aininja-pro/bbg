@@ -11,8 +11,8 @@ class TradeNetMember(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tradenet_company_id = Column(String(100), nullable=False, index=True)
-    bbg_member_id = Column(String(100), nullable=False, index=True)
-    member_name = Column(String(255), nullable=False)
+    bbg_member_id = Column(String(100), nullable=True, index=True)  # Can be empty in CSV
+    member_name = Column(String(255), nullable=False, index=True)  # Used by data_enricher.py
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
@@ -26,7 +26,7 @@ class Supplier(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tradenet_supplier_id = Column(String(100), nullable=False, index=True, unique=True)
-    supplier_name = Column(String(255), nullable=False)
+    supplier_name = Column(String(255), nullable=False, index=True)  # Used by data_enricher.py
     contact_info = Column(Text, nullable=True)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

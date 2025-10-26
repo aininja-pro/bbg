@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Button } from '../ui/Button'
 import { AddRuleModal } from './AddRuleModal'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+
 export function RulesManager() {
   const [rules, setRules] = useState([])
   const [loading, setLoading] = useState(true)
@@ -16,7 +18,7 @@ export function RulesManager() {
 
   const fetchRules = async () => {
     try {
-      const response = await fetch('http://localhost:8001/api/rules')
+      const response = await fetch(`${API_BASE_URL}/api/rules`)
       const data = await response.json()
       setRules(data)
     } catch (err) {
@@ -28,7 +30,7 @@ export function RulesManager() {
 
   const toggleRule = async (ruleId, currentEnabled) => {
     try {
-      await fetch(`http://localhost:8001/api/rules/${ruleId}`, {
+      await fetch(`${API_BASE_URL}/api/rules/${ruleId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: !currentEnabled }),
@@ -43,7 +45,7 @@ export function RulesManager() {
     if (!confirm('Are you sure you want to delete this rule?')) return
 
     try {
-      await fetch(`http://localhost:8001/api/rules/${ruleId}`, {
+      await fetch(`${API_BASE_URL}/api/rules/${ruleId}`, {
         method: 'DELETE',
       })
       fetchRules()
@@ -55,8 +57,8 @@ export function RulesManager() {
   const handleSaveRule = async (ruleConfig) => {
     try {
       const url = editingRule
-        ? `http://localhost:8001/api/rules/${editingRule.id}`
-        : 'http://localhost:8001/api/rules'
+        ? `${API_BASE_URL}/api/rules/${editingRule.id}`
+        : `${API_BASE_URL}/api/rules`
 
       const method = editingRule ? 'PUT' : 'POST'
 

@@ -110,6 +110,16 @@ async def seed_supplier_rules():
 
     async with AsyncSessionLocal() as db:
         try:
+            # Check if rules already exist
+            from sqlalchemy import select
+            result = await db.execute(select(Rule))
+            existing_rules = result.scalars().all()
+
+            if existing_rules:
+                print(f"ℹ️  Rules table already has {len(existing_rules)} rules - skipping seed")
+                print("   (This preserves any rules added by users)")
+                return
+
             print(f"💾 Inserting {len(rules)} supplier override rules...")
             db.add_all(rules)
             await db.commit()

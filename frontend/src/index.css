@@ -34,4 +34,22 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* BBG Brand Color for Checkboxes and Radio Buttons */
+  input[type="checkbox"]:checked,
+  input[type="radio"]:checked {
+    background-color: #178dc3 !important;
+    border-color: #178dc3 !important;
+  }
+
+  input[type="checkbox"]:focus,
+  input[type="radio"]:focus {
+    --tw-ring-color: #178dc3 !important;
+    ring-color: #178dc3 !important;
+  }
+
+  input[type="checkbox"]:checked:hover,
+  input[type="radio"]:checked:hover {
+    background-color: #136e9a !important;
+  }
 }

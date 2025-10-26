@@ -32,6 +32,13 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        bbg: {
+          DEFAULT: "#178dc3",
+          dark: "#136e9a",
+        },
+      },
+      accentColor: {
+        bbg: "#178dc3",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -211,7 +211,8 @@ export function UploadPage() {
                     checked={batchMode}
                     onChange={handleBatchModeToggle}
                     disabled={isProcessing}
-                    className="w-5 h-5 text-[#178dc3] rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-5 h-5 rounded focus:ring-2"
+                    style={{ accentColor: '#178dc3' }}
                   />
                   <div>
                     <span className="text-sm font-medium text-gray-900">
@@ -230,7 +231,8 @@ export function UploadPage() {
                         value="merged"
                         checked={outputMode === 'merged'}
                         onChange={(e) => setOutputMode(e.target.value)}
-                        className="w-4 h-4 text-[#178dc3]"
+                        className="w-4 h-4"
+                        style={{ accentColor: '#178dc3' }}
                       />
                       <div>
                         <span className="text-sm font-medium text-gray-900">Merged CSV</span>
@@ -243,7 +245,8 @@ export function UploadPage() {
                         value="zip"
                         checked={outputMode === 'zip'}
                         onChange={(e) => setOutputMode(e.target.value)}
-                        className="w-4 h-4 text-[#178dc3]"
+                        className="w-4 h-4"
+                        style={{ accentColor: '#178dc3' }}
                       />
                       <div>
                         <span className="text-sm font-medium text-gray-900">ZIP Archive</span>

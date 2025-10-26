@@ -2,11 +2,13 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 import csv
 import io
 from datetime import datetime
 
 from app.database import get_db
+from app.models.rule import Rule
 from app.repositories.lookup import (
     TradeNetMemberRepository,
     SupplierRepository,
@@ -402,3 +404,56 @@ async def bulk_upload_suppliers(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to process file: {str(e)}"
         )
+
+
+@router.post("/seed-rules")
+async def seed_default_rules(db: AsyncSession = Depends(get_db)):
+    """Seed the default production rules. Only seeds if rules table is empty."""
+    try:
+        # Check if rules already exist
+        result = await db.execute(select(Rule))
+        existing_rules = result.scalars().all()
+
+        if existing_rules:
+            return {"message": f"Rules already exist ({len(existing_rules)} rules) - skipping seed"}
+
+        # Production rules
+        rules = [
+            Rule(name="Day & Night is Carrier", rule_type="supplier_override", priority=1, enabled=True,
+                 config={"condition": {"supplier_name_equals": "Day & Night Heating & Cooling"}, "set_supplier": "Carrier"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5534 → Air Vent", rule_type="supplier_override", priority=2, enabled=True,
+                 config={"condition": {"product_id_contains": "5534"}, "set_supplier": "Air Vent"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5531 → CertainTeed", rule_type="supplier_override", priority=3, enabled=True,
+                 config={"condition": {"product_id_contains": "5531"}, "set_supplier": "CertainTeed"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5406 → Air Vent", rule_type="supplier_override", priority=4, enabled=True,
+                 config={"condition": {"product_id_contains": "5406"}, "set_supplier": "Air Vent"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5407 → CertainTeed", rule_type="supplier_override", priority=5, enabled=True,
+                 config={"condition": {"product_id_contains": "5407"}, "set_supplier": "CertainTeed"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5255 → Heatilator", rule_type="supplier_override", priority=6, enabled=True,
+                 config={"condition": {"product_id_contains": "5255"}, "set_supplier": "Heatilator (Hearth & Home)"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5270 → Leading Edge", rule_type="supplier_override", priority=7, enabled=True,
+                 config={"condition": {"product_id_contains": "5270"}, "set_supplier": "Leading Edge"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Product 5350 → Leading Edge", rule_type="supplier_override", priority=8, enabled=True,
+                 config={"condition": {"product_id_contains": "5350"}, "set_supplier": "Leading Edge"},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+            Rule(name="Quadplex Rule", rule_type="if_then_else", priority=9, enabled=True,
+                 config={"condition": {"logic": "AND", "rules": [{"field": "address_type", "operator": "contains", "value": "QuadPlex"}]},
+                        "then_action": {"field": "address_type", "value": "MULTI_UNIT"}},
+                 created_at=datetime.utcnow(), updated_at=datetime.utcnow()),
+        ]
+
+        db.add_all(rules)
+        await db.commit()
+
+        return {"message": f"Successfully seeded {len(rules)} default rules"}
+
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

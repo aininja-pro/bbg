@@ -374,9 +374,17 @@ class DataTransformer:
 
         # Convert quantity to int (remove .0)
         if 'quantity' in df.columns:
-            df['quantity'] = df['quantity'].apply(
-                lambda x: int(float(x)) if pd.notna(x) and str(x).strip() != '' and float(x) == int(float(x)) else x
-            )
+            def safe_int_convert(x):
+                if pd.notna(x) and str(x).strip() != '':
+                    try:
+                        float_val = float(x)
+                        if float_val == int(float_val):
+                            return int(float_val)
+                    except (ValueError, TypeError):
+                        pass
+                return x
+
+            df['quantity'] = df['quantity'].apply(safe_int_convert)
 
         self.df = df
         return df

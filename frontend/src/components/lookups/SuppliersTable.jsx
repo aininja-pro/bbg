@@ -15,8 +15,9 @@ export function SuppliersTable() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [formData, setFormData] = useState({
     tradenet_supplier_id: '',
+    bbg_id: '',
     supplier_name: '',
-    contact_info: ''
+    active_flag: ''
   })
 
   useEffect(() => {
@@ -100,8 +101,9 @@ export function SuppliersTable() {
     setEditingSupplier(supplier)
     setFormData({
       tradenet_supplier_id: supplier.tradenet_supplier_id,
+      bbg_id: supplier.bbg_id || '',
       supplier_name: supplier.supplier_name,
-      contact_info: supplier.contact_info || ''
+      active_flag: supplier.active_flag !== null && supplier.active_flag !== undefined ? supplier.active_flag.toString() : ''
     })
   }
 
@@ -109,8 +111,9 @@ export function SuppliersTable() {
     setShowAddModal(true)
     setFormData({
       tradenet_supplier_id: '',
+      bbg_id: '',
       supplier_name: '',
-      contact_info: ''
+      active_flag: ''
     })
   }
 
@@ -120,10 +123,16 @@ export function SuppliersTable() {
         ? `${API_BASE_URL}/api/lookups/suppliers/${editingSupplier.id}`
         : `${API_BASE_URL}/api/lookups/suppliers`
 
+      // Prepare data with active_flag as integer
+      const dataToSend = {
+        ...formData,
+        active_flag: formData.active_flag !== '' ? parseInt(formData.active_flag) : null
+      }
+
       const response = await fetch(url, {
         method: editingSupplier ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSend),
       })
 
       if (response.ok) {
@@ -250,6 +259,17 @@ export function SuppliersTable() {
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('bbg_id')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>BBG ID</span>
+                      {sortColumn === 'bbg_id' && (
+                        <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('supplier_name')}
                   >
                     <div className="flex items-center space-x-1">
@@ -259,14 +279,24 @@ export function SuppliersTable() {
                       )}
                     </div>
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Info</th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('active_flag')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Active Flag</span>
+                      {sortColumn === 'active_flag' && (
+                        <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedSuppliers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                       {searchTerm ? 'No suppliers found matching your search' : 'No suppliers found. Upload a CSV file to get started.'}
                     </td>
                   </tr>
@@ -274,8 +304,9 @@ export function SuppliersTable() {
                   sortedSuppliers.map((supplier) => (
                     <tr key={supplier.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">{supplier.tradenet_supplier_id}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{supplier.bbg_id || '-'}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{supplier.supplier_name}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">{supplier.contact_info || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{supplier.active_flag !== null && supplier.active_flag !== undefined ? supplier.active_flag : '-'}</td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center space-x-2">
                           <button
@@ -326,6 +357,16 @@ export function SuppliersTable() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">BBG ID</label>
+                <input
+                  type="text"
+                  value={formData.bbg_id}
+                  onChange={(e) => setFormData({ ...formData, bbg_id: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178dc3] focus:border-transparent"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Name *</label>
                 <input
                   type="text"
@@ -337,11 +378,13 @@ export function SuppliersTable() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Contact Info</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Active Flag (0 or 1)</label>
                 <input
-                  type="text"
-                  value={formData.contact_info}
-                  onChange={(e) => setFormData({ ...formData, contact_info: e.target.value })}
+                  type="number"
+                  min="0"
+                  max="1"
+                  value={formData.active_flag}
+                  onChange={(e) => setFormData({ ...formData, active_flag: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178dc3] focus:border-transparent"
                 />
               </div>

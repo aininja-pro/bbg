@@ -26,7 +26,9 @@ class Supplier(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tradenet_supplier_id = Column(String(100), nullable=False, index=True, unique=True)
+    bbg_id = Column(String(100), nullable=True, index=True)  # Buying Group ID - can be empty in CSV
     supplier_name = Column(String(255), nullable=False, index=True)  # Used by data_enricher.py
+    active_flag = Column(Integer, nullable=True)  # Company Active Flag: 0 or 1
     contact_info = Column(Text, nullable=True)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

@@ -36,7 +36,9 @@ class TradeNetMemberResponse(TradeNetMemberBase):
 class SupplierBase(BaseModel):
     """Base schema for Supplier."""
     tradenet_supplier_id: str = Field(..., max_length=100)
+    bbg_id: Optional[str] = Field(None, max_length=100)
     supplier_name: str = Field(..., max_length=255)
+    active_flag: Optional[int] = None
     contact_info: Optional[str] = None
 
 
@@ -48,7 +50,9 @@ class SupplierCreate(SupplierBase):
 class SupplierUpdate(BaseModel):
     """Schema for updating a Supplier."""
     tradenet_supplier_id: Optional[str] = Field(None, max_length=100)
+    bbg_id: Optional[str] = Field(None, max_length=100)
     supplier_name: Optional[str] = Field(None, max_length=255)
+    active_flag: Optional[int] = None
     contact_info: Optional[str] = None
 
 

@@ -367,9 +367,15 @@ async def bulk_upload_suppliers(
                 # Use "Company Name" if available, otherwise "Full Company Name"
                 supplier_name = row.get('Company Name', '').strip() or row.get('Full Company Name', '').strip()
 
+                # Parse active_flag as integer (0 or 1)
+                active_flag_str = row.get('Company Active Flag', '').strip()
+                active_flag = int(active_flag_str) if active_flag_str else None
+
                 supplier_data = SupplierCreate(
                     tradenet_supplier_id=row.get('TradeNet Company ID', '').strip(),
+                    bbg_id=row.get('Buying Group ID', '').strip() or None,
                     supplier_name=supplier_name,
+                    active_flag=active_flag,
                     contact_info=row.get('Website', '').strip() or None,  # Store website in contact_info
                 )
                 suppliers.append(supplier_data)

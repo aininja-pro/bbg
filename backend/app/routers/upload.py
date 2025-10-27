@@ -208,6 +208,9 @@ async def batch_process(
 
     temp_files = []
 
+    # Debug logging
+    print(f"[DEBUG] Batch process started - job_id: {job_id}, output_mode: {output_mode}, files: {len(files)}")
+
     try:
         if output_mode == "merged":
             # Memory-efficient merged mode: process and concatenate one at a time
@@ -288,6 +291,8 @@ async def batch_process(
             if not job_id:
                 job_id = str(uuid.uuid4())
             total_files = len(files)
+
+            print(f"[DEBUG] Initializing progress for job_id: {job_id}")
 
             # Initialize progress tracking
             batch_progress[job_id] = {

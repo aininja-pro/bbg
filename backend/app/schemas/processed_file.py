@@ -15,7 +15,7 @@ class ProcessedFileCreate(BaseModel):
     total_rows: Optional[int] = None
     file_size_bytes: Optional[int] = None
     processing_time_seconds: Optional[int] = None
-    metadata: Optional[dict] = None
+    processing_metadata: Optional[dict] = None
     error_message: Optional[str] = None
     expires_at: datetime
 
@@ -31,7 +31,7 @@ class ProcessedFileResponse(BaseModel):
     total_rows: Optional[int]
     file_size_bytes: Optional[int]
     processing_time_seconds: Optional[int]
-    metadata: Optional[dict]
+    processing_metadata: Optional[dict]
     error_message: Optional[str]
     created_at: datetime
     expires_at: datetime

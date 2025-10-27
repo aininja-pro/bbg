@@ -464,7 +464,7 @@ async def upload_file_with_cache(
                 total_rows=total_rows,
                 file_size_bytes=file_size_bytes,
                 processing_time_seconds=processing_time,
-                metadata=result['metadata']
+                processing_metadata=result['metadata']
             )
 
             return ProcessedFileStatus(

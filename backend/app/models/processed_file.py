@@ -28,7 +28,7 @@ class ProcessedFile(Base):
     total_rows = Column(Integer, nullable=True)
     file_size_bytes = Column(Integer, nullable=True)
     processing_time_seconds = Column(Integer, nullable=True)
-    metadata = Column(JSON, nullable=True)  # Additional processing info
+    processing_metadata = Column(JSON, nullable=True)  # Additional processing info (renamed from 'metadata' to avoid SQLAlchemy conflict)
 
     # Error handling
     error_message = Column(Text, nullable=True)

@@ -32,7 +32,7 @@ def upgrade() -> None:
         sa.Column('total_rows', sa.Integer(), nullable=True),
         sa.Column('file_size_bytes', sa.Integer(), nullable=True),
         sa.Column('processing_time_seconds', sa.Integer(), nullable=True),
-        sa.Column('metadata', sa.JSON(), nullable=True),
+        sa.Column('processing_metadata', sa.JSON(), nullable=True),
         sa.Column('error_message', sa.Text(), nullable=True),
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('expires_at', sa.DateTime(), nullable=False),

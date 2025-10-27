@@ -52,7 +52,7 @@ class ProcessedFileRepository:
         total_rows: int,
         file_size_bytes: int,
         processing_time_seconds: int,
-        metadata: Optional[dict] = None
+        processing_metadata: Optional[dict] = None
     ) -> Optional[ProcessedFile]:
         """Update processed file with the completed data."""
         processed_file = await ProcessedFileRepository.get_by_job_id(db, job_id)
@@ -62,8 +62,8 @@ class ProcessedFileRepository:
             processed_file.file_size_bytes = file_size_bytes
             processed_file.processing_time_seconds = processing_time_seconds
             processed_file.status = 'completed'
-            if metadata:
-                processed_file.metadata = metadata
+            if processing_metadata:
+                processed_file.processing_metadata = processing_metadata
             await db.commit()
             await db.refresh(processed_file)
         return processed_file

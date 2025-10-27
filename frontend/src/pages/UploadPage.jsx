@@ -53,21 +53,19 @@ export function UploadPage() {
     setError(null)
 
     try {
-      // Use cached upload endpoint
-      const result = await api.uploadWithCache(selectedFile)
+      // Process in parallel: get preview AND cache the result
+      const [previewResult, cacheResult] = await Promise.all([
+        api.uploadFile(selectedFile),  // Old endpoint for preview
+        api.uploadWithCache(selectedFile)  // New endpoint for caching
+      ])
 
-      if (result.job_id && result.status === 'completed') {
-        // Store job_id for instant downloads
-        setJobId(result.job_id)
+      if (previewResult.success) {
+        setPreviewData(previewResult.data)
 
-        // For single files, we can show a preview using the old endpoint (optional)
-        // For now, just show success message
-        setPreviewData({
-          member_name: result.filename,
-          bbg_member_id: 'Processed',
-          total_rows: 'Ready for download',
-          preview: [],
-        })
+        // Store job_id from cache for instant downloads
+        if (cacheResult.job_id) {
+          setJobId(cacheResult.job_id)
+        }
       } else {
         setError('Processing failed')
       }
@@ -132,10 +130,23 @@ export function UploadPage() {
         setJobId(result.job_id)
 
         if (outputMode === 'merged') {
-          // Show success message for merged mode
+          // For merged mode, download the CSV and parse it for preview
+          const blob = await api.downloadByJobId(result.job_id)
+          const text = await blob.text()
+          const rows = text.split('\n').filter(row => row.trim())
+          const headers = rows[0].split(',')
+          const dataRows = rows.slice(1, 201).map(row => { // Show first 200 rows
+            const values = row.split(',')
+            return headers.reduce((obj, header, index) => {
+              obj[header] = values[index]
+              return obj
+            }, {})
+          })
+
+          // Show preview
           setPreviewData({
-            preview: [],
-            total_rows: 'Ready for download',
+            preview: dataRows,
+            total_rows: rows.length - 1, // Exclude header
             member_name: `${selectedFiles.length} files merged`,
             bbg_member_id: 'Batch',
           })

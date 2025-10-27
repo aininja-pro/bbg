@@ -87,4 +87,5 @@ if __name__ == "__main__":
         host=settings.API_HOST,
         port=settings.API_PORT,
         reload=settings.DEBUG,
+        timeout_keep_alive=settings.UPLOAD_TIMEOUT_SECONDS,
     )

@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # File Upload
     MAX_FILE_SIZE_MB: int = 50
     MAX_BATCH_FILES: int = 50
-    UPLOAD_TIMEOUT_SECONDS: int = 300
+    UPLOAD_TIMEOUT_SECONDS: int = 600  # Increased to 10 minutes for 50-file batches
 
     # Activity Logs
     LOG_RETENTION_DAYS: int = 90

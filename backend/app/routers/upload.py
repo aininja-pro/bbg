@@ -3,6 +3,7 @@ import os
 import tempfile
 import uuid
 import zipfile
+import gc
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from fastapi.responses import FileResponse, StreamingResponse
@@ -165,7 +166,11 @@ async def batch_process(
     output_mode: str = "zip",  # "zip" or "merged" via query parameter
     db: AsyncSession = Depends(get_db)
 ):
-    """Process multiple Excel files at once.
+    """Process multiple Excel files at once with memory-efficient streaming.
+
+    Optimized for processing up to 50 files on limited memory environments (512MB RAM).
+    Files are processed one at a time and immediately written to output to minimize
+    memory footprint.
 
     Args:
         files: List of Excel files to process
@@ -196,50 +201,48 @@ async def batch_process(
             )
 
     temp_files = []
-    processed_results = []
 
     try:
-        # Process each file
-        for file in files:
-            # Save temp file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
-                temp_path = temp_file.name
-                temp_files.append(temp_path)
-                content = await file.read()
-                temp_file.write(content)
-
-            # Process file
-            pipeline = ProcessingPipeline(db)
-            result = await pipeline.process_file(temp_path)
-
-            if result['success']:
-                df = pipeline.get_dataframe()
-                processed_results.append({
-                    'filename': file.filename,
-                    'df': df,
-                    'metadata': result['metadata'],
-                    'rows': result['total_rows']
-                })
-            else:
-                # If any file fails, include it in response but continue
-                processed_results.append({
-                    'filename': file.filename,
-                    'error': result.get('error', 'Unknown error'),
-                    'rows': 0
-                })
-
-        # Generate output based on mode
         if output_mode == "merged":
-            # Merge all successful DataFrames into one CSV
-            dfs_to_merge = [r['df'] for r in processed_results if 'df' in r]
+            # Memory-efficient merged mode: process and concatenate one at a time
+            merged_chunks = []
+            successful_count = 0
 
-            if not dfs_to_merge:
+            for file in files:
+                # Save temp file
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                    temp_path = temp_file.name
+                    temp_files.append(temp_path)
+                    content = await file.read()
+                    temp_file.write(content)
+
+                # Process file - disable preview to reduce memory
+                pipeline = ProcessingPipeline(db)
+                result = await pipeline.process_file(temp_path, include_preview=False)
+
+                if result['success']:
+                    df = pipeline.get_dataframe()
+                    merged_chunks.append(df)
+                    successful_count += 1
+
+                # Force cleanup of pipeline and temp variables
+                del pipeline
+                if 'df' in locals():
+                    del df
+                gc.collect()
+
+            if not merged_chunks:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="No files were successfully processed"
                 )
 
-            merged_df = pd.concat(dfs_to_merge, ignore_index=True)
+            # Concatenate all chunks
+            merged_df = pd.concat(merged_chunks, ignore_index=True)
+
+            # Clear chunks from memory
+            del merged_chunks
+            gc.collect()
 
             # Create CSV
             csv_buffer = io.StringIO()
@@ -247,7 +250,11 @@ async def batch_process(
             csv_buffer.seek(0)
 
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-            filename = f"Batch_Merged_{len(dfs_to_merge)}_files_{timestamp}.csv"
+            filename = f"Batch_Merged_{successful_count}_files_{timestamp}.csv"
+
+            # Clear merged_df from memory before returning
+            del merged_df
+            gc.collect()
 
             return StreamingResponse(
                 iter([csv_buffer.getvalue()]),
@@ -257,29 +264,72 @@ async def batch_process(
                 }
             )
 
-        else:  # output_mode == "zip"
-            # Create ZIP file with individual CSVs
+        else:  # output_mode == "zip" - MEMORY OPTIMIZED
+            # Stream directly to ZIP without holding all DataFrames in memory
             zip_buffer = io.BytesIO()
+            successful_count = 0
+            failed_files = []
 
-            # Create ZIP and write CSV files
             with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
-                for result in processed_results:
-                    if 'df' in result:
-                        # Create CSV for this file
-                        csv_data = result['df'].to_csv(index=False)
+                for file in files:
+                    temp_path = None
+                    try:
+                        # Save temp file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                            temp_path = temp_file.name
+                            temp_files.append(temp_path)
+                            content = await file.read()
+                            temp_file.write(content)
 
-                        # Generate filename
-                        original_name = result['filename'].replace('.xlsm', '').replace('.xlsx', '')
-                        csv_filename = f"{original_name}_processed.csv"
+                        # Process file - disable preview to reduce memory
+                        pipeline = ProcessingPipeline(db)
+                        result = await pipeline.process_file(temp_path, include_preview=False)
 
-                        # Add to ZIP - encode as bytes
-                        zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
+                        if result['success']:
+                            # Get DataFrame and immediately convert to CSV
+                            df = pipeline.get_dataframe()
+                            csv_data = df.to_csv(index=False)
+
+                            # Generate filename and add to ZIP
+                            original_name = file.filename.replace('.xlsm', '').replace('.xlsx', '')
+                            csv_filename = f"{original_name}_processed.csv"
+
+                            # Write to ZIP immediately
+                            zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
+                            successful_count += 1
+
+                            # Free memory immediately
+                            del df
+                            del csv_data
+                        else:
+                            failed_files.append({
+                                'filename': file.filename,
+                                'error': result.get('error', 'Unknown error')
+                            })
+
+                        # Cleanup pipeline and force garbage collection
+                        del pipeline
+                        gc.collect()
+
+                    except Exception as file_error:
+                        failed_files.append({
+                            'filename': file.filename,
+                            'error': str(file_error)
+                        })
+                        continue
+
+                # If there were failures, add an error log to the ZIP
+                if failed_files:
+                    error_log = "Failed Files:\n" + "\n".join(
+                        [f"- {f['filename']}: {f['error']}" for f in failed_files]
+                    )
+                    zip_file.writestr("_ERRORS.txt", error_log.encode('utf-8'))
 
             # Get the full bytes AFTER closing the ZIP
             zip_bytes = zip_buffer.getvalue()
 
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-            zip_filename = f"Batch_Processed_{len(processed_results)}_files_{timestamp}.zip"
+            zip_filename = f"Batch_Processed_{successful_count}_files_{timestamp}.zip"
 
             return StreamingResponse(
                 io.BytesIO(zip_bytes),
@@ -300,6 +350,12 @@ async def batch_process(
         # Clean up all temp files
         for temp_path in temp_files:
             if os.path.exists(temp_path):
-                os.unlink(temp_path)
+                try:
+                    os.unlink(temp_path)
+                except:
+                    pass  # Ignore cleanup errors
+
+        # Final garbage collection
+        gc.collect()
 
 

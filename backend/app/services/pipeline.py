@@ -27,11 +27,13 @@ class ProcessingPipeline:
         self.metadata: Dict[str, Any] = {}
         self.warnings: List[Dict[str, Any]] = []
 
-    async def process_file(self, file_path: str) -> Dict[str, Any]:
+    async def process_file(self, file_path: str, include_preview: bool = True) -> Dict[str, Any]:
         """Process a single rebate Excel file through the complete pipeline.
 
         Args:
             file_path: Path to the .xlsm file
+            include_preview: Whether to include preview data in results (default True).
+                           Set to False for batch operations to reduce memory usage.
 
         Returns:
             Dictionary with processing results and metadata
@@ -89,7 +91,7 @@ class ProcessingPipeline:
                 'total_rows': len(df),
                 'active_products': len(active_products),
                 'warnings': self.warnings,
-                'preview': df.to_dict('records') if len(df) > 0 else []  # Send ALL rows for preview
+                'preview': df.to_dict('records') if (include_preview and len(df) > 0) else []
             }
 
         except Exception as e:

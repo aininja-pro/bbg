@@ -62,7 +62,15 @@ export const api = {
       formData.append('files', file);
     });
 
-    const response = await fetch(`${API_BASE_URL}/api/batch-process?output_mode=${outputMode}`, {
+    // Generate job ID on frontend and pass to backend
+    const jobId = crypto.randomUUID();
+
+    // Start polling immediately if progress callback provided
+    if (onProgress) {
+      this.pollProgress(jobId, onProgress);
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/batch-process?output_mode=${outputMode}&job_id=${jobId}`, {
       method: 'POST',
       body: formData,
     });
@@ -70,14 +78,6 @@ export const api = {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: 'Batch processing failed' }));
       throw new Error(error.detail || 'Failed to process files');
-    }
-
-    // Get job ID from response headers
-    const jobId = response.headers.get('X-Job-ID');
-
-    // Start polling for progress if callback provided and job ID exists
-    if (onProgress && jobId) {
-      this.pollProgress(jobId, onProgress);
     }
 
     return await response.blob();

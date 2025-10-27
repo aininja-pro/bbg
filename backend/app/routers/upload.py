@@ -169,6 +169,7 @@ async def process_and_download(
 async def batch_process(
     files: List[UploadFile] = File(...),
     output_mode: str = "zip",  # "zip" or "merged" via query parameter
+    job_id: str = None,  # Optional job ID from frontend for progress tracking
     db: AsyncSession = Depends(get_db)
 ):
     """Process multiple Excel files at once with memory-efficient streaming.
@@ -283,8 +284,9 @@ async def batch_process(
             successful_count = 0
             failed_files = []
 
-            # Generate unique job ID for progress tracking
-            job_id = str(uuid.uuid4())
+            # Use provided job ID or generate new one
+            if not job_id:
+                job_id = str(uuid.uuid4())
             total_files = len(files)
 
             # Initialize progress tracking

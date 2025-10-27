@@ -368,9 +368,15 @@ class DataTransformer:
         # Step 7: Format numeric fields (remove unnecessary decimals)
         # Convert zip_postal to int (remove .0)
         if 'zip_postal' in df.columns:
-            df['zip_postal'] = df['zip_postal'].apply(
-                lambda x: int(x) if pd.notna(x) and str(x) != 'nan' else x
-            )
+            def safe_zip_convert(x):
+                if pd.notna(x) and str(x).strip() not in ('', 'nan'):
+                    try:
+                        return int(float(x))
+                    except (ValueError, TypeError) as e:
+                        print(f"WARNING: Could not convert zip_postal to int: {repr(x)} (type: {type(x).__name__}) - Error: {e}")
+                return x
+
+            df['zip_postal'] = df['zip_postal'].apply(safe_zip_convert)
 
         # Convert quantity to int (remove .0)
         if 'quantity' in df.columns:
@@ -380,8 +386,9 @@ class DataTransformer:
                         float_val = float(x)
                         if float_val == int(float_val):
                             return int(float_val)
-                    except (ValueError, TypeError):
-                        pass
+                    except (ValueError, TypeError) as e:
+                        # Log the problematic value for debugging
+                        print(f"WARNING: Could not convert quantity value to int: {repr(x)} (type: {type(x).__name__}) - Error: {e}")
                 return x
 
             df['quantity'] = df['quantity'].apply(safe_int_convert)

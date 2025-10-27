@@ -351,6 +351,21 @@ class DataEnricher:
             # Store both the full name and variations
             supplier_name_to_id[supplier.supplier_name] = supplier_id
 
+        def normalize_name(name):
+            """Normalize supplier name for comparison by removing special chars and extra spaces."""
+            import re
+            # Convert to lowercase, remove special characters, collapse multiple spaces
+            normalized = re.sub(r'[^a-z0-9]+', ' ', name.lower())
+            return normalized.strip()
+
+        def get_keywords(name):
+            """Extract significant keywords from supplier name (ignore common words)."""
+            normalized = normalize_name(name)
+            # Filter out common words that don't help with matching
+            common_words = {'the', 'and', 'or', 'inc', 'llc', 'ltd', 'corp', 'corporation', 'company', 'co', 'supply', 'group'}
+            words = [w for w in normalized.split() if w not in common_words and len(w) >= 2]
+            return set(words)
+
         def lookup_supplier_id(supplier_name):
             """Find tradenet_supplier_id by matching supplier name."""
             if not supplier_name:
@@ -361,11 +376,29 @@ class DataEnricher:
                 supplier_id = supplier_name_to_id[supplier_name]
                 return supplier_name, supplier_id
 
-            # Try fuzzy match (case-insensitive, partial match)
-            supplier_lower = supplier_name.lower().strip()
+            # Try fuzzy match with normalized names
+            supplier_normalized = normalize_name(supplier_name)
+
             for full_name, supplier_id in supplier_name_to_id.items():
-                if supplier_lower in full_name.lower() or full_name.lower() in supplier_lower:
+                db_normalized = normalize_name(full_name)
+
+                # Check if normalized names match exactly
+                if supplier_normalized == db_normalized:
                     return full_name, supplier_id
+
+                # Check if one is contained in the other (at least 4 chars to avoid false positives)
+                if len(supplier_normalized) >= 4 and len(db_normalized) >= 4:
+                    if supplier_normalized in db_normalized or db_normalized in supplier_normalized:
+                        return full_name, supplier_id
+
+                # Check if significant keywords match (for cases like "Beacon Supply/QXO" vs "Beacon/QXO")
+                supplier_keywords = get_keywords(supplier_name)
+                db_keywords = get_keywords(full_name)
+
+                # If all DB keywords are present in supplier keywords (or vice versa), it's a match
+                if db_keywords and supplier_keywords:
+                    if db_keywords.issubset(supplier_keywords) or supplier_keywords.issubset(db_keywords):
+                        return full_name, supplier_id
 
             # No match found - return original name with no ID
             return supplier_name, None

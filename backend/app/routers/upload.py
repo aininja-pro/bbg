@@ -4,11 +4,9 @@ import tempfile
 import uuid
 import zipfile
 import gc
-import json
-import asyncio
-from typing import List, Dict
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks, Query
-from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
+from typing import List
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
+from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
 import pandas as pd
@@ -16,9 +14,6 @@ import pandas as pd
 from app.database import get_db
 from app.services.pipeline import ProcessingPipeline
 from app.config import settings
-
-# In-memory progress tracking for batch jobs
-batch_progress: Dict[str, Dict] = {}
 
 router = APIRouter(prefix="/api", tags=["File Processing"])
 
@@ -168,8 +163,7 @@ async def process_and_download(
 @router.post("/batch-process")
 async def batch_process(
     files: List[UploadFile] = File(...),
-    output_mode: str = Query("zip"),  # "zip" or "merged" via query parameter
-    job_id: str = Query(None),  # Optional job ID from frontend for progress tracking
+    output_mode: str = "zip",  # "zip" or "merged" via query parameter
     db: AsyncSession = Depends(get_db)
 ):
     """Process multiple Excel files at once with memory-efficient streaming.
@@ -207,9 +201,6 @@ async def batch_process(
             )
 
     temp_files = []
-
-    # Debug logging
-    print(f"[DEBUG] Batch process started - job_id: {job_id}, output_mode: {output_mode}, files: {len(files)}")
 
     try:
         if output_mode == "merged":
@@ -287,33 +278,10 @@ async def batch_process(
             successful_count = 0
             failed_files = []
 
-            # Use provided job ID or generate new one
-            if not job_id:
-                job_id = str(uuid.uuid4())
-            total_files = len(files)
-
-            print(f"[DEBUG] Initializing progress for job_id: {job_id}")
-
-            # Initialize progress tracking
-            batch_progress[job_id] = {
-                'total': total_files,
-                'current': 0,
-                'current_file': '',
-                'status': 'processing',
-                'successful': 0,
-                'failed': 0
-            }
-
             with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
-                for idx, file in enumerate(files, 1):
+                for file in files:
                     temp_path = None
                     try:
-                        # Update progress
-                        batch_progress[job_id].update({
-                            'current': idx,
-                            'current_file': file.filename,
-                            'status': 'processing'
-                        })
 
                         # Save temp file
                         with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
@@ -338,7 +306,6 @@ async def batch_process(
                             # Write to ZIP immediately
                             zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
                             successful_count += 1
-                            batch_progress[job_id]['successful'] = successful_count
 
                             # Free memory immediately
                             del df
@@ -348,7 +315,6 @@ async def batch_process(
                                 'filename': file.filename,
                                 'error': result.get('error', 'Unknown error')
                             })
-                            batch_progress[job_id]['failed'] = len(failed_files)
 
                         # Cleanup pipeline and force garbage collection
                         del pipeline
@@ -367,7 +333,6 @@ async def batch_process(
                             'filename': file.filename,
                             'error': str(file_error)
                         })
-                        batch_progress[job_id]['failed'] = len(failed_files)
                         continue
 
                 # If there were failures, add an error log to the ZIP
@@ -377,24 +342,17 @@ async def batch_process(
                     )
                     zip_file.writestr("_ERRORS.txt", error_log.encode('utf-8'))
 
-            # Mark processing as complete
-            batch_progress[job_id]['status'] = 'completed'
-
             # Get the full bytes AFTER closing the ZIP
             zip_bytes = zip_buffer.getvalue()
 
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             zip_filename = f"Batch_Processed_{successful_count}_files_{timestamp}.zip"
 
-            # Clean up progress after 60 seconds
-            asyncio.create_task(cleanup_progress(job_id, 60))
-
             return StreamingResponse(
                 io.BytesIO(zip_bytes),
                 media_type="application/zip",
                 headers={
-                    "Content-Disposition": f"attachment; filename={zip_filename}",
-                    "X-Job-ID": job_id  # Include job ID in response headers
+                    "Content-Disposition": f"attachment; filename={zip_filename}"
                 }
             )
 
@@ -416,28 +374,3 @@ async def batch_process(
 
         # Final garbage collection
         gc.collect()
-
-
-@router.get("/batch-progress/{job_id}")
-async def get_batch_progress(job_id: str):
-    """Get progress status for a batch processing job.
-
-    Returns current file being processed and completion status.
-    Frontend can poll this endpoint to show real-time progress.
-    """
-    if job_id not in batch_progress:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Job ID not found or expired"
-        )
-
-    return JSONResponse(content=batch_progress[job_id])
-
-
-async def cleanup_progress(job_id: str, delay: int = 60):
-    """Clean up progress tracking data after specified delay."""
-    await asyncio.sleep(delay)
-    if job_id in batch_progress:
-        del batch_progress[job_id]
-
-

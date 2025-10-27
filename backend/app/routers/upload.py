@@ -4,9 +4,11 @@ import tempfile
 import uuid
 import zipfile
 import gc
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from fastapi.responses import FileResponse, StreamingResponse
+import json
+import asyncio
+from typing import List, Dict
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
 import pandas as pd
@@ -14,6 +16,9 @@ import pandas as pd
 from app.database import get_db
 from app.services.pipeline import ProcessingPipeline
 from app.config import settings
+
+# In-memory progress tracking for batch jobs
+batch_progress: Dict[str, Dict] = {}
 
 router = APIRouter(prefix="/api", tags=["File Processing"])
 
@@ -231,6 +236,14 @@ async def batch_process(
                     del df
                 gc.collect()
 
+                # Delete temp file immediately after processing
+                if temp_path and os.path.exists(temp_path):
+                    try:
+                        os.unlink(temp_path)
+                        temp_files.remove(temp_path)
+                    except:
+                        pass
+
             if not merged_chunks:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -270,10 +283,31 @@ async def batch_process(
             successful_count = 0
             failed_files = []
 
+            # Generate unique job ID for progress tracking
+            job_id = str(uuid.uuid4())
+            total_files = len(files)
+
+            # Initialize progress tracking
+            batch_progress[job_id] = {
+                'total': total_files,
+                'current': 0,
+                'current_file': '',
+                'status': 'processing',
+                'successful': 0,
+                'failed': 0
+            }
+
             with zipfile.ZipFile(zip_buffer, mode='w', compression=zipfile.ZIP_DEFLATED) as zip_file:
-                for file in files:
+                for idx, file in enumerate(files, 1):
                     temp_path = None
                     try:
+                        # Update progress
+                        batch_progress[job_id].update({
+                            'current': idx,
+                            'current_file': file.filename,
+                            'status': 'processing'
+                        })
+
                         # Save temp file
                         with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
                             temp_path = temp_file.name
@@ -297,6 +331,7 @@ async def batch_process(
                             # Write to ZIP immediately
                             zip_file.writestr(csv_filename, csv_data.encode('utf-8'))
                             successful_count += 1
+                            batch_progress[job_id]['successful'] = successful_count
 
                             # Free memory immediately
                             del df
@@ -306,16 +341,26 @@ async def batch_process(
                                 'filename': file.filename,
                                 'error': result.get('error', 'Unknown error')
                             })
+                            batch_progress[job_id]['failed'] = len(failed_files)
 
                         # Cleanup pipeline and force garbage collection
                         del pipeline
                         gc.collect()
+
+                        # Delete temp file immediately after processing
+                        if temp_path and os.path.exists(temp_path):
+                            try:
+                                os.unlink(temp_path)
+                                temp_files.remove(temp_path)
+                            except:
+                                pass
 
                     except Exception as file_error:
                         failed_files.append({
                             'filename': file.filename,
                             'error': str(file_error)
                         })
+                        batch_progress[job_id]['failed'] = len(failed_files)
                         continue
 
                 # If there were failures, add an error log to the ZIP
@@ -325,17 +370,24 @@ async def batch_process(
                     )
                     zip_file.writestr("_ERRORS.txt", error_log.encode('utf-8'))
 
+            # Mark processing as complete
+            batch_progress[job_id]['status'] = 'completed'
+
             # Get the full bytes AFTER closing the ZIP
             zip_bytes = zip_buffer.getvalue()
 
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             zip_filename = f"Batch_Processed_{successful_count}_files_{timestamp}.zip"
 
+            # Clean up progress after 60 seconds
+            asyncio.create_task(cleanup_progress(job_id, 60))
+
             return StreamingResponse(
                 io.BytesIO(zip_bytes),
                 media_type="application/zip",
                 headers={
-                    "Content-Disposition": f"attachment; filename={zip_filename}"
+                    "Content-Disposition": f"attachment; filename={zip_filename}",
+                    "X-Job-ID": job_id  # Include job ID in response headers
                 }
             )
 
@@ -357,5 +409,28 @@ async def batch_process(
 
         # Final garbage collection
         gc.collect()
+
+
+@router.get("/batch-progress/{job_id}")
+async def get_batch_progress(job_id: str):
+    """Get progress status for a batch processing job.
+
+    Returns current file being processed and completion status.
+    Frontend can poll this endpoint to show real-time progress.
+    """
+    if job_id not in batch_progress:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job ID not found or expired"
+        )
+
+    return JSONResponse(content=batch_progress[job_id])
+
+
+async def cleanup_progress(job_id: str, delay: int = 60):
+    """Clean up progress tracking data after specified delay."""
+    await asyncio.sleep(delay)
+    if job_id in batch_progress:
+        del batch_progress[job_id]
 
 

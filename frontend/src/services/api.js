@@ -53,9 +53,10 @@ export const api = {
    * Batch process multiple files
    * @param {File[]} files - Array of Excel files to process
    * @param {string} outputMode - 'merged' for single CSV or 'zip' for ZIP archive
+   * @param {Function} onProgress - Optional callback for progress updates
    * @returns {Promise<Blob>} - ZIP or CSV file blob
    */
-  async batchProcess(files, outputMode = 'zip') {
+  async batchProcess(files, outputMode = 'zip', onProgress = null) {
     const formData = new FormData();
     files.forEach((file) => {
       formData.append('files', file);
@@ -71,7 +72,43 @@ export const api = {
       throw new Error(error.detail || 'Failed to process files');
     }
 
+    // Get job ID from response headers
+    const jobId = response.headers.get('X-Job-ID');
+
+    // Start polling for progress if callback provided and job ID exists
+    if (onProgress && jobId) {
+      this.pollProgress(jobId, onProgress);
+    }
+
     return await response.blob();
+  },
+
+  /**
+   * Poll for batch processing progress
+   * @param {string} jobId - Job ID to track
+   * @param {Function} onProgress - Callback function for progress updates
+   */
+  async pollProgress(jobId, onProgress) {
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/batch-progress/${jobId}`);
+        if (response.ok) {
+          const progress = await response.json();
+          onProgress(progress);
+
+          // Stop polling when complete
+          if (progress.status === 'completed') {
+            clearInterval(pollInterval);
+          }
+        } else {
+          // Job not found or expired, stop polling
+          clearInterval(pollInterval);
+        }
+      } catch (error) {
+        // Error polling, stop
+        clearInterval(pollInterval);
+      }
+    }, 1000); // Poll every second
   },
 
   /**

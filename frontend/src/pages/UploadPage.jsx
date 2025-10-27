@@ -14,6 +14,7 @@ export function UploadPage() {
   const [previewData, setPreviewData] = useState(null)
   const [error, setError] = useState(null)
   const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [batchProgress, setBatchProgress] = useState(null)
 
   const handleFileSelect = (file) => {
     setSelectedFile(file)
@@ -99,11 +100,17 @@ export function UploadPage() {
 
     setIsProcessing(true)
     setError(null)
+    setBatchProgress(null)
+
+    // Progress callback
+    const onProgress = (progress) => {
+      setBatchProgress(progress)
+    }
 
     try {
       // If merged mode, get preview first (like single file mode)
       if (outputMode === 'merged') {
-        const blob = await api.batchProcess(selectedFiles, outputMode)
+        const blob = await api.batchProcess(selectedFiles, outputMode, onProgress)
 
         // Parse CSV to show preview
         const text = await blob.text()
@@ -126,7 +133,7 @@ export function UploadPage() {
         })
       } else {
         // ZIP mode - direct download (no preview)
-        const blob = await api.batchProcess(selectedFiles, outputMode)
+        const blob = await api.batchProcess(selectedFiles, outputMode, onProgress)
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -302,11 +309,28 @@ export function UploadPage() {
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
-              <div>
+              <div className="flex-1">
                 <h3 className="text-lg font-medium text-blue-900">Processing...</h3>
-                <p className="text-sm text-blue-700">
-                  {batchMode ? `Processing ${selectedFiles.length} files...` : 'Processing file...'}
-                </p>
+                {batchMode && batchProgress ? (
+                  <div>
+                    <p className="text-sm text-blue-700 mb-2">
+                      File {batchProgress.current} of {batchProgress.total}: {batchProgress.current_file}
+                    </p>
+                    <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
+                      <div
+                        className="bg-[#178dc3] h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-blue-600 mt-1">
+                      {batchProgress.successful} successful, {batchProgress.failed} failed
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-blue-700">
+                    {batchMode ? `Processing ${selectedFiles.length} files...` : 'Processing file...'}
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>

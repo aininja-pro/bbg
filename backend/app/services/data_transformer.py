@@ -366,12 +366,13 @@ class DataTransformer:
             df = df.drop(columns=['_product_order', '_date_sort', '_date_sort_temp'], errors='ignore')
 
         # Step 7: Format numeric fields (remove unnecessary decimals)
-        # Convert zip_postal to int (remove .0)
+        # Convert zip_postal to int and then to string to avoid .0 in CSV output
         if 'zip_postal' in df.columns:
             def safe_zip_convert(x):
                 if pd.notna(x) and str(x).strip() not in ('', 'nan'):
                     try:
-                        return int(float(x))
+                        # Convert to int first, then to string to preserve without decimals
+                        return str(int(float(x)))
                     except (ValueError, TypeError) as e:
                         print(f"WARNING: Could not convert zip_postal to int: {repr(x)} (type: {type(x).__name__}) - Error: {e}")
                 return x

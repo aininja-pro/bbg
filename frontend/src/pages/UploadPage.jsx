@@ -374,7 +374,7 @@ export function UploadPage() {
                 <p className="mt-1 text-sm text-green-700">
                   {batchMode
                     ? `${selectedFiles.length} files processed successfully. ${outputMode === 'merged' ? 'All data merged into a single CSV.' : 'Individual CSVs bundled in a ZIP file.'}`
-                    : 'Your CSV file has been downloaded successfully. Ready for FMS import!'
+                    : 'Your CSV file has been downloaded successfully. Ready for TradeNet import!'
                   }
                 </p>
                 <Button onClick={handleReset} variant="outline" size="sm" className="mt-4">

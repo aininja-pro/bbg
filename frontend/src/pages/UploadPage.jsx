@@ -311,24 +311,12 @@ export function UploadPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
               <div className="flex-1">
                 <h3 className="text-lg font-medium text-blue-900">Processing...</h3>
-                {batchMode && batchProgress ? (
-                  <div>
-                    <p className="text-sm text-blue-700 mb-2">
-                      File {batchProgress.current} of {batchProgress.total}: {batchProgress.current_file}
-                    </p>
-                    <div className="w-full bg-blue-200 rounded-full h-2 mt-2">
-                      <div
-                        className="bg-[#178dc3] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-xs text-blue-600 mt-1">
-                      {batchProgress.successful} successful, {batchProgress.failed} failed
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-blue-700">
-                    {batchMode ? `Processing ${selectedFiles.length} files...` : 'Processing file...'}
+                <p className="text-sm text-blue-700">
+                  {batchMode ? `Processing ${selectedFiles.length} files. This may take several minutes for large batches.` : 'Processing file...'}
+                </p>
+                {batchMode && (
+                  <p className="text-xs text-blue-600 mt-2">
+                    Average time: ~10-20 seconds per file
                   </p>
                 )}
               </div>

@@ -89,23 +89,29 @@ export const api = {
    * @param {Function} onProgress - Callback function for progress updates
    */
   async pollProgress(jobId, onProgress) {
+    console.log('[Progress] Starting polling for job:', jobId);
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/batch-progress/${jobId}`);
+        console.log('[Progress] Poll response status:', response.status);
         if (response.ok) {
           const progress = await response.json();
+          console.log('[Progress] Progress update:', progress);
           onProgress(progress);
 
           // Stop polling when complete
           if (progress.status === 'completed') {
+            console.log('[Progress] Job completed, stopping polling');
             clearInterval(pollInterval);
           }
         } else {
           // Job not found or expired, stop polling
+          console.log('[Progress] Job not found, stopping polling');
           clearInterval(pollInterval);
         }
       } catch (error) {
         // Error polling, stop
+        console.error('[Progress] Polling error:', error);
         clearInterval(pollInterval);
       }
     }, 1000); // Poll every second

@@ -41,7 +41,6 @@ export function UploadPage() {
     setSelectedFiles([])
     setPreviewData(null)
     setError(null)
-    setDownloadSuccess(false)
   }
 
   const handleProcess = async () => {
@@ -76,15 +75,15 @@ export function UploadPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-      const filename = `${selectedFile.name.replace(/\.[^/.]+$/, '')}_processed_${timestamp}.csv`
-
+      const filename = `${selectedFile.name.replace('.xlsm', '').replace('.xlsx', '')}_processed.csv`
       a.download = filename
       document.body.appendChild(a)
       a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }, 100)
 
       setDownloadSuccess(true)
       setPreviewData(null)
@@ -138,8 +137,11 @@ export function UploadPage() {
         a.download = filename
         document.body.appendChild(a)
         a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
+
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }, 100)
 
         setDownloadSuccess(true)
       }
@@ -169,8 +171,11 @@ export function UploadPage() {
       a.download = filename
       document.body.appendChild(a)
       a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      }, 100)
 
       setDownloadSuccess(true)
       setPreviewData(null)
@@ -192,13 +197,14 @@ export function UploadPage() {
   const hasFiles = batchMode ? selectedFiles.length > 0 : selectedFile !== null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12 px-4">
-      <div className="max-w-5xl mx-auto space-y-8">
-        {/* Batch Mode Toggle */}
-        <Card className="max-w-2xl mx-auto">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-center">
-              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+    <div className="space-y-8">
+      {/* Batch Mode Toggle & Output Format */}
+      {!previewData && !downloadSuccess && (
+        <div className="flex justify-center">
+          <Card className="inline-block">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-6">
+                {/* Batch Mode Checkbox */}
                 <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="checkbox"
@@ -212,213 +218,201 @@ export function UploadPage() {
                     <span className="text-sm font-medium text-gray-900">
                       Batch Mode
                     </span>
-                    <p className="text-xs text-gray-500">
-                      Process up to 50 files at once
-                    </p>
+                    <p className="text-xs text-gray-500">Process up to 50 files at once</p>
                   </div>
                 </label>
+
+                {/* Output Format (shown when batch mode is enabled) */}
+                {batchMode && (
+                  <div className="flex items-start gap-4 pl-6 border-l-2 border-gray-200">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="merged"
+                        checked={outputMode === 'merged'}
+                        onChange={(e) => setOutputMode(e.target.value)}
+                        className="w-4 h-4"
+                        style={{ accentColor: '#178dc3' }}
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">Merged CSV</span>
+                        <p className="text-xs text-gray-500">Single combined file</p>
+                      </div>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="zip"
+                        checked={outputMode === 'zip'}
+                        onChange={(e) => setOutputMode(e.target.value)}
+                        className="w-4 h-4"
+                        style={{ accentColor: '#178dc3' }}
+                      />
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">ZIP Archive</span>
+                        <p className="text-xs text-gray-500">Individual files</p>
+                      </div>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Upload Section */}
+      {!previewData && !downloadSuccess && (
+        <FileUpload
+          onFileSelect={handleFileSelect}
+          onFilesSelect={handleFilesSelect}
+          isProcessing={isProcessing}
+          batchMode={batchMode}
+        />
+      )}
+
+
+      {/* Process Button */}
+      {!batchMode && selectedFile && !isProcessing && !previewData && !downloadSuccess && (
+        <div className="flex justify-center">
+          <Button onClick={handleProcess} size="lg" className="px-12">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            Process & Preview
+          </Button>
+        </div>
+      )}
+
+      {/* Batch Process Button */}
+      {batchMode && selectedFiles.length > 0 && !isProcessing && !downloadSuccess && !previewData && (
+        <div className="flex justify-center">
+          <Button onClick={handleBatchProcess} size="lg" className="px-12">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            {outputMode === 'merged' ? `Process & Preview ${selectedFiles.length} Files` : `Process & Download ${selectedFiles.length} Files`}
+          </Button>
+        </div>
+      )}
+
+      {/* Processing Indicator */}
+      {isProcessing && (
+        <Card className="max-w-2xl mx-auto border-blue-200 bg-blue-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
+              <div>
+                <h3 className="text-lg font-medium text-blue-900">Processing...</h3>
+                <p className="text-sm text-blue-700">
+                  {batchMode ? `Processing ${selectedFiles.length} files...` : 'Processing file...'}
+                </p>
               </div>
             </div>
-
-            {/* Output Mode Selection (Only for Batch) */}
-            {batchMode && (
-              <div className="mt-6 flex items-center justify-center space-x-4">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="outputMode"
-                    value="zip"
-                    checked={outputMode === 'zip'}
-                    onChange={(e) => setOutputMode(e.target.value)}
-                    disabled={isProcessing}
-                    className="w-4 h-4"
-                    style={{ accentColor: '#178dc3' }}
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">ZIP Archive</span>
-                    <p className="text-xs text-gray-500">Individual files</p>
-                  </div>
-                </label>
-
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="outputMode"
-                    value="merged"
-                    checked={outputMode === 'merged'}
-                    onChange={(e) => setOutputMode(e.target.value)}
-                    disabled={isProcessing}
-                    className="w-4 h-4"
-                    style={{ accentColor: '#178dc3' }}
-                  />
-                  <div>
-                    <span className="text-sm font-medium text-gray-900">Merged CSV</span>
-                    <p className="text-xs text-gray-500">Single combined file</p>
-                  </div>
-                </label>
-              </div>
-            )}
           </CardContent>
         </Card>
+      )}
 
-        {/* Upload Section */}
-        {!previewData && !downloadSuccess && (
-          <FileUpload
-            onFileSelect={handleFileSelect}
-            onFilesSelect={handleFilesSelect}
-            isProcessing={isProcessing}
-            batchMode={batchMode}
-          />
-        )}
+      {/* Preview */}
+      {previewData && !downloadSuccess && (
+        <DataPreview
+          data={previewData}
+          onDownload={batchMode ? handleBatchDownload : handleDownload}
+          onCancel={handleReset}
+        />
+      )}
 
-
-        {/* Process Button */}
-        {!batchMode && selectedFile && !isProcessing && !previewData && !downloadSuccess && (
-          <div className="flex justify-center">
-            <Button onClick={handleProcess} size="lg" className="px-12">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      {/* Success */}
+      {downloadSuccess && (
+        <Card className="max-w-2xl mx-auto border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-4">
+              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Process & Preview
-            </Button>
-          </div>
-        )}
-
-        {/* Batch Process Button */}
-        {batchMode && selectedFiles.length > 0 && !isProcessing && !downloadSuccess && !previewData && (
-          <div className="flex justify-center">
-            <Button onClick={handleBatchProcess} size="lg" className="px-12">
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              {outputMode === 'merged' ? `Process & Preview ${selectedFiles.length} Files` : `Process & Download ${selectedFiles.length} Files`}
-            </Button>
-          </div>
-        )}
-
-        {/* Processing Indicator */}
-        {isProcessing && (
-          <Card className="max-w-2xl mx-auto border-blue-200 bg-blue-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center space-x-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-blue-900">Processing...</h3>
-                  <p className="text-sm text-blue-700">
-                    {batchMode ? `Processing ${selectedFiles.length} files. This may take several minutes for large batches.` : 'Processing file...'}
-                  </p>
-                  {batchMode && (
-                    <p className="text-xs text-blue-600 mt-2">
-                      Average time: ~10-20 seconds per file
-                    </p>
-                  )}
-                </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-green-900">Processing Complete!</h3>
+                <p className="mt-1 text-sm text-green-700">
+                  {batchMode
+                    ? `${selectedFiles.length} files processed successfully. ${outputMode === 'merged' ? 'All data merged into a single CSV.' : 'Individual CSVs bundled in a ZIP file.'}`
+                    : 'Your CSV file has been downloaded successfully. Ready for FMS import!'
+                  }
+                </p>
+                <Button onClick={handleReset} variant="outline" size="sm" className="mt-4">
+                  Process {batchMode ? 'More' : 'Another'} File{batchMode ? 's' : ''}
+                </Button>
               </div>
-            </CardContent>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Error */}
+      {error && (
+        <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start space-x-4">
+              <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-red-900">Processing Error</h3>
+                <p className="mt-1 text-sm text-red-700">{error}</p>
+                <Button onClick={() => setError(null)} variant="outline" size="sm" className="mt-4">
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Info Cards */}
+      {!hasFiles && !isProcessing && !previewData && !downloadSuccess && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+          <Card>
+            <div className="p-6">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#178dc3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Fast Processing</h3>
+              <p className="text-sm text-gray-500">
+                Process files in under 2 minutes. What used to take weeks now takes seconds.
+              </p>
+            </div>
           </Card>
-        )}
 
-        {/* Preview */}
-        {previewData && !downloadSuccess && (
-          <DataPreview
-            data={previewData}
-            onDownload={batchMode ? handleBatchDownload : handleDownload}
-            onCancel={handleReset}
-          />
-        )}
-
-        {/* Success Message */}
-        {downloadSuccess && (
-          <Card className="max-w-2xl mx-auto border-green-200 bg-green-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start space-x-4">
-                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Card>
+            <div className="p-6">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-green-900">Processing Complete!</h3>
-                  <p className="mt-1 text-sm text-green-700">
-                    {batchMode
-                      ? `${selectedFiles.length} files processed successfully. ${outputMode === 'merged' ? 'All data merged into a single CSV.' : 'Individual CSVs bundled in a ZIP file.'}`
-                      : 'Your CSV file has been downloaded successfully. Ready for FMS import!'
-                    }
-                  </p>
-                  <Button onClick={handleReset} variant="outline" size="sm" className="mt-4">
-                    Process More Files
-                  </Button>
-                </div>
               </div>
-            </CardContent>
+              <h3 className="text-lg font-semibold mb-2">Batch Processing</h3>
+              <p className="text-sm text-gray-500">
+                Process hundreds of files at once. Merged CSV or individual files in a ZIP.
+              </p>
+            </div>
           </Card>
-        )}
 
-        {/* Error Message */}
-        {error && (
-          <Card className="max-w-2xl mx-auto border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start space-x-4">
-                <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <Card>
+            <div className="p-6">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-red-900">Processing Error</h3>
-                  <p className="mt-1 text-sm text-red-700">{error}</p>
-                  <Button onClick={() => setError(null)} variant="outline" size="sm" className="mt-4">
-                    Dismiss
-                  </Button>
-                </div>
               </div>
-            </CardContent>
+              <h3 className="text-lg font-semibold mb-2">TradeNet Ready</h3>
+              <p className="text-sm text-gray-500">
+                CSV output is formatted and ready for direct TradeNet import.
+              </p>
+            </div>
           </Card>
-        )}
-
-        {/* Info Cards */}
-        {!hasFiles && !isProcessing && !previewData && !downloadSuccess && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <Card>
-              <div className="p-6">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-[#178dc3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Fast Processing</h3>
-                <p className="text-sm text-gray-500">
-                  Process files in under 2 minutes. What used to take weeks now takes seconds.
-                </p>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="p-6">
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Batch Processing</h3>
-                <p className="text-sm text-gray-500">
-                  Process hundreds of files at once. Merged CSV or individual files in a ZIP.
-                </p>
-              </div>
-            </Card>
-
-            <Card>
-              <div className="p-6">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">FMS Ready</h3>
-                <p className="text-sm text-gray-500">
-                  Output formatted exactly as FMS expects. No manual cleanup needed.
-                </p>
-              </div>
-            </Card>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

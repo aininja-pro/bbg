@@ -7,7 +7,7 @@ import gc
 import json
 import asyncio
 from typing import List, Dict
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, BackgroundTasks, Query
 from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
@@ -168,8 +168,8 @@ async def process_and_download(
 @router.post("/batch-process")
 async def batch_process(
     files: List[UploadFile] = File(...),
-    output_mode: str = "zip",  # "zip" or "merged" via query parameter
-    job_id: str = None,  # Optional job ID from frontend for progress tracking
+    output_mode: str = Query("zip"),  # "zip" or "merged" via query parameter
+    job_id: str = Query(None),  # Optional job ID from frontend for progress tracking
     db: AsyncSession = Depends(get_db)
 ):
     """Process multiple Excel files at once with memory-efficient streaming.

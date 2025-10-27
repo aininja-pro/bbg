@@ -4,9 +4,12 @@ import tempfile
 import uuid
 import zipfile
 import gc
+import base64
+import time
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
-from fastapi.responses import FileResponse, StreamingResponse
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Query
+from fastapi.responses import FileResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 import io
 import pandas as pd
@@ -14,6 +17,9 @@ import pandas as pd
 from app.database import get_db
 from app.services.pipeline import ProcessingPipeline
 from app.config import settings
+from app.repositories.processed_file import ProcessedFileRepository
+from app.schemas.processed_file import ProcessedFileCreate, ProcessedFileResponse, ProcessedFileStatus
+from app.models.processed_file import ProcessedFile
 
 router = APIRouter(prefix="/api", tags=["File Processing"])
 
@@ -374,3 +380,387 @@ async def batch_process(
 
         # Final garbage collection
         gc.collect()
+
+
+# NEW CACHED ENDPOINTS FOR FAST DOWNLOADS
+
+
+@router.post("/upload-with-cache", response_model=ProcessedFileStatus)
+async def upload_file_with_cache(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db)
+):
+    """Upload and process a single rebate Excel file, caching the result for fast downloads.
+
+    Returns a job_id that can be used to download the processed CSV instantly.
+    """
+    # Validate file type
+    if not file.filename.endswith(('.xlsm', '.xlsx')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Only .xlsm and .xlsx files are supported."
+        )
+
+    # Check file size
+    file.file.seek(0, 2)
+    file_size = file.file.tell()
+    file.file.seek(0)
+
+    max_size = settings.MAX_FILE_SIZE_MB * 1024 * 1024
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File too large. Maximum size is {settings.MAX_FILE_SIZE_MB}MB."
+        )
+
+    # Generate unique job_id
+    job_id = str(uuid.uuid4())
+
+    # Create initial database record
+    processed_file_data = ProcessedFileCreate(
+        job_id=job_id,
+        filename=file.filename,
+        original_filenames=[file.filename],
+        file_type='single',
+        status='processing',
+        expires_at=ProcessedFile.calculate_expiration(24)
+    )
+
+    await ProcessedFileRepository.create(db, processed_file_data)
+
+    temp_file_path = None
+    start_time = time.time()
+
+    try:
+        # Save temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+            temp_file_path = temp_file.name
+            content = await file.read()
+            temp_file.write(content)
+
+        # Process the file
+        pipeline = ProcessingPipeline(db)
+        result = await pipeline.process_file(temp_file_path, include_preview=False)
+
+        if result['success']:
+            # Get the processed DataFrame
+            df = pipeline.get_dataframe()
+
+            # Convert to CSV string
+            csv_buffer = io.StringIO()
+            df.to_csv(csv_buffer, index=False)
+            csv_data = csv_buffer.getvalue()
+
+            # Calculate metrics
+            processing_time = int(time.time() - start_time)
+            total_rows = len(df)
+            file_size_bytes = len(csv_data.encode('utf-8'))
+
+            # Update database with processed data
+            await ProcessedFileRepository.update_processed_data(
+                db=db,
+                job_id=job_id,
+                processed_data=csv_data,
+                total_rows=total_rows,
+                file_size_bytes=file_size_bytes,
+                processing_time_seconds=processing_time,
+                metadata=result['metadata']
+            )
+
+            return ProcessedFileStatus(
+                job_id=job_id,
+                status='completed',
+                filename=file.filename,
+                created_at=datetime.utcnow()
+            )
+        else:
+            # Mark as failed
+            error_msg = result.get('error', 'Unknown error')
+            await ProcessedFileRepository.update_status(db, job_id, 'failed', error_msg)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File processing failed: {error_msg}"
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Mark as failed
+        await ProcessedFileRepository.update_status(db, job_id, 'failed', str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal error processing file: {str(e)}"
+        )
+    finally:
+        # Clean up temp file
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+
+
+@router.post("/batch-process-with-cache", response_model=ProcessedFileStatus)
+async def batch_process_with_cache(
+    files: List[UploadFile] = File(...),
+    output_mode: str = Query(default="merged", regex="^(zip|merged)$"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Process multiple Excel files and cache the result (merged CSV or ZIP).
+
+    Returns a job_id that can be used to download the result instantly.
+    """
+    if not files:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No files provided"
+        )
+
+    if len(files) > settings.MAX_BATCH_FILES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Too many files. Maximum batch size is {settings.MAX_BATCH_FILES} files."
+        )
+
+    # Validate all files
+    for file in files:
+        if not file.filename.endswith(('.xlsm', '.xlsx')):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid file type: {file.filename}"
+            )
+
+    # Generate unique job_id
+    job_id = str(uuid.uuid4())
+
+    # Create initial database record
+    filenames = [f.filename for f in files]
+    batch_filename = f"Batch_{len(files)}_files_{'merged' if output_mode == 'merged' else 'zip'}.{'csv' if output_mode == 'merged' else 'zip'}"
+
+    processed_file_data = ProcessedFileCreate(
+        job_id=job_id,
+        filename=batch_filename,
+        original_filenames=filenames,
+        file_type=f'batch_{output_mode}',
+        status='processing',
+        expires_at=ProcessedFile.calculate_expiration(24)
+    )
+
+    await ProcessedFileRepository.create(db, processed_file_data)
+
+    temp_files = []
+    start_time = time.time()
+
+    try:
+        if output_mode == "merged":
+            # Process and merge all files
+            merged_chunks = []
+
+            for file in files:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                    temp_path = temp_file.name
+                    temp_files.append(temp_path)
+                    content = await file.read()
+                    temp_file.write(content)
+
+                pipeline = ProcessingPipeline(db)
+                result = await pipeline.process_file(temp_path, include_preview=False)
+
+                if result['success']:
+                    df = pipeline.get_dataframe()
+                    merged_chunks.append(df)
+
+                del pipeline
+                gc.collect()
+
+            if not merged_chunks:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No files were successfully processed"
+                )
+
+            # Merge all DataFrames
+            merged_df = pd.concat(merged_chunks, ignore_index=True)
+            del merged_chunks
+            gc.collect()
+
+            # Convert to CSV
+            csv_buffer = io.StringIO()
+            merged_df.to_csv(csv_buffer, index=False)
+            csv_data = csv_buffer.getvalue()
+
+            processing_time = int(time.time() - start_time)
+
+            # Update database
+            await ProcessedFileRepository.update_processed_data(
+                db=db,
+                job_id=job_id,
+                processed_data=csv_data,
+                total_rows=len(merged_df),
+                file_size_bytes=len(csv_data.encode('utf-8')),
+                processing_time_seconds=processing_time
+            )
+
+        else:  # output_mode == "zip"
+            # Process files and create ZIP
+            zip_buffer = io.BytesIO()
+
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for file in files:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                        temp_path = temp_file.name
+                        temp_files.append(temp_path)
+                        content = await file.read()
+                        temp_file.write(content)
+
+                    pipeline = ProcessingPipeline(db)
+                    result = await pipeline.process_file(temp_path, include_preview=False)
+
+                    if result['success']:
+                        df = pipeline.get_dataframe()
+                        csv_buffer = io.StringIO()
+                        df.to_csv(csv_buffer, index=False)
+                        csv_content = csv_buffer.getvalue()
+
+                        # Add to ZIP
+                        csv_filename = file.filename.replace('.xlsm', '.csv').replace('.xlsx', '.csv')
+                        zipf.writestr(csv_filename, csv_content)
+
+                    del pipeline
+                    gc.collect()
+
+            # Get ZIP bytes and encode as base64 for storage
+            zip_bytes = zip_buffer.getvalue()
+            zip_base64 = base64.b64encode(zip_bytes).decode('utf-8')
+
+            processing_time = int(time.time() - start_time)
+
+            # Update database
+            await ProcessedFileRepository.update_processed_data(
+                db=db,
+                job_id=job_id,
+                processed_data=zip_base64,  # Store as base64
+                total_rows=None,  # Not applicable for ZIP
+                file_size_bytes=len(zip_bytes),
+                processing_time_seconds=processing_time
+            )
+
+        return ProcessedFileStatus(
+            job_id=job_id,
+            status='completed',
+            filename=batch_filename,
+            created_at=datetime.utcnow()
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        await ProcessedFileRepository.update_status(db, job_id, 'failed', str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Batch processing error: {str(e)}"
+        )
+    finally:
+        # Clean up temp files
+        for temp_path in temp_files:
+            if os.path.exists(temp_path):
+                try:
+                    os.unlink(temp_path)
+                except:
+                    pass
+        gc.collect()
+
+
+@router.get("/download/{job_id}")
+async def download_by_job_id(
+    job_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Download a processed file by job_id (instant retrieval from cache)."""
+
+    # Get processed file from database
+    processed_file = await ProcessedFileRepository.get_by_job_id(db, job_id)
+
+    if not processed_file:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found or expired"
+        )
+
+    if processed_file.status == 'processing':
+        raise HTTPException(
+            status_code=status.HTTP_202_ACCEPTED,
+            detail="File is still processing. Please try again in a moment."
+        )
+
+    if processed_file.status == 'failed':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Processing failed: {processed_file.error_message}"
+        )
+
+    # Check if expired
+    if processed_file.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail="This file has expired and is no longer available"
+        )
+
+    # Record download
+    await ProcessedFileRepository.record_download(db, job_id)
+
+    # Return the cached data
+    if processed_file.file_type == 'batch_zip':
+        # Decode base64 ZIP
+        zip_bytes = base64.b64decode(processed_file.processed_data)
+
+        return StreamingResponse(
+            io.BytesIO(zip_bytes),
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f"attachment; filename={processed_file.filename}"
+            }
+        )
+    else:
+        # Return CSV (single or merged)
+        return StreamingResponse(
+            io.StringIO(processed_file.processed_data),
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={processed_file.filename}"
+            }
+        )
+
+
+@router.get("/job-status/{job_id}", response_model=ProcessedFileStatus)
+async def get_job_status(
+    job_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """Check the status of a processing job."""
+
+    processed_file = await ProcessedFileRepository.get_by_job_id(db, job_id)
+
+    if not processed_file:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found"
+        )
+
+    return ProcessedFileStatus(
+        job_id=processed_file.job_id,
+        status=processed_file.status,
+        filename=processed_file.filename,
+        created_at=processed_file.created_at,
+        error_message=processed_file.error_message
+    )
+
+
+@router.delete("/cleanup-expired")
+async def cleanup_expired_files(db: AsyncSession = Depends(get_db)):
+    """Manually trigger cleanup of expired processed files."""
+
+    deleted_count = await ProcessedFileRepository.delete_expired(db)
+
+    return {
+        "success": True,
+        "deleted_count": deleted_count,
+        "message": f"Deleted {deleted_count} expired files"
+    }

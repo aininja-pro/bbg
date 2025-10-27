@@ -82,4 +82,89 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/health`);
     return await response.json();
   },
+
+  // NEW CACHED ENDPOINTS FOR FAST DOWNLOADS
+
+  /**
+   * Upload file with caching for instant downloads
+   * @param {File} file - The Excel file to process
+   * @returns {Promise<Object>} - Job status with job_id
+   */
+  async uploadWithCache(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${API_BASE_URL}/api/upload-with-cache`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Upload failed' }));
+      throw new Error(error.detail || 'Failed to upload file');
+    }
+
+    return await response.json();
+  },
+
+  /**
+   * Batch process files with caching
+   * @param {File[]} files - Array of Excel files to process
+   * @param {string} outputMode - 'merged' for single CSV or 'zip' for ZIP archive
+   * @returns {Promise<Object>} - Job status with job_id
+   */
+  async batchProcessWithCache(files, outputMode = 'merged') {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/api/batch-process-with-cache?output_mode=${outputMode}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Batch processing failed' }));
+      throw new Error(error.detail || 'Failed to process files');
+    }
+
+    return await response.json();
+  },
+
+  /**
+   * Download processed file by job_id (instant!)
+   * @param {string} jobId - The job ID from processing
+   * @returns {Promise<Blob>} - CSV or ZIP file blob
+   */
+  async downloadByJobId(jobId) {
+    const response = await fetch(`${API_BASE_URL}/api/download/${jobId}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Download failed' }));
+      throw new Error(error.detail || 'Failed to download file');
+    }
+
+    return await response.blob();
+  },
+
+  /**
+   * Check job processing status
+   * @param {string} jobId - The job ID to check
+   * @returns {Promise<Object>} - Job status
+   */
+  async getJobStatus(jobId) {
+    const response = await fetch(`${API_BASE_URL}/api/job-status/${jobId}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Failed to get status' }));
+      throw new Error(error.detail || 'Failed to get job status');
+    }
+
+    return await response.json();
+  },
 };

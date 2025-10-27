@@ -14,12 +14,14 @@ export function UploadPage() {
   const [previewData, setPreviewData] = useState(null)
   const [error, setError] = useState(null)
   const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [jobId, setJobId] = useState(null) // Store job_id for cached downloads
 
   const handleFileSelect = (file) => {
     setSelectedFile(file)
     setPreviewData(null)
     setError(null)
     setDownloadSuccess(false)
+    setJobId(null) // Clear job_id when new file selected
   }
 
   const handleFilesSelect = (files) => {
@@ -33,6 +35,7 @@ export function UploadPage() {
     setPreviewData(null)
     setError(null)
     setDownloadSuccess(false)
+    setJobId(null) // Clear job_id when new files selected
   }
 
   const handleBatchModeToggle = () => {
@@ -50,10 +53,21 @@ export function UploadPage() {
     setError(null)
 
     try {
-      const result = await api.uploadFile(selectedFile)
+      // Use cached upload endpoint
+      const result = await api.uploadWithCache(selectedFile)
 
-      if (result.success) {
-        setPreviewData(result.data)
+      if (result.job_id && result.status === 'completed') {
+        // Store job_id for instant downloads
+        setJobId(result.job_id)
+
+        // For single files, we can show a preview using the old endpoint (optional)
+        // For now, just show success message
+        setPreviewData({
+          member_name: result.filename,
+          bbg_member_id: 'Processed',
+          total_rows: 'Ready for download',
+          preview: [],
+        })
       } else {
         setError('Processing failed')
       }
@@ -65,13 +79,22 @@ export function UploadPage() {
   }
 
   const handleDownload = async () => {
-    if (!selectedFile) return
+    if (!selectedFile && !jobId) return
 
     setIsProcessing(true)
     setError(null)
 
     try {
-      const blob = await api.processAndDownload(selectedFile)
+      let blob
+
+      if (jobId) {
+        // INSTANT DOWNLOAD from cache using job_id!
+        blob = await api.downloadByJobId(jobId)
+      } else {
+        // Fallback to old method (reprocess)
+        blob = await api.processAndDownload(selectedFile)
+      }
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -101,49 +124,44 @@ export function UploadPage() {
     setError(null)
 
     try {
-      // If merged mode, get preview first (like single file mode)
-      if (outputMode === 'merged') {
-        const blob = await api.batchProcess(selectedFiles, outputMode)
+      // Use CACHED batch processing for both modes
+      const result = await api.batchProcessWithCache(selectedFiles, outputMode)
 
-        // Parse CSV to show preview
-        const text = await blob.text()
-        const rows = text.split('\n').filter(row => row.trim())
-        const headers = rows[0].split(',')
-        const dataRows = rows.slice(1).map(row => {
-          const values = row.split(',')
-          return headers.reduce((obj, header, index) => {
-            obj[header] = values[index]
-            return obj
-          }, {})
-        })
+      if (result.job_id && result.status === 'completed') {
+        // Store job_id for instant downloads
+        setJobId(result.job_id)
 
-        // Show preview
-        setPreviewData({
-          preview: dataRows,
-          total_rows: dataRows.length,
-          member_name: `${selectedFiles.length} files merged`,
-          bbg_member_id: 'Batch',
-        })
+        if (outputMode === 'merged') {
+          // Show success message for merged mode
+          setPreviewData({
+            preview: [],
+            total_rows: 'Ready for download',
+            member_name: `${selectedFiles.length} files merged`,
+            bbg_member_id: 'Batch',
+          })
+        } else {
+          // ZIP mode - automatically download
+          const blob = await api.downloadByJobId(result.job_id)
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
+          const filename = `Batch_Processed_${selectedFiles.length}_files_${timestamp}.zip`
+
+          a.download = filename
+          document.body.appendChild(a)
+          a.click()
+
+          setTimeout(() => {
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+          }, 100)
+
+          setDownloadSuccess(true)
+        }
       } else {
-        // ZIP mode - direct download (no preview)
-        const blob = await api.batchProcess(selectedFiles, outputMode)
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)
-        const filename = `Batch_Processed_${selectedFiles.length}_files_${timestamp}.zip`
-
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-
-        setTimeout(() => {
-          window.URL.revokeObjectURL(url)
-          document.body.removeChild(a)
-        }, 100)
-
-        setDownloadSuccess(true)
+        setError('Processing failed')
       }
     } catch (err) {
       setError(err.message || 'Batch processing failed')
@@ -154,13 +172,22 @@ export function UploadPage() {
 
   const handleBatchDownload = async () => {
     // This is called from preview after user confirms
-    if (selectedFiles.length === 0) return
+    if (!jobId && selectedFiles.length === 0) return
 
     setIsProcessing(true)
     setError(null)
 
     try {
-      const blob = await api.batchProcess(selectedFiles, 'merged')
+      let blob
+
+      if (jobId) {
+        // INSTANT DOWNLOAD from cache using job_id!
+        blob = await api.downloadByJobId(jobId)
+      } else {
+        // Fallback to old method (reprocess)
+        blob = await api.batchProcess(selectedFiles, 'merged')
+      }
+
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -192,6 +219,7 @@ export function UploadPage() {
     setPreviewData(null)
     setError(null)
     setDownloadSuccess(false)
+    setJobId(null)
   }
 
   const hasFiles = batchMode ? selectedFiles.length > 0 : selectedFile !== null

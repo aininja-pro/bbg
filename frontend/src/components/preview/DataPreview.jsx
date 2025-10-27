@@ -77,7 +77,11 @@ export function DataPreview({ data, onDownload, onCancel }) {
         </div>
 
         <div className="mt-2 text-sm text-gray-500 text-center">
-          Showing all {allRows.length} rows - scroll to view more
+          {allRows.length < data.total_rows ? (
+            <>Showing first {allRows.length} of {data.total_rows} rows - Download CSV to see all data</>
+          ) : (
+            <>Showing all {allRows.length} rows - scroll to view more</>
+          )}
         </div>
 
         {/* Actions */}

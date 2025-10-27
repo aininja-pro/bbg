@@ -85,13 +85,20 @@ class ProcessingPipeline:
 
             self.result = df
 
+            # Limit preview to first 200 rows to reduce memory usage on large files
+            preview_data = []
+            if include_preview and len(df) > 0:
+                preview_limit = 200
+                preview_df = df.head(preview_limit)
+                preview_data = preview_df.to_dict('records')
+
             return {
                 'success': True,
                 'metadata': metadata,
                 'total_rows': len(df),
                 'active_products': len(active_products),
                 'warnings': self.warnings,
-                'preview': df.to_dict('records') if (include_preview and len(df) > 0) else []
+                'preview': preview_data
             }
 
         except Exception as e:

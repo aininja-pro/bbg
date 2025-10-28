@@ -1,0 +1,2608 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="User documentation for the BBG Rebate Processing automation tool">
+      
+      
+        <meta name="author" content="Builders Buying Group">
+      
+      
+        <link rel="canonical" href="https://bbg-docs.example.com/lookup-management/">
+      
+      
+        <link rel="prev" href="../user-guide/">
+      
+      
+        <link rel="next" href="../rules-engine/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Lookup Management - BBG Rebate Processing Tool Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lookup-management" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-header__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BBG Rebate Processing Tool Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Lookup Management
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  User Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../developer-overview/" class="md-tabs__link">
+          
+  
+  
+  Developer Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-nav__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BBG Rebate Processing Tool Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Lookup Management
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lookup Management
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-are-lookup-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      What Are Lookup Tables?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Are Lookup Tables?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#members-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members Directory
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suppliers-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers Directory
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-they-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why They Matter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-lookup-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing Lookup Tables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Accessing Lookup Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-navigate-to-lookup-tables-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Navigate to Lookup Tables Tab
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-choose-members-or-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Choose Members or Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#members-directory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members Directory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Members Directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#viewing-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      Viewing Members
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#members-data-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members Data Format
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Update Members
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suppliers-directory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers Directory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Suppliers Directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#viewing-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Viewing Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suppliers-data-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers Data Format
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Update Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uploading-new-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading New Directories
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uploading New Directories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uploading-members-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Members CSV
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uploading Members CSV">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-your-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare Your CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Upload
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-confirm-replace" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Confirm Replace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uploading-suppliers-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Suppliers CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload Safety
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-individual-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding Individual Records
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding Individual Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-member" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a Member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-open-add-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Open Add Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-fill-in-the-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Fill in the Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Save
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-supplier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a Supplier
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Supplier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-open-add-form_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Open Add Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-fill-in-the-form_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Fill in the Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-save_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Save
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Records
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editing Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editing-a-member" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing a Member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editing a Member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-find-the-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Find the Record
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-update-the-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Update the Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-save-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Save Changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-a-supplier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing a Supplier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Edit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deleting-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting Records
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deleting Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-member" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting a Member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deleting a Member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-find-the-record_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Find the Record
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-confirm-deletion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Confirm Deletion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-supplier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting a Supplier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Delete
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regular-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regular Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Quality
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-lookup-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Lookup Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Access Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#csv-import-format-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      CSV Import Format Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CSV Import Format Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#members-csv-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members CSV Template
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suppliers-csv-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers CSV Template
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#update-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rules-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rules Engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-are-lookup-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      What Are Lookup Tables?
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Are Lookup Tables?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#members-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members Directory
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suppliers-directory" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers Directory
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-they-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      Why They Matter
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#accessing-lookup-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Accessing Lookup Tables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Accessing Lookup Tables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-navigate-to-lookup-tables-tab" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Navigate to Lookup Tables Tab
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-choose-members-or-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Choose Members or Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#members-directory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members Directory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Members Directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#viewing-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      Viewing Members
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#members-data-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members Data Format
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-members" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Update Members
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suppliers-directory_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers Directory
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Suppliers Directory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#viewing-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Viewing Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-features_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Features
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suppliers-data-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers Data Format
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Update Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uploading-new-directories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading New Directories
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uploading New Directories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#uploading-members-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Members CSV
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uploading Members CSV">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-your-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare Your CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-upload" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Upload
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-confirm-replace" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Confirm Replace
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#uploading-suppliers-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Suppliers CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-safety" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload Safety
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-individual-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding Individual Records
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding Individual Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-member" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a Member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-open-add-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Open Add Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-fill-in-the-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Fill in the Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-save" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Save
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-supplier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Adding a Supplier
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Adding a Supplier">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-open-add-form_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Open Add Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-fill-in-the-form_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Fill in the Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-save_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Save
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#editing-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing Records
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editing Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editing-a-member" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing a Member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Editing a Member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-find-the-record" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Find the Record
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-update-the-form" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Update the Form
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-save-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Save Changes
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#editing-a-supplier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Editing a Supplier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Edit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deleting-records" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting Records
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deleting Records">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-member" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting a Member
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deleting a Member">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-find-the-record_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Find the Record
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-confirm-deletion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Confirm Deletion
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Verification
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deleting-a-supplier" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deleting a Supplier
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      When to Delete
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regular-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Regular Maintenance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backup-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backup Strategy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Quality
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-lookup-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Lookup Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Access Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#csv-import-format-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      CSV Import Format Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CSV Import Format Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#members-csv-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      Members CSV Template
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#suppliers-csv-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      Suppliers CSV Template
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#update-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Tasks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="lookup-management">Lookup Management<a class="headerlink" href="#lookup-management" title="Permanent link">&para;</a></h1>
+<p>This guide explains how to manage the lookup tables that power the BBG Rebate Processing Tool.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#what-are-lookup-tables">What Are Lookup Tables?</a></li>
+<li><a href="#accessing-lookup-tables">Accessing Lookup Tables</a></li>
+<li><a href="#members-directory">Members Directory</a></li>
+<li><a href="#suppliers-directory">Suppliers Directory</a></li>
+<li><a href="#uploading-new-directories">Uploading New Directories</a></li>
+<li><a href="#adding-individual-records">Adding Individual Records</a></li>
+<li><a href="#editing-records">Editing Records</a></li>
+<li><a href="#deleting-records">Deleting Records</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+</ul>
+<hr />
+<h2 id="what-are-lookup-tables">What Are Lookup Tables?<a class="headerlink" href="#what-are-lookup-tables" title="Permanent link">&para;</a></h2>
+<p>Lookup tables are reference directories that contain critical information used during file processing:</p>
+<h3 id="members-directory">Members Directory<a class="headerlink" href="#members-directory" title="Permanent link">&para;</a></h3>
+<p><strong>Contains:</strong> BBG member companies and their TradeNet IDs
+<strong>Used for:</strong>
+- Looking up Member IDs when processing OLD format files
+- Validating member information
+- Enriching output data with correct TradeNet IDs</p>
+<p><strong>Current size:</strong> ~911 members</p>
+<h3 id="suppliers-directory">Suppliers Directory<a class="headerlink" href="#suppliers-directory" title="Permanent link">&para;</a></h3>
+<p><strong>Contains:</strong> Supplier companies and their TradeNet IDs
+<strong>Used for:</strong>
+- Mapping supplier names to TradeNet Supplier IDs
+- Validating supplier information
+- Ensuring correct supplier attribution in output</p>
+<p><strong>Current size:</strong> ~91 suppliers</p>
+<h3 id="why-they-matter">Why They Matter<a class="headerlink" href="#why-they-matter" title="Permanent link">&para;</a></h3>
+<p>Without accurate lookup tables:
+- OLD format files won't process (can't find Member ID)
+- Supplier IDs will be missing or incorrect
+- TradeNet imports will fail</p>
+<p><strong>Keep these tables up to date!</strong></p>
+<hr />
+<h2 id="accessing-lookup-tables">Accessing Lookup Tables<a class="headerlink" href="#accessing-lookup-tables" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-navigate-to-lookup-tables-tab">Step 1: Navigate to Lookup Tables Tab<a class="headerlink" href="#step-1-navigate-to-lookup-tables-tab" title="Permanent link">&para;</a></h3>
+<p>Click the <strong>Lookup Tables</strong> tab at the top of the page.</p>
+<p>[Screenshot: Lookup Tables tab in main navigation]</p>
+<h3 id="step-2-choose-members-or-suppliers">Step 2: Choose Members or Suppliers<a class="headerlink" href="#step-2-choose-members-or-suppliers" title="Permanent link">&para;</a></h3>
+<p>You'll see two sub-tabs:
+- <strong>Members</strong> - View and manage the Members directory
+- <strong>Suppliers</strong> - View and manage the Suppliers directory</p>
+<p>[Screenshot: Members and Suppliers sub-tabs]</p>
+<hr />
+<h2 id="members-directory_1">Members Directory<a class="headerlink" href="#members-directory_1" title="Permanent link">&para;</a></h2>
+<h3 id="viewing-members">Viewing Members<a class="headerlink" href="#viewing-members" title="Permanent link">&para;</a></h3>
+<p>The Members table displays:
+- <strong>Member Name</strong>: Company name (e.g., "Bosgraaf Homes")
+- <strong>BBG Member ID</strong>: TradeNet member ID (e.g., "1003")
+- <strong>Actions</strong>: Edit and Delete buttons</p>
+<p>[Screenshot: Members table with sample data]</p>
+<h3 id="table-features">Table Features<a class="headerlink" href="#table-features" title="Permanent link">&para;</a></h3>
+<p><strong>Search:</strong> Type in the search box to filter by name or ID
+<strong>Sort:</strong> Click column headers to sort
+<strong>Pagination:</strong> Navigate through pages if you have many records</p>
+<h3 id="members-data-format">Members Data Format<a class="headerlink" href="#members-data-format" title="Permanent link">&para;</a></h3>
+<p>Each member record contains:
+- <code>member_name</code>: Full company name
+- <code>bbg_member_id</code>: TradeNet member ID (usually 4 digits)</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>member_name: &quot;Bosgraaf Homes&quot;
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bbg_member_id: &quot;1003&quot;
+</code></pre></div></p>
+<h3 id="when-to-update-members">When to Update Members<a class="headerlink" href="#when-to-update-members" title="Permanent link">&para;</a></h3>
+<p>Update the Members directory when:
+- A new member joins BBG
+- A member's name changes
+- A member's TradeNet ID changes
+- TradeNet provides an updated member list</p>
+<hr />
+<h2 id="suppliers-directory_1">Suppliers Directory<a class="headerlink" href="#suppliers-directory_1" title="Permanent link">&para;</a></h2>
+<h3 id="viewing-suppliers">Viewing Suppliers<a class="headerlink" href="#viewing-suppliers" title="Permanent link">&para;</a></h3>
+<p>The Suppliers table displays:
+- <strong>Supplier Name</strong>: Company name (e.g., "Carrier")
+- <strong>TradeNet Supplier ID</strong>: TradeNet ID (e.g., "5001")
+- <strong>Actions</strong>: Edit and Delete buttons</p>
+<p>[Screenshot: Suppliers table with sample data]</p>
+<h3 id="table-features_1">Table Features<a class="headerlink" href="#table-features_1" title="Permanent link">&para;</a></h3>
+<p><strong>Search:</strong> Type in the search box to filter by name or ID
+<strong>Sort:</strong> Click column headers to sort
+<strong>Pagination:</strong> Navigate through pages if you have many records</p>
+<h3 id="suppliers-data-format">Suppliers Data Format<a class="headerlink" href="#suppliers-data-format" title="Permanent link">&para;</a></h3>
+<p>Each supplier record contains:
+- <code>supplier_name</code>: Full company name as it appears in TradeNet
+- <code>tradenet_supplier_id</code>: TradeNet supplier ID</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>supplier_name: &quot;Carrier&quot;
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>tradenet_supplier_id: &quot;5001&quot;
+</code></pre></div></p>
+<h3 id="when-to-update-suppliers">When to Update Suppliers<a class="headerlink" href="#when-to-update-suppliers" title="Permanent link">&para;</a></h3>
+<p>Update the Suppliers directory when:
+- A new supplier is added to TradeNet
+- A supplier's name changes
+- A supplier's TradeNet ID changes
+- TradeNet provides an updated supplier directory</p>
+<hr />
+<h2 id="uploading-new-directories">Uploading New Directories<a class="headerlink" href="#uploading-new-directories" title="Permanent link">&para;</a></h2>
+<p>The fastest way to update lookup tables is to upload a complete CSV file from TradeNet.</p>
+<h3 id="uploading-members-csv">Uploading Members CSV<a class="headerlink" href="#uploading-members-csv" title="Permanent link">&para;</a></h3>
+<h4 id="step-1-prepare-your-csv">Step 1: Prepare Your CSV<a class="headerlink" href="#step-1-prepare-your-csv" title="Permanent link">&para;</a></h4>
+<p>Get the latest Members directory from TradeNet as a CSV file.</p>
+<p><strong>Required CSV format:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>member_name,bbg_member_id
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Bosgraaf Homes,1003
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>New Tradition Homes,1564
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>Example Builders,1234
+</code></pre></div></p>
+<p><strong>Requirements:</strong>
+- First row must be headers: <code>member_name,bbg_member_id</code>
+- Each subsequent row is one member
+- No extra columns (will be ignored)</p>
+<h4 id="step-2-upload">Step 2: Upload<a class="headerlink" href="#step-2-upload" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Go to <strong>Lookup Tables</strong> → <strong>Members</strong> tab</li>
+<li>Click the <strong>Upload CSV</strong> button</li>
+<li>Select your members CSV file</li>
+<li>Click "Open"</li>
+</ol>
+<p>[Screenshot: Upload CSV button]</p>
+<h4 id="step-3-confirm-replace">Step 3: Confirm Replace<a class="headerlink" href="#step-3-confirm-replace" title="Permanent link">&para;</a></h4>
+<p>You'll see a confirmation dialog:</p>
+<p>"This will replace all existing members with the contents of this file. Are you sure?"</p>
+<ul>
+<li>Click <strong>Confirm</strong> to proceed</li>
+<li>Click <strong>Cancel</strong> to abort</li>
+</ul>
+<h4 id="step-4-verification">Step 4: Verification<a class="headerlink" href="#step-4-verification" title="Permanent link">&para;</a></h4>
+<p>After upload:
+- You'll see a success message
+- The table will refresh with the new data
+- Verify a few records to ensure data loaded correctly</p>
+<p>[Screenshot: Success message after upload]</p>
+<h3 id="uploading-suppliers-csv">Uploading Suppliers CSV<a class="headerlink" href="#uploading-suppliers-csv" title="Permanent link">&para;</a></h3>
+<p>Same process as Members, but for suppliers:</p>
+<p><strong>Required CSV format:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>supplier_name,tradenet_supplier_id
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>Carrier,5001
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>CertainTeed,5002
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>Air Vent,5003
+</code></pre></div></p>
+<p><strong>Requirements:</strong>
+- First row must be headers: <code>supplier_name,tradenet_supplier_id</code>
+- Each subsequent row is one supplier</p>
+<h3 id="upload-safety">Upload Safety<a class="headerlink" href="#upload-safety" title="Permanent link">&para;</a></h3>
+<p><strong>Important Notes:</strong>
+- Uploading a CSV <strong>replaces all existing records</strong>
+- There is no undo - make sure you have a backup
+- Test with a small file first if unsure
+- Keep a copy of the current data before replacing</p>
+<hr />
+<h2 id="adding-individual-records">Adding Individual Records<a class="headerlink" href="#adding-individual-records" title="Permanent link">&para;</a></h2>
+<p>Add a single member or supplier without uploading a full CSV.</p>
+<h3 id="adding-a-member">Adding a Member<a class="headerlink" href="#adding-a-member" title="Permanent link">&para;</a></h3>
+<h4 id="step-1-open-add-form">Step 1: Open Add Form<a class="headerlink" href="#step-1-open-add-form" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Go to <strong>Lookup Tables</strong> → <strong>Members</strong></li>
+<li>Click the <strong>Add Member</strong> button</li>
+</ol>
+<p>[Screenshot: Add Member button]</p>
+<h4 id="step-2-fill-in-the-form">Step 2: Fill in the Form<a class="headerlink" href="#step-2-fill-in-the-form" title="Permanent link">&para;</a></h4>
+<p>Enter the required information:
+- <strong>Member Name</strong>: Full company name
+- <strong>BBG Member ID</strong>: TradeNet member ID (4-5 digits usually)</p>
+<p>[Screenshot: Add Member form]</p>
+<h4 id="step-3-save">Step 3: Save<a class="headerlink" href="#step-3-save" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Click <strong>Save</strong></li>
+<li>The new member appears in the table</li>
+<li>Success message confirms the addition</li>
+</ol>
+<h3 id="adding-a-supplier">Adding a Supplier<a class="headerlink" href="#adding-a-supplier" title="Permanent link">&para;</a></h3>
+<p>Same process as adding a member:</p>
+<h4 id="step-1-open-add-form_1">Step 1: Open Add Form<a class="headerlink" href="#step-1-open-add-form_1" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Go to <strong>Lookup Tables</strong> → <strong>Suppliers</strong></li>
+<li>Click the <strong>Add Supplier</strong> button</li>
+</ol>
+<h4 id="step-2-fill-in-the-form_1">Step 2: Fill in the Form<a class="headerlink" href="#step-2-fill-in-the-form_1" title="Permanent link">&para;</a></h4>
+<p>Enter:
+- <strong>Supplier Name</strong>: Full company name as it appears in TradeNet
+- <strong>TradeNet Supplier ID</strong>: Supplier ID from TradeNet</p>
+<h4 id="step-3-save_1">Step 3: Save<a class="headerlink" href="#step-3-save_1" title="Permanent link">&para;</a></h4>
+<p>Click <strong>Save</strong> to add the supplier.</p>
+<h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
+<p>The form validates:
+- Required fields must be filled
+- IDs must be valid format
+- Names cannot be duplicates (warning shown)</p>
+<hr />
+<h2 id="editing-records">Editing Records<a class="headerlink" href="#editing-records" title="Permanent link">&para;</a></h2>
+<p>Update an existing member or supplier record.</p>
+<h3 id="editing-a-member">Editing a Member<a class="headerlink" href="#editing-a-member" title="Permanent link">&para;</a></h3>
+<h4 id="step-1-find-the-record">Step 1: Find the Record<a class="headerlink" href="#step-1-find-the-record" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Go to <strong>Lookup Tables</strong> → <strong>Members</strong></li>
+<li>Use search or scroll to find the member</li>
+<li>Click the <strong>Edit</strong> button in that row</li>
+</ol>
+<p>[Screenshot: Edit button in member row]</p>
+<h4 id="step-2-update-the-form">Step 2: Update the Form<a class="headerlink" href="#step-2-update-the-form" title="Permanent link">&para;</a></h4>
+<p>The edit form appears with current values filled in:
+- Modify <strong>Member Name</strong> and/or <strong>BBG Member ID</strong>
+- Make your changes</p>
+<p>[Screenshot: Edit Member form with existing values]</p>
+<h4 id="step-3-save-changes">Step 3: Save Changes<a class="headerlink" href="#step-3-save-changes" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Click <strong>Save</strong></li>
+<li>The table updates with new values</li>
+<li>Success message confirms the update</li>
+</ol>
+<h3 id="editing-a-supplier">Editing a Supplier<a class="headerlink" href="#editing-a-supplier" title="Permanent link">&para;</a></h3>
+<p>Same process:
+1. Go to <strong>Lookup Tables</strong> → <strong>Suppliers</strong>
+2. Find the supplier
+3. Click <strong>Edit</strong>
+4. Update values
+5. Click <strong>Save</strong></p>
+<h3 id="when-to-edit">When to Edit<a class="headerlink" href="#when-to-edit" title="Permanent link">&para;</a></h3>
+<p>Edit records when:
+- A company name changes (merger, rebranding)
+- An ID changes in TradeNet
+- You discover a typo or error
+- TradeNet notifies you of changes</p>
+<hr />
+<h2 id="deleting-records">Deleting Records<a class="headerlink" href="#deleting-records" title="Permanent link">&para;</a></h2>
+<p>Remove a member or supplier from the directory.</p>
+<h3 id="deleting-a-member">Deleting a Member<a class="headerlink" href="#deleting-a-member" title="Permanent link">&para;</a></h3>
+<h4 id="step-1-find-the-record_1">Step 1: Find the Record<a class="headerlink" href="#step-1-find-the-record_1" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Go to <strong>Lookup Tables</strong> → <strong>Members</strong></li>
+<li>Find the member to delete</li>
+<li>Click the <strong>Delete</strong> button in that row</li>
+</ol>
+<p>[Screenshot: Delete button in member row]</p>
+<h4 id="step-2-confirm-deletion">Step 2: Confirm Deletion<a class="headerlink" href="#step-2-confirm-deletion" title="Permanent link">&para;</a></h4>
+<p>A confirmation dialog appears:</p>
+<p>"Are you sure you want to delete this member?"</p>
+<ul>
+<li>Click <strong>Confirm</strong> to delete</li>
+<li>Click <strong>Cancel</strong> to abort</li>
+</ul>
+<h4 id="step-3-verification">Step 3: Verification<a class="headerlink" href="#step-3-verification" title="Permanent link">&para;</a></h4>
+<ul>
+<li>The record is removed from the table</li>
+<li>Success message confirms deletion</li>
+</ul>
+<h3 id="deleting-a-supplier">Deleting a Supplier<a class="headerlink" href="#deleting-a-supplier" title="Permanent link">&para;</a></h3>
+<p>Same process:
+1. Go to <strong>Lookup Tables</strong> → <strong>Suppliers</strong>
+2. Find the supplier
+3. Click <strong>Delete</strong>
+4. Confirm</p>
+<h3 id="when-to-delete">When to Delete<a class="headerlink" href="#when-to-delete" title="Permanent link">&para;</a></h3>
+<p>Delete records when:
+- A member leaves BBG
+- A supplier is no longer used
+- Duplicate records exist
+- Records are obsolete</p>
+<p><strong>Warning:</strong> Deleting a member may cause OLD format files from that member to fail processing.</p>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="regular-maintenance">Regular Maintenance<a class="headerlink" href="#regular-maintenance" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Update quarterly</strong>: Check for updates from TradeNet each quarter
+✅ <strong>Before batch processing</strong>: Ensure directories are current
+✅ <strong>After TradeNet changes</strong>: Update immediately if TradeNet notifies you of changes</p>
+<h3 id="backup-strategy">Backup Strategy<a class="headerlink" href="#backup-strategy" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Export current data</strong>: Before uploading new CSVs, export the current tables
+✅ <strong>Keep TradeNet originals</strong>: Save the original CSV files from TradeNet
+✅ <strong>Document changes</strong>: Keep a log of manual edits</p>
+<h3 id="data-quality">Data Quality<a class="headerlink" href="#data-quality" title="Permanent link">&para;</a></h3>
+<p>✅ <strong>Consistent naming</strong>: Use exact company names as they appear in TradeNet
+✅ <strong>Verify IDs</strong>: Double-check IDs match TradeNet exactly
+✅ <strong>Test after changes</strong>: Process a sample file after major updates
+✅ <strong>No duplicates</strong>: Check for duplicate entries regularly</p>
+<h3 id="troubleshooting-lookup-issues">Troubleshooting Lookup Issues<a class="headerlink" href="#troubleshooting-lookup-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Problem:</strong> File fails with "Member not found"
+<strong>Solution:</strong> Add the member to the Members directory</p>
+<p><strong>Problem:</strong> Supplier ID missing in output
+<strong>Solution:</strong> Check if supplier exists in Suppliers directory, add if missing</p>
+<p><strong>Problem:</strong> Wrong supplier ID in output
+<strong>Solution:</strong> Edit the supplier record or check business rules</p>
+<h3 id="access-control">Access Control<a class="headerlink" href="#access-control" title="Permanent link">&para;</a></h3>
+<p><strong>Who should update lookup tables?</strong>
+- Designated staff member(s) with TradeNet access
+- Someone who receives TradeNet directory updates
+- Authorized by management</p>
+<p><strong>Coordination:</strong>
+- Notify team when you update directories
+- Keep a change log for reference
+- Don't let multiple people update simultaneously</p>
+<hr />
+<h2 id="csv-import-format-reference">CSV Import Format Reference<a class="headerlink" href="#csv-import-format-reference" title="Permanent link">&para;</a></h2>
+<h3 id="members-csv-template">Members CSV Template<a class="headerlink" href="#members-csv-template" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>member_name,bbg_member_id
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>Bosgraaf Homes,1003
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>New Tradition Homes,1564
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>ABC Builders,1100
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>XYZ Construction,1200
+</code></pre></div>
+<p><strong>Rules:</strong>
+- Header row required
+- Two columns exactly
+- No blank rows
+- No extra columns (ignored if present)
+- UTF-8 encoding recommended</p>
+<h3 id="suppliers-csv-template">Suppliers CSV Template<a class="headerlink" href="#suppliers-csv-template" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>supplier_name,tradenet_supplier_id
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>Carrier,5001
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>CertainTeed,5002
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Air Vent,5003
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Heatilator,5004
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Leading Edge,5005
+</code></pre></div>
+<p><strong>Rules:</strong>
+- Header row required
+- Two columns exactly
+- No blank rows
+- No extra columns (ignored if present)
+- UTF-8 encoding recommended</p>
+<hr />
+<h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<h3 id="update-workflow">Update Workflow<a class="headerlink" href="#update-workflow" title="Permanent link">&para;</a></h3>
+<p><strong>Full Directory Update:</strong>
+1. Get latest CSV from TradeNet
+2. Go to Lookup Tables → [Members/Suppliers]
+3. Click <strong>Upload CSV</strong>
+4. Select file
+5. Confirm replace
+6. Verify data loaded</p>
+<p><strong>Single Record Update:</strong>
+1. Go to Lookup Tables → [Members/Suppliers]
+2. Click <strong>Add</strong> or <strong>Edit</strong>
+3. Fill in form
+4. Click <strong>Save</strong>
+5. Verify in table</p>
+<h3 id="common-tasks">Common Tasks<a class="headerlink" href="#common-tasks" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Navigation</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>View members</td>
+<td>Lookup Tables → Members</td>
+<td>Browse table</td>
+</tr>
+<tr>
+<td>Add member</td>
+<td>Lookup Tables → Members</td>
+<td>Click "Add Member"</td>
+</tr>
+<tr>
+<td>Edit member</td>
+<td>Lookup Tables → Members</td>
+<td>Click "Edit" button</td>
+</tr>
+<tr>
+<td>Delete member</td>
+<td>Lookup Tables → Members</td>
+<td>Click "Delete" button</td>
+</tr>
+<tr>
+<td>Replace all members</td>
+<td>Lookup Tables → Members</td>
+<td>Click "Upload CSV"</td>
+</tr>
+<tr>
+<td>View suppliers</td>
+<td>Lookup Tables → Suppliers</td>
+<td>Browse table</td>
+</tr>
+<tr>
+<td>Add supplier</td>
+<td>Lookup Tables → Suppliers</td>
+<td>Click "Add Supplier"</td>
+</tr>
+<tr>
+<td>Edit supplier</td>
+<td>Lookup Tables → Suppliers</td>
+<td>Click "Edit" button</td>
+</tr>
+<tr>
+<td>Delete supplier</td>
+<td>Lookup Tables → Suppliers</td>
+<td>Click "Delete" button</td>
+</tr>
+<tr>
+<td>Replace all suppliers</td>
+<td>Lookup Tables → Suppliers</td>
+<td>Click "Upload CSV"</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Learn about the <a href="../rules-engine/">Rules Engine</a> to understand how business rules interact with lookup tables</li>
+<li>Review the <a href="../user-guide/">User Guide</a> to see how lookup tables are used during processing</li>
+<li>Check <a href="../troubleshooting/">Troubleshooting</a> for lookup-related errors</li>
+</ul>
+<hr />
+<p><strong>Questions?</strong> Contact your IT administrator or the development team.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/aininja-pro/bbg" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2667 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="User documentation for the BBG Rebate Processing automation tool">
+      
+      
+        <meta name="author" content="Builders Buying Group">
+      
+      
+        <link rel="canonical" href="https://bbg-docs.example.com/user-guide/">
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../lookup-management/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>User Guide - BBG Rebate Processing Tool Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-header__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BBG Rebate Processing Tool Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  User Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../developer-overview/" class="md-tabs__link">
+          
+  
+  
+  Developer Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-nav__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BBG Rebate Processing Tool Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uploading-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uploading Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-file-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported File Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-upload-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Two Upload Methods
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two Upload Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-1-drag-and-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 1: Drag and Drop
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-2-click-to-browse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 2: Click to Browse
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload Limits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#processing-single-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Processing Single Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Processing Single Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Instructions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-Step Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-upload-your-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Upload Your File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-click-process-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Click Process &amp; Preview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-wait-for-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Wait for Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-review-the-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Review the Preview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-download-the-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Download the CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-success-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Success Message
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-process-another-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Process Another File
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Processing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch Processing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enabling-batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling Batch Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-output-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      Choosing Output Format
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Choosing Output Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-merged-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Merged CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-zip-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: ZIP Archive
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selecting-multiple-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selecting Multiple Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selecting Multiple Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-file-browser" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using File Browser
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-drag-and-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Drag and Drop
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-selection-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Selection Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-batch-merged-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Processing Batch - Merged CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-batch-zip-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Processing Batch - ZIP Archive
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-processing-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Processing Limits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-the-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Understanding the Preview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the Preview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-header-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview Header Information
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scrolling-the-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scrolling the Preview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preview-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview Limitations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#downloading-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Downloading Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Downloading Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-file-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single File Download
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-merged-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Merged Download
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-zip-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch ZIP Download
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#downloaded-file-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Downloaded File Locations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opening-downloaded-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Opening Downloaded Files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Formats
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#old-format-vs-new-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      OLD Format vs NEW Format
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OLD Format vs NEW Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-format-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      NEW Format (Current)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#old-format-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      OLD Format (Legacy)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Transformations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Empty Values
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#warnings-vs-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warnings vs Errors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Warnings vs Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#errors-red" class="md-nav__link">
+    <span class="md-ellipsis">
+      Errors (Red)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warnings-yellow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warnings (Yellow)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-green" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success (Green)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      After Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-processing-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Processing Tips
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-file-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single File Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-merged-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Merged Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-zip-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch ZIP Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lookup-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lookup Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rules-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rules Engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uploading-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Uploading Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Uploading Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-file-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported File Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#two-upload-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      Two Upload Methods
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Two Upload Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#method-1-drag-and-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 1: Drag and Drop
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-2-click-to-browse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method 2: Click to Browse
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#upload-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Upload Limits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#processing-single-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Processing Single Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Processing Single Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step-by-Step Instructions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step-by-Step Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-upload-your-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Upload Your File
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-click-process-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Click Process &amp; Preview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-wait-for-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Wait for Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-review-the-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Review the Preview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-download-the-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Download the CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-success-message" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Success Message
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-process-another-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Process Another File
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#batch-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Processing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Batch Processing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enabling-batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling Batch Mode
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-output-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      Choosing Output Format
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Choosing Output Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-merged-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 1: Merged CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-zip-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Option 2: ZIP Archive
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selecting-multiple-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selecting Multiple Files
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selecting Multiple Files">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-file-browser" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using File Browser
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-drag-and-drop" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Drag and Drop
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-selection-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Selection Summary
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-batch-merged-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      Processing Batch - Merged CSV
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#processing-batch-zip-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      Processing Batch - ZIP Archive
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-processing-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Processing Limits
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#understanding-the-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Understanding the Preview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding the Preview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preview-header-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview Header Information
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Table
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scrolling-the-preview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Scrolling the Preview
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preview-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Preview Limitations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#downloading-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      Downloading Results
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Downloading Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-file-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single File Download
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-merged-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Merged Download
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-zip-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch ZIP Download
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#downloaded-file-locations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Downloaded File Locations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#opening-downloaded-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Opening Downloaded Files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Formats
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#old-format-vs-new-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      OLD Format vs NEW Format
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OLD Format vs NEW Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#new-format-current" class="md-nav__link">
+    <span class="md-ellipsis">
+      NEW Format (Current)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#old-format-legacy" class="md-nav__link">
+    <span class="md-ellipsis">
+      OLD Format (Legacy)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Validation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Validation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#automatic-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Automatic Validation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-transformations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Transformations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#empty-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      Empty Values
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#warnings-vs-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warnings vs Errors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Warnings vs Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#errors-red" class="md-nav__link">
+    <span class="md-ellipsis">
+      Errors (Red)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warnings-yellow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Warnings (Yellow)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#success-green" class="md-nav__link">
+    <span class="md-ellipsis">
+      Success (Green)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#before-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Before Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#during-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      During Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#after-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      After Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-processing-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Processing Tips
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-file-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single File Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-merged-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch Merged Workflow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch-zip-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      Batch ZIP Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="user-guide">User Guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
+<p>Complete instructions for using the BBG Rebate Processing Tool.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#uploading-files">Uploading Files</a></li>
+<li><a href="#processing-single-files">Processing Single Files</a></li>
+<li><a href="#batch-processing">Batch Processing</a></li>
+<li><a href="#understanding-the-preview">Understanding the Preview</a></li>
+<li><a href="#downloading-results">Downloading Results</a></li>
+<li><a href="#file-formats">File Formats</a></li>
+<li><a href="#data-validation">Data Validation</a></li>
+<li><a href="#warnings-vs-errors">Warnings vs Errors</a></li>
+</ul>
+<hr />
+<h2 id="uploading-files">Uploading Files<a class="headerlink" href="#uploading-files" title="Permanent link">&para;</a></h2>
+<h3 id="supported-file-formats">Supported File Formats<a class="headerlink" href="#supported-file-formats" title="Permanent link">&para;</a></h3>
+<p>The tool accepts Excel files in these formats:
+- <code>.xlsm</code> (Excel Macro-Enabled Workbook) - <strong>Recommended</strong>
+- <code>.xlsx</code> (Excel Workbook)</p>
+<h3 id="file-requirements">File Requirements<a class="headerlink" href="#file-requirements" title="Permanent link">&para;</a></h3>
+<p>Your Excel file must contain:
+- A <strong>Usage-Reporting</strong> sheet (the main data tab)
+- A <strong>Programs-Products</strong> sheet (product definitions)
+- Standard BBG rebate template structure</p>
+<h3 id="two-upload-methods">Two Upload Methods<a class="headerlink" href="#two-upload-methods" title="Permanent link">&para;</a></h3>
+<h4 id="method-1-drag-and-drop">Method 1: Drag and Drop<a class="headerlink" href="#method-1-drag-and-drop" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Locate your Excel file in Windows Explorer or Finder</li>
+<li>Click and drag the file over the upload area</li>
+<li>The upload area will highlight when you hover over it</li>
+<li>Release your mouse to drop the file</li>
+</ol>
+<p>[Screenshot: Drag and drop upload area]</p>
+<h4 id="method-2-click-to-browse">Method 2: Click to Browse<a class="headerlink" href="#method-2-click-to-browse" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Click anywhere in the upload area</li>
+<li>A file browser window will open</li>
+<li>Navigate to your file location</li>
+<li>Select the file and click "Open"</li>
+</ol>
+<p>[Screenshot: File browser dialog]</p>
+<h3 id="upload-limits">Upload Limits<a class="headerlink" href="#upload-limits" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Single File Mode</strong>: One file at a time</li>
+<li><strong>Batch Mode</strong>: Up to 50 files at once</li>
+<li><strong>File Size</strong>: Maximum 50MB per file</li>
+</ul>
+<hr />
+<h2 id="processing-single-files">Processing Single Files<a class="headerlink" href="#processing-single-files" title="Permanent link">&para;</a></h2>
+<h3 id="step-by-step-instructions">Step-by-Step Instructions<a class="headerlink" href="#step-by-step-instructions" title="Permanent link">&para;</a></h3>
+<h4 id="1-upload-your-file">1. Upload Your File<a class="headerlink" href="#1-upload-your-file" title="Permanent link">&para;</a></h4>
+<p>Use either drag-and-drop or click-to-browse to upload one Excel file.</p>
+<p>Once uploaded, you'll see the filename displayed below the upload area.</p>
+<p>[Screenshot: File selected, showing filename]</p>
+<h4 id="2-click-process-preview">2. Click Process &amp; Preview<a class="headerlink" href="#2-click-process-preview" title="Permanent link">&para;</a></h4>
+<p>Click the blue <strong>Process &amp; Preview</strong> button to start processing.</p>
+<p>[Screenshot: Process &amp; Preview button]</p>
+<h4 id="3-wait-for-processing">3. Wait for Processing<a class="headerlink" href="#3-wait-for-processing" title="Permanent link">&para;</a></h4>
+<p>You'll see a processing indicator with:
+- A spinning animation
+- "Processing..." message
+- The filename being processed</p>
+<p>This typically takes 5-15 seconds depending on file size.</p>
+<p>[Screenshot: Processing indicator]</p>
+<h4 id="4-review-the-preview">4. Review the Preview<a class="headerlink" href="#4-review-the-preview" title="Permanent link">&para;</a></h4>
+<p>Once complete, you'll see:
+- <strong>Member Information</strong>: Name and BBG Member ID
+- <strong>Row Count</strong>: Total number of data rows processed
+- <strong>Data Table</strong>: Scrollable preview of all rows
+- <strong>Download Button</strong>: Ready to download the CSV</p>
+<p>[Screenshot: Complete preview with data table]</p>
+<h4 id="5-download-the-csv">5. Download the CSV<a class="headerlink" href="#5-download-the-csv" title="Permanent link">&para;</a></h4>
+<p>Click the <strong>Download CSV</strong> button. The file will download with an auto-generated filename:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>[original_filename]_processed.csv
+</code></pre></div>
+<p>For example:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Bosgraaf_Homes_Q4_24_processed.csv
+</code></pre></div></p>
+<h4 id="6-success-message">6. Success Message<a class="headerlink" href="#6-success-message" title="Permanent link">&para;</a></h4>
+<p>After downloading, you'll see a green success message:</p>
+<p>"Processing Complete! Your CSV file has been downloaded successfully. Ready for TradeNet import!"</p>
+<p>[Screenshot: Success message]</p>
+<h4 id="7-process-another-file">7. Process Another File<a class="headerlink" href="#7-process-another-file" title="Permanent link">&para;</a></h4>
+<p>Click <strong>Process Another File</strong> to start over with a new file.</p>
+<hr />
+<h2 id="batch-processing">Batch Processing<a class="headerlink" href="#batch-processing" title="Permanent link">&para;</a></h2>
+<p>Process multiple files at once with two output options: Merged CSV or ZIP archive.</p>
+<h3 id="enabling-batch-mode">Enabling Batch Mode<a class="headerlink" href="#enabling-batch-mode" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Check the <strong>Batch Mode</strong> checkbox at the top of the page</li>
+<li>The interface will update to show batch options</li>
+</ol>
+<p>[Screenshot: Batch Mode checkbox enabled]</p>
+<h3 id="choosing-output-format">Choosing Output Format<a class="headerlink" href="#choosing-output-format" title="Permanent link">&para;</a></h3>
+<p>When Batch Mode is enabled, you'll see two output options:</p>
+<h4 id="option-1-merged-csv">Option 1: Merged CSV<a class="headerlink" href="#option-1-merged-csv" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>What it does</strong>: Combines all files into one large CSV</li>
+<li><strong>Best for</strong>: Importing all data at once into TradeNet</li>
+<li><strong>Preview</strong>: Available before download</li>
+<li><strong>Output</strong>: Single CSV file with all rows from all files</li>
+</ul>
+<h4 id="option-2-zip-archive">Option 2: ZIP Archive<a class="headerlink" href="#option-2-zip-archive" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>What it does</strong>: Creates individual CSVs, bundled in a ZIP file</li>
+<li><strong>Best for</strong>: Keeping files separate for individual member processing</li>
+<li><strong>Preview</strong>: Not available (downloads immediately)</li>
+<li><strong>Output</strong>: One ZIP file containing multiple CSVs</li>
+</ul>
+<p>[Screenshot: Output format radio buttons]</p>
+<h3 id="selecting-multiple-files">Selecting Multiple Files<a class="headerlink" href="#selecting-multiple-files" title="Permanent link">&para;</a></h3>
+<h4 id="using-file-browser">Using File Browser<a class="headerlink" href="#using-file-browser" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Click the upload area</li>
+<li>Hold <strong>Ctrl</strong> (Windows) or <strong>Cmd</strong> (Mac)</li>
+<li>Click each file you want to process</li>
+<li>Click "Open"</li>
+</ol>
+<h4 id="using-drag-and-drop">Using Drag and Drop<a class="headerlink" href="#using-drag-and-drop" title="Permanent link">&para;</a></h4>
+<ol>
+<li>Select multiple files in Windows Explorer or Finder</li>
+<li>Drag them all together to the upload area</li>
+<li>Drop to upload</li>
+</ol>
+<h3 id="file-selection-summary">File Selection Summary<a class="headerlink" href="#file-selection-summary" title="Permanent link">&para;</a></h3>
+<p>After selecting files, you'll see:
+- Total number of files selected
+- List of filenames
+- Total combined size</p>
+<p>[Screenshot: Multiple files selected, showing list]</p>
+<h3 id="processing-batch-merged-csv">Processing Batch - Merged CSV<a class="headerlink" href="#processing-batch-merged-csv" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Ensure <strong>Merged CSV</strong> is selected as the output format</li>
+<li>Click <strong>Process &amp; Preview [X] Files</strong></li>
+<li>Wait for processing (progress indicator shows)</li>
+<li>Review the preview:</li>
+<li>Shows combined data from all files</li>
+<li>First 200 rows displayed</li>
+<li>Total row count shown</li>
+<li>Click <strong>Download CSV</strong> to get the merged file</li>
+</ol>
+<p><strong>Merged Filename Format:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Batch_Merged_[X]_files_[timestamp].csv
+</code></pre></div></p>
+<p>Example:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Batch_Merged_15_files_2025-10-27T14-30-45.csv
+</code></pre></div></p>
+<h3 id="processing-batch-zip-archive">Processing Batch - ZIP Archive<a class="headerlink" href="#processing-batch-zip-archive" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Select <strong>ZIP Archive</strong> as the output format</li>
+<li>Click <strong>Process &amp; Download [X] Files</strong></li>
+<li>Wait for processing</li>
+<li>The ZIP file downloads automatically (no preview)</li>
+</ol>
+<p><strong>ZIP Filename Format:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Batch_Processed_[X]_files_[timestamp].zip
+</code></pre></div></p>
+<p>Example:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Batch_Processed_15_files_2025-10-27T14-30-45.zip
+</code></pre></div></p>
+<p><strong>ZIP Contents:</strong>
+Each Excel file becomes a separate CSV inside the ZIP:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>member_name_1_processed.csv
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>member_name_2_processed.csv
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>member_name_3_processed.csv
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>...
+</code></pre></div></p>
+<h3 id="batch-processing-limits">Batch Processing Limits<a class="headerlink" href="#batch-processing-limits" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Maximum Files</strong>: 50 files per batch</li>
+<li>If you try to select more, you'll see an error message</li>
+<li><strong>Tip</strong>: Process large batches in groups of 50</li>
+</ul>
+<hr />
+<h2 id="understanding-the-preview">Understanding the Preview<a class="headerlink" href="#understanding-the-preview" title="Permanent link">&para;</a></h2>
+<p>After processing, the preview shows your data in a table format.</p>
+<h3 id="preview-header-information">Preview Header Information<a class="headerlink" href="#preview-header-information" title="Permanent link">&para;</a></h3>
+<p>At the top of the preview:
+- <strong>Member Name</strong>: The BBG member company name
+- <strong>BBG Member ID</strong>: The TradeNet member ID (e.g., 1003, 1564)
+- <strong>Total Rows</strong>: Number of data rows in the output (e.g., 240, 1380)</p>
+<p>[Screenshot: Preview header with member info]</p>
+<h3 id="data-table">Data Table<a class="headerlink" href="#data-table" title="Permanent link">&para;</a></h3>
+<p>The preview table shows all 15 columns:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>member_name</td>
+<td>BBG member company name</td>
+</tr>
+<tr>
+<td>bbg_member_id</td>
+<td>TradeNet member ID</td>
+</tr>
+<tr>
+<td>confirmed_occupancy</td>
+<td>Occupancy date (format: M/D/YY)</td>
+</tr>
+<tr>
+<td>job_code</td>
+<td>Job or project identifier</td>
+</tr>
+<tr>
+<td>address1</td>
+<td>Street address</td>
+</tr>
+<tr>
+<td>city</td>
+<td>City name</td>
+</tr>
+<tr>
+<td>state</td>
+<td>Two-letter state code</td>
+</tr>
+<tr>
+<td>zip_postal</td>
+<td>Zip code (no decimals)</td>
+</tr>
+<tr>
+<td>address_type</td>
+<td>RESIDENTIAL or COMMERCIAL</td>
+</tr>
+<tr>
+<td>quantity</td>
+<td>Quantity of items (no decimals)</td>
+</tr>
+<tr>
+<td>product_id</td>
+<td>TradeNet product ID</td>
+</tr>
+<tr>
+<td>supplier_name</td>
+<td>Supplier company name</td>
+</tr>
+<tr>
+<td>tradenet_supplier_id</td>
+<td>TradeNet supplier ID</td>
+</tr>
+<tr>
+<td>pp_dist_subcontractor</td>
+<td>Subcontractor name</td>
+</tr>
+<tr>
+<td>tradenet_company_id</td>
+<td>TradeNet company ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="scrolling-the-preview">Scrolling the Preview<a class="headerlink" href="#scrolling-the-preview" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The table is scrollable (up/down and left/right)</li>
+<li>Headers remain visible while scrolling</li>
+<li>All rows are shown (up to 200 rows for batch merged)</li>
+</ul>
+<p>[Screenshot: Scrollable data table]</p>
+<h3 id="preview-limitations">Preview Limitations<a class="headerlink" href="#preview-limitations" title="Permanent link">&para;</a></h3>
+<p><strong>Single File Mode:</strong>
+- Shows all rows from the file</p>
+<p><strong>Batch Merged Mode:</strong>
+- Shows first 200 rows only
+- Total row count is accurate
+- All data is included in the download</p>
+<hr />
+<h2 id="downloading-results">Downloading Results<a class="headerlink" href="#downloading-results" title="Permanent link">&para;</a></h2>
+<h3 id="single-file-download">Single File Download<a class="headerlink" href="#single-file-download" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Click <strong>Download CSV</strong> from the preview</li>
+<li>The file downloads to your default downloads folder</li>
+<li>Success message appears</li>
+<li>Preview is cleared</li>
+</ol>
+<h3 id="batch-merged-download">Batch Merged Download<a class="headerlink" href="#batch-merged-download" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Review the preview</li>
+<li>Click <strong>Download CSV</strong></li>
+<li>Merged CSV file downloads</li>
+<li>Success message appears</li>
+</ol>
+<h3 id="batch-zip-download">Batch ZIP Download<a class="headerlink" href="#batch-zip-download" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Downloads automatically after processing</li>
+<li>No preview step</li>
+<li>Success message appears</li>
+</ul>
+<h3 id="downloaded-file-locations">Downloaded File Locations<a class="headerlink" href="#downloaded-file-locations" title="Permanent link">&para;</a></h3>
+<p>Files download to your browser's default download folder:
+- <strong>Windows</strong>: Usually <code>C:\Users\[YourName]\Downloads</code>
+- <strong>Mac</strong>: Usually <code>/Users/[YourName]/Downloads</code></p>
+<h3 id="opening-downloaded-files">Opening Downloaded Files<a class="headerlink" href="#opening-downloaded-files" title="Permanent link">&para;</a></h3>
+<p><strong>CSV Files:</strong>
+- Can be opened in Excel
+- Can be opened in Notepad/TextEdit
+- Ready for TradeNet import</p>
+<p><strong>ZIP Files:</strong>
+- Right-click and select "Extract All" (Windows)
+- Double-click to extract (Mac)
+- Contains individual CSV files</p>
+<hr />
+<h2 id="file-formats">File Formats<a class="headerlink" href="#file-formats" title="Permanent link">&para;</a></h2>
+<h3 id="old-format-vs-new-format">OLD Format vs NEW Format<a class="headerlink" href="#old-format-vs-new-format" title="Permanent link">&para;</a></h3>
+<p>The tool automatically detects which format your file uses:</p>
+<h4 id="new-format-current">NEW Format (Current)<a class="headerlink" href="#new-format-current" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Identifier</strong>: Cell B6 contains the BBG Member ID</li>
+<li><strong>Processing</strong>: Member ID is read directly from B6</li>
+<li><strong>Example</strong>: <code>1564</code> in cell B6</li>
+</ul>
+<h4 id="old-format-legacy">OLD Format (Legacy)<a class="headerlink" href="#old-format-legacy" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Identifier</strong>: Cell B6 is blank</li>
+<li><strong>Processing</strong>: Member name is read from B7 and looked up in the Members directory</li>
+<li><strong>Example</strong>: <code>Bosgraaf Homes</code> in B7, ID looked up as <code>1003</code></li>
+</ul>
+<p><strong>You don't need to do anything different</strong> - the tool handles both formats automatically.</p>
+<p>[Screenshot: Example of OLD vs NEW format detection]</p>
+<h3 id="file-structure">File Structure<a class="headerlink" href="#file-structure" title="Permanent link">&para;</a></h3>
+<p>Both formats require:</p>
+<p><strong>Usage-Reporting Sheet:</strong>
+- Row 5: Subcontractor names (pp_dist_subcontractor)
+- Row 6: Member ID (NEW format only) or blank (OLD format)
+- Row 7: Member name
+- Row 9: Column headers
+- Row 10+: Data rows</p>
+<p><strong>Programs-Products Sheet:</strong>
+- Row 2: Active product flags (1 = active)
+- Row 7: Product IDs
+- Row 8+: Product information including supplier names</p>
+<hr />
+<h2 id="data-validation">Data Validation<a class="headerlink" href="#data-validation" title="Permanent link">&para;</a></h2>
+<h3 id="automatic-validation">Automatic Validation<a class="headerlink" href="#automatic-validation" title="Permanent link">&para;</a></h3>
+<p>The tool automatically validates:</p>
+<p>✅ <strong>Member ID or Name</strong>: Must exist in the Members directory
+✅ <strong>Product IDs</strong>: Must be present in the Programs-Products sheet
+✅ <strong>Supplier Names</strong>: Mapped to TradeNet Supplier IDs
+✅ <strong>Dates</strong>: Converted to M/D/YY format
+✅ <strong>Numbers</strong>: Converted to integers (no decimals)
+✅ <strong>Address Types</strong>: Defaults to RESIDENTIAL if blank</p>
+<h3 id="data-transformations">Data Transformations<a class="headerlink" href="#data-transformations" title="Permanent link">&para;</a></h3>
+<p>The tool applies these transformations:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Transformation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>confirmed_occupancy</td>
+<td>Excel date → M/D/YY string (e.g., 7/2/25)</td>
+</tr>
+<tr>
+<td>zip_postal</td>
+<td>Remove decimals, keep as string</td>
+</tr>
+<tr>
+<td>quantity</td>
+<td>Convert to integer, remove decimals</td>
+</tr>
+<tr>
+<td>address_type</td>
+<td>Default to "RESIDENTIAL" if empty</td>
+</tr>
+<tr>
+<td>supplier_name</td>
+<td>Apply business rules for overrides</td>
+</tr>
+</tbody>
+</table>
+<h3 id="empty-values">Empty Values<a class="headerlink" href="#empty-values" title="Permanent link">&para;</a></h3>
+<p>Some fields may be empty in your data:
+- <strong>allowed empty</strong>: address_type (defaults to RESIDENTIAL)
+- <strong>should have values</strong>: Most other fields</p>
+<p>If critical fields are missing, you may see warnings in the output.</p>
+<hr />
+<h2 id="warnings-vs-errors">Warnings vs Errors<a class="headerlink" href="#warnings-vs-errors" title="Permanent link">&para;</a></h2>
+<h3 id="errors-red">Errors (Red)<a class="headerlink" href="#errors-red" title="Permanent link">&para;</a></h3>
+<p><strong>Errors prevent processing and must be fixed:</strong></p>
+<ul>
+<li>File format not recognized</li>
+<li>Required sheets missing (Usage-Reporting or Programs-Products)</li>
+<li>Member not found in directory (OLD format)</li>
+<li>File corrupted or cannot be read</li>
+<li>Batch size exceeds 50 files</li>
+</ul>
+<p>When you see an error:
+1. Read the error message carefully
+2. Check the <a href="../troubleshooting/">Troubleshooting Guide</a>
+3. Fix the issue and try again</p>
+<p>[Screenshot: Error message example]</p>
+<h3 id="warnings-yellow">Warnings (Yellow)<a class="headerlink" href="#warnings-yellow" title="Permanent link">&para;</a></h3>
+<p><strong>Warnings indicate potential issues but don't stop processing:</strong></p>
+<ul>
+<li>Product ID not found in TradeNet Suppliers</li>
+<li>Supplier name not found (defaults to file's supplier name)</li>
+<li>Unusual data values</li>
+<li>Missing optional fields</li>
+</ul>
+<p>When you see a warning:
+1. Review the preview data
+2. Check if the warning affects your data
+3. If data looks correct, proceed with download
+4. If data looks wrong, contact your administrator</p>
+<p>[Screenshot: Warning message example]</p>
+<h3 id="success-green">Success (Green)<a class="headerlink" href="#success-green" title="Permanent link">&para;</a></h3>
+<p><strong>Success messages confirm everything worked:</strong></p>
+<ul>
+<li>"Processing Complete!"</li>
+<li>"Your CSV file has been downloaded successfully"</li>
+<li>"Ready for TradeNet import!"</li>
+</ul>
+<p>[Screenshot: Success message]</p>
+<hr />
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="before-processing">Before Processing<a class="headerlink" href="#before-processing" title="Permanent link">&para;</a></h3>
+<p>✅ Ensure files are the standard BBG rebate template
+✅ Check that files are .xlsm or .xlsx format
+✅ Verify file size is under 50MB
+✅ Make sure you have the correct quarter's files</p>
+<h3 id="during-processing">During Processing<a class="headerlink" href="#during-processing" title="Permanent link">&para;</a></h3>
+<p>✅ Wait for processing to complete (don't close the browser)
+✅ Review the preview before downloading
+✅ Check member name and ID are correct
+✅ Scan through the data table for obvious issues</p>
+<h3 id="after-processing">After Processing<a class="headerlink" href="#after-processing" title="Permanent link">&para;</a></h3>
+<p>✅ Open the CSV in Excel to do a quick visual check
+✅ Verify row count matches expectations
+✅ Check a few rows for data accuracy
+✅ Import into TradeNet following normal procedures</p>
+<h3 id="batch-processing-tips">Batch Processing Tips<a class="headerlink" href="#batch-processing-tips" title="Permanent link">&para;</a></h3>
+<p>✅ Group files by quarter for easier tracking
+✅ Use Merged CSV when importing all at once
+✅ Use ZIP when you need to keep files separate
+✅ Process in groups of 50 or less
+✅ Keep original Excel files as backups</p>
+<hr />
+<h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<h3 id="single-file-workflow">Single File Workflow<a class="headerlink" href="#single-file-workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Upload file</li>
+<li>Click <strong>Process &amp; Preview</strong></li>
+<li>Review preview</li>
+<li>Click <strong>Download CSV</strong></li>
+<li>Import to TradeNet</li>
+</ol>
+<h3 id="batch-merged-workflow">Batch Merged Workflow<a class="headerlink" href="#batch-merged-workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Enable <strong>Batch Mode</strong></li>
+<li>Select <strong>Merged CSV</strong></li>
+<li>Upload multiple files</li>
+<li>Click <strong>Process &amp; Preview [X] Files</strong></li>
+<li>Review preview</li>
+<li>Click <strong>Download CSV</strong></li>
+<li>Import to TradeNet</li>
+</ol>
+<h3 id="batch-zip-workflow">Batch ZIP Workflow<a class="headerlink" href="#batch-zip-workflow" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Enable <strong>Batch Mode</strong></li>
+<li>Select <strong>ZIP Archive</strong></li>
+<li>Upload multiple files</li>
+<li>Click <strong>Process &amp; Download [X] Files</strong></li>
+<li>Wait for automatic download</li>
+<li>Extract ZIP</li>
+<li>Import CSVs to TradeNet</li>
+</ol>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Learn about <a href="../lookup-management/">Lookup Management</a> to maintain member and supplier directories</li>
+<li>Understand the <a href="../rules-engine/">Rules Engine</a> to manage supplier mapping rules</li>
+<li>Check <a href="../troubleshooting/">Troubleshooting</a> if you encounter issues</li>
+<li>Review the <a href="../faq/">FAQ</a> for common questions</li>
+</ul>
+<hr />
+<p><strong>Need help?</strong> Contact your IT administrator or check the <a href="../troubleshooting/">Troubleshooting Guide</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/aininja-pro/bbg" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

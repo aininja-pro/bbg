@@ -1,0 +1,2098 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="User documentation for the BBG Rebate Processing automation tool">
+      
+      
+        <meta name="author" content="Builders Buying Group">
+      
+      
+        <link rel="canonical" href="https://bbg-docs.example.com/deployment/">
+      
+      
+        <link rel="prev" href="../database-schema/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Deployment - BBG Rebate Processing Tool Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#deployment-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-header__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BBG Rebate Processing Tool Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Deployment
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  User Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../developer-overview/" class="md-tabs__link">
+          
+  
+  
+  Developer Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-nav__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BBG Rebate Processing Tool Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lookup-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lookup Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rules-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rules Engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Development
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-deployment-rendercom" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Deployment (Render.com)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Deployment (Render.com)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-backend-for-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare Backend for Production
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-to-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Deploy to Render
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-seed-production-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Seed Production Database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Verify Backend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-deployment-render-static-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Deployment (Render Static Site)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Deployment (Render Static Site)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-frontend-for-production-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare Frontend for Production ✅ COMPLETED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-to-render-static-site-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Deploy to Render Static Site ✅ COMPLETED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verify-frontend-deployed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Verify Frontend ✅ DEPLOYED
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-deployment-github-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation Deployment (GitHub Pages)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Deployment (GitHub Pages)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-build-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Build Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-to-github-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Deploy to GitHub Pages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-enable-github-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Enable GitHub Pages
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-domain-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Domain (Optional)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Domain (Optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-custom-domain-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Custom Domain (Render)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-custom-domain-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Custom Domain (Render)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment Variables Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health Checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backups
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rollback-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollback Procedure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rollback Procedure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#render-backend-web-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render (Backend Web Service)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#render-frontend-static-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render (Frontend Static Site)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Rollback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cost-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cost Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#free-tier-developmenttesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Free Tier (Development/Testing)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-tier-current-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Tier (Current Deployment) ✅
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Deployment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps-after-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps After Deployment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-deployment-rendercom" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Deployment (Render.com)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Deployment (Render.com)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-backend-for-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare Backend for Production
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-to-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Deploy to Render
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-seed-production-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Seed Production Database
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-verify-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Verify Backend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-deployment-render-static-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Deployment (Render Static Site)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Deployment (Render Static Site)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-prepare-frontend-for-production-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Prepare Frontend for Production ✅ COMPLETED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-to-render-static-site-completed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Deploy to Render Static Site ✅ COMPLETED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-verify-frontend-deployed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Verify Frontend ✅ DEPLOYED
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation-deployment-github-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation Deployment (GitHub Pages)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Documentation Deployment (GitHub Pages)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-build-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Build Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-deploy-to-github-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Deploy to GitHub Pages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-enable-github-pages" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Enable GitHub Pages
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-domain-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Domain (Optional)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Custom Domain (Optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-custom-domain-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Custom Domain (Render)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-custom-domain-render" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Custom Domain (Render)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment Variables Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      Security Checklist
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Maintenance
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health Checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#backups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backups
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updates
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rollback-procedure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rollback Procedure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Rollback Procedure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#render-backend-web-service" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render (Backend Web Service)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#render-frontend-static-site" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render (Frontend Static Site)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-rollback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Rollback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cost-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Estimation
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cost Estimation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#free-tier-developmenttesting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Free Tier (Development/Testing)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#production-tier-current-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Production Tier (Current Deployment) ✅
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Deployment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Deployment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps-after-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps After Deployment
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Support
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="deployment-guide">Deployment Guide<a class="headerlink" href="#deployment-guide" title="Permanent link">&para;</a></h1>
+<p>Guide for deploying the BBG Rebate Processing Tool to production.</p>
+<h2 id="deployment-overview">Deployment Overview<a class="headerlink" href="#deployment-overview" title="Permanent link">&para;</a></h2>
+<p><strong>Current Production Stack:</strong>
+- <strong>Backend:</strong> Render.com Web Service ✅ DEPLOYED
+- <strong>Frontend:</strong> Render.com Static Site ✅ DEPLOYED
+- <strong>Database:</strong> PostgreSQL on Render ✅ DEPLOYED
+- <strong>Documentation:</strong> GitHub Pages (optional)</p>
+<hr />
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>GitHub account with repository access</li>
+<li>Render.com account ✅ (you already have this)</li>
+<li>Domain name (optional)</li>
+</ul>
+<hr />
+<h2 id="backend-deployment-rendercom">Backend Deployment (Render.com)<a class="headerlink" href="#backend-deployment-rendercom" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-prepare-backend-for-production">Step 1: Prepare Backend for Production<a class="headerlink" href="#step-1-prepare-backend-for-production" title="Permanent link">&para;</a></h3>
+<p><strong>1.1 Update requirements.txt</strong></p>
+<p>Add production dependencies:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;psycopg2-binary==2.9.9&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>requirements.txt<span class="w">  </span><span class="c1"># If using PostgreSQL</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;gunicorn==21.2.0&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>requirements.txt
+</code></pre></div></p>
+<p><strong>1.2 Create Render configuration</strong></p>
+<p>Create <code>render.yaml</code> in project root:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">services</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">web</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bbg-rebate-api</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nt">buildCommand</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pip install -r backend/requirements.txt</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="nt">startCommand</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cd backend &amp;&amp; gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">envVars</span><span class="p">:</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PYTHON_VERSION</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.12.0</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DATABASE_URL</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">        </span><span class="nt">fromDatabase</span><span class="p">:</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">bbg-rebates-db</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">          </span><span class="nt">property</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">connectionString</span>
+</code></pre></div></p>
+<p><strong>1.3 Update CORS settings</strong></p>
+<p>Edit <code>backend/app/main.py</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Add your Render Static Site URL to allowed origins</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">allow_origins</span><span class="o">=</span><span class="p">[</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="s2">&quot;http://localhost:5173&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="s2">&quot;http://localhost:5174&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="s2">&quot;https://your-frontend.onrender.com&quot;</span><span class="p">,</span>  <span class="c1"># Your Render Static Site URL</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="s2">&quot;https://your-custom-domain.com&quot;</span><span class="p">,</span>  <span class="c1"># Add if using custom domain</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">]</span>
+</code></pre></div></p>
+<h3 id="step-2-deploy-to-render">Step 2: Deploy to Render<a class="headerlink" href="#step-2-deploy-to-render" title="Permanent link">&para;</a></h3>
+<p><strong>2.1 Create New Web Service</strong>
+1. Go to https://render.com/dashboard
+2. Click "New +" → "Web Service"
+3. Connect your GitHub repository
+4. Configure:
+   - <strong>Name:</strong> bbg-rebate-api
+   - <strong>Environment:</strong> Python 3
+   - <strong>Build Command:</strong> <code>pip install -r backend/requirements.txt</code>
+   - <strong>Start Command:</strong> <code>cd backend &amp;&amp; gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT</code>
+   - <strong>Plan:</strong> Free or Starter ($7/mo)</p>
+<p><strong>2.2 Add Environment Variables</strong>
+- <code>DATABASE_URL</code> - PostgreSQL connection string (if using PostgreSQL)
+- <code>ALLOWED_ORIGINS</code> - Your frontend URL</p>
+<p><strong>2.3 Add PostgreSQL Database</strong> ✅ <strong>COMPLETED</strong>
+1. Click "New +" → "PostgreSQL"
+2. Name: bbg-rebates-db
+3. Link to web service
+4. Connection string added to environment variables</p>
+<p><strong>Note:</strong> You are currently using PostgreSQL on Render, not SQLite with persistent disk.</p>
+<h3 id="step-3-seed-production-database">Step 3: Seed Production Database<a class="headerlink" href="#step-3-seed-production-database" title="Permanent link">&para;</a></h3>
+<p><strong>Option A: Via script</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># SSH into Render shell (if available on paid plan)</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>python3<span class="w"> </span>seed_real_data.py
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>python3<span class="w"> </span>seed_rules.py
+</code></pre></div></p>
+<p><strong>Option B: Via API</strong>
+Use the bulk upload endpoints to upload CSV files via the deployed API.</p>
+<h3 id="step-4-verify-backend">Step 4: Verify Backend<a class="headerlink" href="#step-4-verify-backend" title="Permanent link">&para;</a></h3>
+<p>Visit: <code>https://bbg-rebate-api.onrender.com/docs</code></p>
+<p>You should see the FastAPI documentation.</p>
+<hr />
+<h2 id="frontend-deployment-render-static-site">Frontend Deployment (Render Static Site)<a class="headerlink" href="#frontend-deployment-render-static-site" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-prepare-frontend-for-production-completed">Step 1: Prepare Frontend for Production ✅ COMPLETED<a class="headerlink" href="#step-1-prepare-frontend-for-production-completed" title="Permanent link">&para;</a></h3>
+<p><strong>1.1 Update API URL</strong></p>
+<p>Edit <code>frontend/src/services/api.js</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">API_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">import</span><span class="p">.</span><span class="nx">meta</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">VITE_API_URL</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;http://localhost:8001&#39;</span><span class="p">;</span>
+</code></pre></div></p>
+<p><strong>1.2 Create Environment Variable File</strong></p>
+<p>Create <code>frontend/.env.production</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>VITE_API_URL=https://bbg-rebate-api.onrender.com
+</code></pre></div></p>
+<p><strong>1.3 Test Production Build Locally</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>frontend
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>npm<span class="w"> </span>run<span class="w"> </span>build
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>npm<span class="w"> </span>run<span class="w"> </span>preview
+</code></pre></div></p>
+<h3 id="step-2-deploy-to-render-static-site-completed">Step 2: Deploy to Render Static Site ✅ COMPLETED<a class="headerlink" href="#step-2-deploy-to-render-static-site-completed" title="Permanent link">&para;</a></h3>
+<p><strong>2.1 Create Static Site</strong>
+1. Go to https://render.com/dashboard
+2. Click "New +" → "Static Site"
+3. Connect your GitHub repository
+4. Configure:
+   - <strong>Name:</strong> bbg-rebate-frontend (or your chosen name)
+   - <strong>Root Directory:</strong> <code>frontend</code>
+   - <strong>Build Command:</strong> <code>npm install &amp;&amp; npm run build</code>
+   - <strong>Publish Directory:</strong> <code>frontend/dist</code></p>
+<p><strong>2.2 Add Environment Variables</strong>
+In Render static site settings → Environment:
+- <strong>Key:</strong> <code>VITE_API_URL</code>
+- <strong>Value:</strong> <code>https://bbg-rebate-api.onrender.com</code> (your backend URL)</p>
+<p><strong>2.3 Deploy</strong>
+Render automatically builds and deploys - takes 2-3 minutes</p>
+<h3 id="step-3-verify-frontend-deployed">Step 3: Verify Frontend ✅ DEPLOYED<a class="headerlink" href="#step-3-verify-frontend-deployed" title="Permanent link">&para;</a></h3>
+<p>Visit: <code>https://your-frontend.onrender.com</code></p>
+<p>Test file upload and processing.</p>
+<hr />
+<h2 id="documentation-deployment-github-pages">Documentation Deployment (GitHub Pages)<a class="headerlink" href="#documentation-deployment-github-pages" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-build-documentation">Step 1: Build Documentation<a class="headerlink" href="#step-1-build-documentation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>mkdocs<span class="w"> </span>build
+</code></pre></div>
+<p>This creates a <code>site/</code> folder with static HTML.</p>
+<h3 id="step-2-deploy-to-github-pages">Step 2: Deploy to GitHub Pages<a class="headerlink" href="#step-2-deploy-to-github-pages" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>mkdocs<span class="w"> </span>gh-deploy
+</code></pre></div>
+<p>This automatically:
+1. Builds the documentation
+2. Pushes to <code>gh-pages</code> branch
+3. Enables GitHub Pages</p>
+<h3 id="step-3-enable-github-pages">Step 3: Enable GitHub Pages<a class="headerlink" href="#step-3-enable-github-pages" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to GitHub repository settings</li>
+<li>Pages section</li>
+<li>Source: <code>gh-pages</code> branch</li>
+<li>Save</li>
+</ol>
+<p><strong>Documentation URL:</strong> <code>https://[username].github.io/bbg/</code></p>
+<hr />
+<h2 id="custom-domain-optional">Custom Domain (Optional)<a class="headerlink" href="#custom-domain-optional" title="Permanent link">&para;</a></h2>
+<h3 id="backend-custom-domain-render">Backend Custom Domain (Render)<a class="headerlink" href="#backend-custom-domain-render" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to Render dashboard → Your service → Settings</li>
+<li>Add custom domain (e.g., <code>api.your-domain.com</code>)</li>
+<li>Add DNS records:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Type: CNAME
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Name: api
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>Value: bbg-rebate-api.onrender.com
+</code></pre></div></li>
+</ol>
+<h3 id="frontend-custom-domain-render">Frontend Custom Domain (Render)<a class="headerlink" href="#frontend-custom-domain-render" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to Render dashboard → Your Static Site → Settings</li>
+<li>Add custom domain (e.g., <code>rebates.your-domain.com</code>)</li>
+<li>Add DNS records:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>Type: CNAME
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>Name: rebates
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>Value: your-frontend.onrender.com
+</code></pre></div></li>
+</ol>
+<hr />
+<h2 id="environment-variables-reference">Environment Variables Reference<a class="headerlink" href="#environment-variables-reference" title="Permanent link">&para;</a></h2>
+<h3 id="backend">Backend<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Development</th>
+<th>Production</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>API_HOST</code></td>
+<td><code>0.0.0.0</code></td>
+<td><code>0.0.0.0</code></td>
+</tr>
+<tr>
+<td><code>API_PORT</code></td>
+<td><code>8001</code></td>
+<td>Set by Render</td>
+</tr>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td><code>sqlite:///./bbg_rebates.db</code></td>
+<td>PostgreSQL connection string</td>
+</tr>
+<tr>
+<td><code>ALLOWED_ORIGINS</code></td>
+<td><code>http://localhost:5174</code></td>
+<td>Your Render Static Site URL</td>
+</tr>
+<tr>
+<td><code>DEBUG</code></td>
+<td><code>True</code></td>
+<td><code>False</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="frontend">Frontend<a class="headerlink" href="#frontend" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Development</th>
+<th>Production</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VITE_API_URL</code></td>
+<td><code>http://localhost:8001</code></td>
+<td><code>https://your-api.onrender.com</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="security-checklist">Security Checklist<a class="headerlink" href="#security-checklist" title="Permanent link">&para;</a></h2>
+<p>Before production:</p>
+<ul>
+<li>[ ] Add authentication (OAuth, JWT, or basic auth)</li>
+<li>[ ] Enable HTTPS only (done automatically by Render/Vercel)</li>
+<li>[ ] Restrict CORS to specific domains (not wildcard)</li>
+<li>[ ] Add rate limiting to API endpoints</li>
+<li>[ ] Sanitize file uploads (scan for malware)</li>
+<li>[ ] Set up monitoring and alerts</li>
+<li>[ ] Configure backup strategy for database</li>
+<li>[ ] Add error tracking (Sentry, etc.)</li>
+<li>[ ] Review and limit API access</li>
+<li>[ ] Set strong database passwords</li>
+<li>[ ] Rotate secrets regularly</li>
+<li>[ ] Add logging for audit trail</li>
+</ul>
+<hr />
+<h2 id="monitoring-and-maintenance">Monitoring and Maintenance<a class="headerlink" href="#monitoring-and-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="health-checks">Health Checks<a class="headerlink" href="#health-checks" title="Permanent link">&para;</a></h3>
+<p>Set up monitoring for:
+- <code>GET /health</code> endpoint
+- Database connectivity
+- File processing performance
+- Error rates</p>
+<p><strong>Tools:</strong>
+- Render built-in metrics (for both backend and frontend)
+- UptimeRobot (free uptime monitoring)
+- Sentry (error tracking)</p>
+<h3 id="backups">Backups<a class="headerlink" href="#backups" title="Permanent link">&para;</a></h3>
+<p><strong>Database:</strong>
+- Render PostgreSQL: Automatic daily backups
+- Manual backup: Export via API or database tools</p>
+<p><strong>Code:</strong>
+- Git repository (GitHub)
+- Tag releases: <code>git tag v1.0.0</code></p>
+<h3 id="updates">Updates<a class="headerlink" href="#updates" title="Permanent link">&para;</a></h3>
+<p><strong>Dependencies:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Backend</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>pip<span class="w"> </span>list<span class="w"> </span>--outdated
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span><span class="o">[</span>package<span class="o">]</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1"># Frontend</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="nb">cd</span><span class="w"> </span>frontend
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>npm<span class="w"> </span>outdated
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>npm<span class="w"> </span>update
+</code></pre></div></p>
+<p><strong>Deploy Updates:</strong>
+- Push to GitHub
+- Render auto-deploys both backend and frontend from main branch</p>
+<hr />
+<h2 id="rollback-procedure">Rollback Procedure<a class="headerlink" href="#rollback-procedure" title="Permanent link">&para;</a></h2>
+<h3 id="render-backend-web-service">Render (Backend Web Service)<a class="headerlink" href="#render-backend-web-service" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to Render dashboard → Your backend service → Events</li>
+<li>Find previous successful deployment</li>
+<li>Click "Redeploy" on that event</li>
+</ol>
+<h3 id="render-frontend-static-site">Render (Frontend Static Site)<a class="headerlink" href="#render-frontend-static-site" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Go to Render dashboard → Your static site → Events</li>
+<li>Find previous successful deployment</li>
+<li>Click "Redeploy" on that event</li>
+</ol>
+<h3 id="database-rollback">Database Rollback<a class="headerlink" href="#database-rollback" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Stop backend service</li>
+<li>Restore database from backup</li>
+<li>Restart backend service</li>
+</ol>
+<hr />
+<h2 id="cost-estimation">Cost Estimation<a class="headerlink" href="#cost-estimation" title="Permanent link">&para;</a></h2>
+<h3 id="free-tier-developmenttesting">Free Tier (Development/Testing)<a class="headerlink" href="#free-tier-developmenttesting" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Plan</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Render (Backend)</td>
+<td>Free</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Render (Frontend)</td>
+<td>Free Static Site</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Render (PostgreSQL)</td>
+<td>Free (if available)</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>GitHub Pages (Docs)</td>
+<td>Free</td>
+<td>$0</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>$0/month</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Limitations:</strong>
+- Backend sleeps after 15 min inactivity (30s cold start)
+- 750 hours/month render time
+- Limited bandwidth
+- PostgreSQL free tier has storage limits</p>
+<h3 id="production-tier-current-deployment">Production Tier (Current Deployment) ✅<a class="headerlink" href="#production-tier-current-deployment" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Plan</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Render (Backend Web Service)</td>
+<td>Starter</td>
+<td>$7/mo</td>
+</tr>
+<tr>
+<td>Render (Frontend Static Site)</td>
+<td>Free</td>
+<td>$0</td>
+</tr>
+<tr>
+<td>Render PostgreSQL</td>
+<td>Starter</td>
+<td>$7/mo</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>$14/month</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Benefits:</strong>
+- No sleep/cold starts
+- Better performance
+- More resources
+- Support</p>
+<hr />
+<h2 id="troubleshooting-deployment">Troubleshooting Deployment<a class="headerlink" href="#troubleshooting-deployment" title="Permanent link">&para;</a></h2>
+<h3 id="backend-issues">Backend Issues<a class="headerlink" href="#backend-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Build Fails:</strong>
+- Check <code>requirements.txt</code> is correct
+- Verify Python version matches (3.12)
+- Check build logs in Render</p>
+<p><strong>Database Connection Fails:</strong>
+- Verify DATABASE_URL environment variable
+- Check PostgreSQL is running
+- Test connection string</p>
+<p><strong>CORS Errors:</strong>
+- Add frontend URL to ALLOWED_ORIGINS
+- Restart backend service</p>
+<h3 id="frontend-issues">Frontend Issues<a class="headerlink" href="#frontend-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Build Fails:</strong>
+- Check <code>package.json</code> dependencies
+- Verify Node version (20+)
+- Check build logs in Render dashboard</p>
+<p><strong>API Calls Fail:</strong>
+- Verify VITE_API_URL environment variable is correct
+- Check backend is running
+- Test API endpoint directly
+- Check CORS settings in backend</p>
+<p><strong>Environment Variables Not Working:</strong>
+- Redeploy after adding env vars in Render
+- Check variable names (must start with VITE_)
+- Verify variables are set in Static Site settings, not Web Service</p>
+<hr />
+<h2 id="next-steps-after-deployment">Next Steps After Deployment<a class="headerlink" href="#next-steps-after-deployment" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Test thoroughly:</strong></li>
+<li>Upload test files</li>
+<li>Test all features</li>
+<li>
+<p>Check on different devices</p>
+</li>
+<li>
+<p><strong>Set up monitoring:</strong></p>
+</li>
+<li>Health check endpoints</li>
+<li>Error tracking</li>
+<li>
+<p>Usage analytics</p>
+</li>
+<li>
+<p><strong>Train users:</strong></p>
+</li>
+<li>Share documentation URL</li>
+<li>Conduct training session</li>
+<li>
+<p>Gather feedback</p>
+</li>
+<li>
+<p><strong>Plan for scale:</strong></p>
+</li>
+<li>Monitor usage patterns</li>
+<li>Optimize performance bottlenecks</li>
+<li>Consider upgrading plans if needed</li>
+</ol>
+<hr />
+<h2 id="support">Support<a class="headerlink" href="#support" title="Permanent link">&para;</a></h2>
+<p>For deployment issues:
+- <strong>Render:</strong> https://render.com/docs
+- <strong>Render Community:</strong> https://community.render.com
+- <strong>GitHub Pages:</strong> https://docs.github.com/pages</p>
+<hr />
+<p><strong>Production deployment complete!</strong> Monitor your application and gather user feedback for improvements.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/aininja-pro/bbg" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

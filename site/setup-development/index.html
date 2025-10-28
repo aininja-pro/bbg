@@ -1,0 +1,2664 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="User documentation for the BBG Rebate Processing automation tool">
+      
+      
+        <meta name="author" content="Builders Buying Group">
+      
+      
+        <link rel="canonical" href="https://bbg-docs.example.com/setup-development/">
+      
+      
+        <link rel="prev" href="../developer-overview/">
+      
+      
+        <link rel="next" href="../api-reference/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Setup Development - BBG Rebate Processing Tool Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#development-environment-setup" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-header__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BBG Rebate Processing Tool Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Setup Development
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/" class="md-tabs__link">
+          
+  
+  
+  User Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../developer-overview/" class="md-tabs__link">
+          
+  
+  
+  Developer Documentation
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BBG Rebate Processing Tool Documentation" class="md-nav__button md-logo" aria-label="BBG Rebate Processing Tool Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BBG Rebate Processing Tool Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aininja-pro/bbg" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aininja-pro/bbg
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lookup-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Lookup Management
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rules-engine/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Rules Engine
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    Developer Documentation
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Developer Documentation
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Setup Development
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Setup Development
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required Software
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verify Installations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operating-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operating System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initial Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Clone the Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-verify-project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Verify Project Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-navigate-to-backend-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Navigate to Backend Folder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-create-python-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Create Python Virtual Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-activate-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Activate Virtual Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-install-python-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Install Python Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-verify-backend-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Verify Backend Installation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-navigate-to-frontend-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Navigate to Frontend Folder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-install-node-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Install Node Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-verify-frontend-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Verify Frontend Installation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-navigate-to-backend-folder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Navigate to Backend Folder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-activate-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Activate Virtual Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-seed-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Seed the Database
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Seed the Database">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-members-and-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Members and Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Business Rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-verify-database-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Verify Database Created
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running the Application
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running the Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#terminal-1-backend-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Terminal 1: Backend Server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terminal-2-frontend-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Terminal 2: Frontend Server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terminal-3-documentation-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Terminal 3: Documentation (Optional)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-check-backend-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Check Backend API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-check-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Check Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-test-full-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Test Full Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-modulenotfounderror-no-module-named-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: ModuleNotFoundError: No module named 'fastapi'
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-port-8001-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Port 8001 already in use
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-database-is-locked" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Database is locked
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-npm-command-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: npm: command not found
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-port-5174-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Port 5174 already in use
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-failed-to-fetch-errors-in-browser-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Failed to fetch errors in browser console
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-no-data-in-lookup-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: No data in lookup tables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-filenotfounderror-tradenet-csv-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: FileNotFoundError: TradeNet CSV not found
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-processing-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Processing Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Processing Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-required-sheet-usage-reporting-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Required sheet 'Usage-Reporting' not found
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-processing-takes-too-long-1-minute-for-small-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Processing takes too long (&gt; 1 minute for small file)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Tools
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-vs-code-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended VS Code Extensions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vs-code-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      VS Code Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Environment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-development-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start Development Session
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-development-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stop Development Session
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-everything" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reset Everything
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Database Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Deployment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table of Contents
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#required-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required Software
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-installations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verify Installations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#operating-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Operating System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initial Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-clone-the-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Clone the Repository
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-verify-project-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Verify Project Structure
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backend-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-navigate-to-backend-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Navigate to Backend Folder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-create-python-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Create Python Virtual Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-activate-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Activate Virtual Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-install-python-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Install Python Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-verify-backend-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Verify Backend Installation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-navigate-to-frontend-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Navigate to Frontend Folder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-install-node-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Install Node Dependencies
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-verify-frontend-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Verify Frontend Installation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-navigate-to-backend-folder_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Navigate to Backend Folder
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-activate-virtual-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Activate Virtual Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-seed-the-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Seed the Database
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Seed the Database">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#load-members-and-suppliers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Members and Suppliers
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load-business-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Load Business Rules
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-verify-database-created" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Verify Database Created
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running the Application
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Running the Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#terminal-1-backend-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Terminal 1: Backend Server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terminal-2-frontend-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Terminal 2: Frontend Server
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#terminal-3-documentation-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Terminal 3: Documentation (Optional)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verification
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-check-backend-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Check Backend API
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-check-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Check Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-test-full-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Test Full Workflow
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Backend Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-modulenotfounderror-no-module-named-fastapi" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: ModuleNotFoundError: No module named 'fastapi'
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-port-8001-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Port 8001 already in use
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-database-is-locked" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Database is locked
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-npm-command-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: npm: command not found
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-port-5174-already-in-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Port 5174 already in use
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-failed-to-fetch-errors-in-browser-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Failed to fetch errors in browser console
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#database-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Database Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-no-data-in-lookup-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: No data in lookup tables
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-filenotfounderror-tradenet-csv-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: FileNotFoundError: TradeNet CSV not found
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-processing-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Processing Issues
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File Processing Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-required-sheet-usage-reporting-not-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Required sheet 'Usage-Reporting' not found
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-processing-takes-too-long-1-minute-for-small-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Issue: Processing takes too long (&gt; 1 minute for small file)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-tools" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Tools
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Tools">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommended-vs-code-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended VS Code Extensions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vs-code-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      VS Code Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#useful-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful Commands
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment Variables">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#backend-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Backend Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Environment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Reference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-development-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      Start Development Session
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-development-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stop Development Session
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-everything" class="md-nav__link">
+    <span class="md-ellipsis">
+      Reset Everything
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="development-environment-setup">Development Environment Setup<a class="headerlink" href="#development-environment-setup" title="Permanent link">&para;</a></h1>
+<p>Complete guide to setting up your development environment for the BBG Rebate Processing Tool.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#initial-setup">Initial Setup</a></li>
+<li><a href="#backend-setup">Backend Setup</a></li>
+<li><a href="#frontend-setup">Frontend Setup</a></li>
+<li><a href="#database-setup">Database Setup</a></li>
+<li><a href="#running-the-application">Running the Application</a></li>
+<li><a href="#verification">Verification</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+<hr />
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<h3 id="required-software">Required Software<a class="headerlink" href="#required-software" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Software</th>
+<th>Version</th>
+<th>Download</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python</strong></td>
+<td>3.12+</td>
+<td>https://www.python.org/downloads/</td>
+</tr>
+<tr>
+<td><strong>Node.js</strong></td>
+<td>20+ (LTS)</td>
+<td>https://nodejs.org/</td>
+</tr>
+<tr>
+<td><strong>Git</strong></td>
+<td>Latest</td>
+<td>https://git-scm.com/downloads</td>
+</tr>
+<tr>
+<td><strong>Code Editor</strong></td>
+<td>Any</td>
+<td>VS Code recommended</td>
+</tr>
+</tbody>
+</table>
+<h3 id="verify-installations">Verify Installations<a class="headerlink" href="#verify-installations" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Check Python</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>python3<span class="w"> </span>--version
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Should show: Python 3.12.x</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Check Node.js</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>node<span class="w"> </span>--version
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Should show: v20.x.x or higher</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Check npm</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>npm<span class="w"> </span>--version
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="c1"># Should show: 10.x.x or higher</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="c1"># Check Git</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>git<span class="w"> </span>--version
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># Should show: git version 2.x.x</span>
+</code></pre></div>
+<h3 id="operating-system">Operating System<a class="headerlink" href="#operating-system" title="Permanent link">&para;</a></h3>
+<p>This guide covers:
+- <strong>macOS</strong> (primary)
+- <strong>Windows</strong> (with notes for differences)
+- <strong>Linux</strong> (similar to macOS)</p>
+<hr />
+<h2 id="initial-setup">Initial Setup<a class="headerlink" href="#initial-setup" title="Permanent link">&para;</a></h2>
+<h3 id="1-clone-the-repository">1. Clone the Repository<a class="headerlink" href="#1-clone-the-repository" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Navigate to your projects folder</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>~/Desktop/Projects<span class="w">  </span><span class="c1"># or wherever you keep projects</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Clone the repository</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/aininja-pro/bbg.git
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Enter the project directory</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="nb">cd</span><span class="w"> </span>bbg
+</code></pre></div>
+<h3 id="2-verify-project-structure">2. Verify Project Structure<a class="headerlink" href="#2-verify-project-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Check that you have these folders</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ls<span class="w"> </span>-la
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Should see:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># backend/</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># frontend/</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="c1"># docs/</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># README.md</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># PROJECT_STATUS.md</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># mkdocs.yml</span>
+</code></pre></div>
+<hr />
+<h2 id="backend-setup">Backend Setup<a class="headerlink" href="#backend-setup" title="Permanent link">&para;</a></h2>
+<h3 id="1-navigate-to-backend-folder">1. Navigate to Backend Folder<a class="headerlink" href="#1-navigate-to-backend-folder" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>backend
+</code></pre></div>
+<h3 id="2-create-python-virtual-environment">2. Create Python Virtual Environment<a class="headerlink" href="#2-create-python-virtual-environment" title="Permanent link">&para;</a></h3>
+<p><strong>macOS/Linux:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</code></pre></div></p>
+<p><strong>Windows:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+</code></pre></div></p>
+<p>This creates an isolated Python environment in the <code>venv/</code> folder.</p>
+<h3 id="3-activate-virtual-environment">3. Activate Virtual Environment<a class="headerlink" href="#3-activate-virtual-environment" title="Permanent link">&para;</a></h3>
+<p><strong>macOS/Linux:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+</code></pre></div></p>
+<p><strong>Windows (Command Prompt):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+</code></pre></div></p>
+<p><strong>Windows (PowerShell):</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>venv<span class="se">\S</span>cripts<span class="se">\A</span>ctivate.ps1
+</code></pre></div></p>
+<p><strong>You'll know it worked when you see <code>(venv)</code> at the start of your terminal prompt.</strong></p>
+<h3 id="4-install-python-dependencies">4. Install Python Dependencies<a class="headerlink" href="#4-install-python-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+<p>This installs:
+- FastAPI
+- Uvicorn
+- SQLAlchemy
+- Pydantic
+- openpyxl
+- pandas
+- And all other dependencies</p>
+<p><strong>Installation takes 2-5 minutes.</strong></p>
+<h3 id="5-verify-backend-installation">5. Verify Backend Installation<a class="headerlink" href="#5-verify-backend-installation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>python3<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import fastapi; import uvicorn; print(&#39;Backend dependencies installed successfully!&#39;)&quot;</span>
+</code></pre></div>
+<p>Should print: <code>Backend dependencies installed successfully!</code></p>
+<hr />
+<h2 id="frontend-setup">Frontend Setup<a class="headerlink" href="#frontend-setup" title="Permanent link">&para;</a></h2>
+<h3 id="1-navigate-to-frontend-folder">1. Navigate to Frontend Folder<a class="headerlink" href="#1-navigate-to-frontend-folder" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">cd</span><span class="w"> </span>../frontend<span class="w">  </span><span class="c1"># From backend folder</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="c1"># Or from project root: cd frontend</span>
+</code></pre></div>
+<h3 id="2-install-node-dependencies">2. Install Node Dependencies<a class="headerlink" href="#2-install-node-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>npm<span class="w"> </span>install
+</code></pre></div>
+<p>This installs:
+- React
+- Vite
+- TailwindCSS
+- And all other dependencies</p>
+<p><strong>Installation takes 1-3 minutes.</strong></p>
+<h3 id="3-verify-frontend-installation">3. Verify Frontend Installation<a class="headerlink" href="#3-verify-frontend-installation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>npm<span class="w"> </span>list<span class="w"> </span>react<span class="w"> </span>vite<span class="w"> </span>tailwindcss<span class="w"> </span>--depth<span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<p>Should show versions of react, vite, and tailwindcss.</p>
+<hr />
+<h2 id="database-setup">Database Setup<a class="headerlink" href="#database-setup" title="Permanent link">&para;</a></h2>
+<h3 id="1-navigate-to-backend-folder_1">1. Navigate to Backend Folder<a class="headerlink" href="#1-navigate-to-backend-folder_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">cd</span><span class="w"> </span>../backend<span class="w">  </span><span class="c1"># From frontend folder</span>
+</code></pre></div>
+<h3 id="2-activate-virtual-environment">2. Activate Virtual Environment<a class="headerlink" href="#2-activate-virtual-environment" title="Permanent link">&para;</a></h3>
+<p>If not already activated:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">  </span><span class="c1"># macOS/Linux</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="c1"># or</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>venv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate<span class="w">  </span><span class="c1"># Windows</span>
+</code></pre></div></p>
+<h3 id="3-seed-the-database">3. Seed the Database<a class="headerlink" href="#3-seed-the-database" title="Permanent link">&para;</a></h3>
+<p>The database will be created automatically when you run the seed scripts.</p>
+<h4 id="load-members-and-suppliers">Load Members and Suppliers<a class="headerlink" href="#load-members-and-suppliers" title="Permanent link">&para;</a></h4>
+<p>You need the lookup CSV files. If you have them:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Make sure the CSV files are available</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="c1"># Members: TradeNet - Members (1).csv</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Suppliers: TradeNet Supplier Directory (1).csv</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>python3<span class="w"> </span>seed_real_data.py
+</code></pre></div>
+<p><strong>Output should show:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Seeded 911 members
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>Seeded 91 suppliers
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>Database seeded successfully!
+</code></pre></div></p>
+<h4 id="load-business-rules">Load Business Rules<a class="headerlink" href="#load-business-rules" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>python3<span class="w"> </span>seed_rules.py
+</code></pre></div>
+<p><strong>Output should show:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>Seeded 8 business rules
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>Rules seeded successfully!
+</code></pre></div></p>
+<h3 id="4-verify-database-created">4. Verify Database Created<a class="headerlink" href="#4-verify-database-created" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>ls<span class="w"> </span>-la<span class="w"> </span>bbg_rebates.db
+</code></pre></div>
+<p>Should see a file sized ~500KB or larger.</p>
+<p><strong>Note:</strong> This creates a local SQLite database for development. Production uses PostgreSQL on Render.</p>
+<p><strong>If Database Needs Reset:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>rm<span class="w"> </span>bbg_rebates.db
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>python3<span class="w"> </span>seed_real_data.py
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>python3<span class="w"> </span>seed_rules.py
+</code></pre></div></p>
+<hr />
+<h2 id="running-the-application">Running the Application<a class="headerlink" href="#running-the-application" title="Permanent link">&para;</a></h2>
+<p>You'll need <strong>THREE terminal windows</strong> (or tabs).</p>
+<h3 id="terminal-1-backend-server">Terminal 1: Backend Server<a class="headerlink" href="#terminal-1-backend-server" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Navigate to backend folder</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="nb">cd</span><span class="w"> </span>/path/to/bbg/backend
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Activate virtual environment</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">  </span><span class="c1"># or venv\Scripts\activate on Windows</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a><span class="c1"># Start backend server</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--port<span class="w"> </span><span class="m">8001</span>
+</code></pre></div>
+<p><strong>Expected Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>INFO:     Will watch for changes in these directories: [&#39;/path/to/bbg/backend&#39;]
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a>INFO:     Started reloader process
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>INFO:     Started server process
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>INFO:     Waiting for application startup.
+<a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>INFO:     Application startup complete.
+</code></pre></div></p>
+<p><strong>Backend is now running at:</strong> http://localhost:8001</p>
+<p><strong>Leave this terminal running. Don't close it.</strong></p>
+<h3 id="terminal-2-frontend-server">Terminal 2: Frontend Server<a class="headerlink" href="#terminal-2-frontend-server" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Navigate to frontend folder</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="nb">cd</span><span class="w"> </span>/path/to/bbg/frontend
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="c1"># Start frontend dev server</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--port<span class="w"> </span><span class="m">5174</span>
+</code></pre></div>
+<p><strong>Expected Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>  VITE v5.x.x  ready in xxx ms
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>  ➜  Local:   http://localhost:5174/
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>  ➜  Network: use --host to expose
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>  ➜  press h + enter to show help
+</code></pre></div></p>
+<p><strong>Frontend is now running at:</strong> http://localhost:5174</p>
+<p><strong>Leave this terminal running. Don't close it.</strong></p>
+<h3 id="terminal-3-documentation-optional">Terminal 3: Documentation (Optional)<a class="headerlink" href="#terminal-3-documentation-optional" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Navigate to project root</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="nb">cd</span><span class="w"> </span>/path/to/bbg
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="c1"># Start MkDocs server</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>python3<span class="w"> </span>-m<span class="w"> </span>mkdocs<span class="w"> </span>serve
+</code></pre></div>
+<p><strong>Expected Output:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>INFO    -  Building documentation...
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>INFO    -  Cleaning site directory
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>INFO    -  Documentation built in 0.23 seconds
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>INFO    -  [timestamp] Serving on http://127.0.0.1:8000/
+</code></pre></div></p>
+<p><strong>Documentation is now at:</strong> http://localhost:8000</p>
+<hr />
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
+<h3 id="1-check-backend-api">1. Check Backend API<a class="headerlink" href="#1-check-backend-api" title="Permanent link">&para;</a></h3>
+<p>Open your browser and go to:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>http://localhost:8001/docs
+</code></pre></div></p>
+<p>You should see the <strong>FastAPI interactive API documentation</strong> (Swagger UI).</p>
+<p><strong>Try:</strong>
+- Click on <code>GET /health</code>
+- Click "Try it out"
+- Click "Execute"
+- Should return: <code>{"status": "healthy", ...}</code></p>
+<h3 id="2-check-frontend">2. Check Frontend<a class="headerlink" href="#2-check-frontend" title="Permanent link">&para;</a></h3>
+<p>Open your browser and go to:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>http://localhost:5174
+</code></pre></div></p>
+<p>You should see the <strong>BBG Rebate Processing Tool</strong> interface with three tabs:
+- Upload &amp; Process
+- Rules Engine
+- Lookup Tables</p>
+<h3 id="3-test-full-workflow">3. Test Full Workflow<a class="headerlink" href="#3-test-full-workflow" title="Permanent link">&para;</a></h3>
+<p><strong>Upload a Test File:</strong></p>
+<ol>
+<li>Go to http://localhost:5174</li>
+<li>Click or drag an Excel file (.xlsm) to the upload area</li>
+<li>Click <strong>Process &amp; Preview</strong></li>
+<li>Wait for processing (should take 5-30 seconds)</li>
+<li>See preview with data</li>
+<li>Click <strong>Download CSV</strong></li>
+<li>Open downloaded CSV in Excel to verify</li>
+</ol>
+<p><strong>If this works, your setup is complete! 🎉</strong></p>
+<hr />
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="backend-issues">Backend Issues<a class="headerlink" href="#backend-issues" title="Permanent link">&para;</a></h3>
+<h4 id="issue-modulenotfounderror-no-module-named-fastapi">Issue: <code>ModuleNotFoundError: No module named 'fastapi'</code><a class="headerlink" href="#issue-modulenotfounderror-no-module-named-fastapi" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Virtual environment not activated or dependencies not installed.</p>
+<p><strong>Solution:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div></p>
+<hr />
+<h4 id="issue-port-8001-already-in-use">Issue: <code>Port 8001 already in use</code><a class="headerlink" href="#issue-port-8001-already-in-use" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Another process is using port 8001.</p>
+<p><strong>Solution 1 - Use different port:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--port<span class="w"> </span><span class="m">8002</span>
+</code></pre></div></p>
+<p>Then update frontend API URL in <code>frontend/src/services/api.js</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">API_BASE_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;http://localhost:8002&#39;</span>
+</code></pre></div></p>
+<p><strong>Solution 2 - Kill the process:</strong></p>
+<p>macOS/Linux:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>lsof<span class="w"> </span>-ti:8001<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-9
+</code></pre></div></p>
+<p>Windows:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>netstat<span class="w"> </span>-ano<span class="w"> </span><span class="p">|</span><span class="w"> </span>findstr<span class="w"> </span>:8001
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>taskkill<span class="w"> </span>/PID<span class="w"> </span>&lt;PID&gt;<span class="w"> </span>/F
+</code></pre></div></p>
+<hr />
+<h4 id="issue-database-is-locked">Issue: <code>Database is locked</code><a class="headerlink" href="#issue-database-is-locked" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> SQLite database is being accessed by multiple processes.</p>
+<p><strong>Solution:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># Stop all backend processes</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a><span class="c1"># Restart backend server</span>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--port<span class="w"> </span><span class="m">8001</span>
+</code></pre></div></p>
+<hr />
+<h3 id="frontend-issues">Frontend Issues<a class="headerlink" href="#frontend-issues" title="Permanent link">&para;</a></h3>
+<h4 id="issue-npm-command-not-found">Issue: <code>npm: command not found</code><a class="headerlink" href="#issue-npm-command-not-found" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Node.js not installed or not in PATH.</p>
+<p><strong>Solution:</strong>
+1. Install Node.js from https://nodejs.org/
+2. Restart terminal
+3. Verify: <code>node --version</code></p>
+<hr />
+<h4 id="issue-port-5174-already-in-use">Issue: <code>Port 5174 already in use</code><a class="headerlink" href="#issue-port-5174-already-in-use" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Another Vite server is running.</p>
+<p><strong>Solution 1 - Use different port:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--port<span class="w"> </span><span class="m">5175</span>
+</code></pre></div></p>
+<p><strong>Solution 2 - Kill the process:</strong></p>
+<p>macOS/Linux:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>lsof<span class="w"> </span>-ti:5174<span class="w"> </span><span class="p">|</span><span class="w"> </span>xargs<span class="w"> </span><span class="nb">kill</span><span class="w"> </span>-9
+</code></pre></div></p>
+<p>Windows:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>netstat<span class="w"> </span>-ano<span class="w"> </span><span class="p">|</span><span class="w"> </span>findstr<span class="w"> </span>:5174
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>taskkill<span class="w"> </span>/PID<span class="w"> </span>&lt;PID&gt;<span class="w"> </span>/F
+</code></pre></div></p>
+<hr />
+<h4 id="issue-failed-to-fetch-errors-in-browser-console">Issue: <code>Failed to fetch</code> errors in browser console<a class="headerlink" href="#issue-failed-to-fetch-errors-in-browser-console" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Backend not running or CORS issue.</p>
+<p><strong>Solution:</strong>
+1. Check backend is running at http://localhost:8001
+2. Check backend terminal for errors
+3. Verify CORS settings in <code>backend/app/main.py</code>:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="n">allow_origins</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;http://localhost:5173&quot;</span><span class="p">,</span> <span class="s2">&quot;http://localhost:5174&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+<hr />
+<h3 id="database-issues">Database Issues<a class="headerlink" href="#database-issues" title="Permanent link">&para;</a></h3>
+<h4 id="issue-no-data-in-lookup-tables">Issue: No data in lookup tables<a class="headerlink" href="#issue-no-data-in-lookup-tables" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Database not seeded.</p>
+<p><strong>Solution:</strong>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>python3<span class="w"> </span>seed_real_data.py
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>python3<span class="w"> </span>seed_rules.py
+</code></pre></div></p>
+<hr />
+<h4 id="issue-filenotfounderror-tradenet-csv-not-found">Issue: <code>FileNotFoundError: TradeNet CSV not found</code><a class="headerlink" href="#issue-filenotfounderror-tradenet-csv-not-found" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Seed scripts can't find the CSV files.</p>
+<p><strong>Solution:</strong>
+1. Download CSV files from TradeNet
+2. Place in <code>~/Downloads/</code> or update paths in seed scripts
+3. Or manually create database entries via API</p>
+<hr />
+<h3 id="file-processing-issues">File Processing Issues<a class="headerlink" href="#file-processing-issues" title="Permanent link">&para;</a></h3>
+<h4 id="issue-required-sheet-usage-reporting-not-found">Issue: <code>Required sheet 'Usage-Reporting' not found</code><a class="headerlink" href="#issue-required-sheet-usage-reporting-not-found" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Uploaded file is not the correct BBG template.</p>
+<p><strong>Solution:</strong>
+- Use a test file from the correct template
+- Verify Excel file has sheets: "Usage-Reporting" and "Programs-Products"</p>
+<hr />
+<h4 id="issue-processing-takes-too-long-1-minute-for-small-file">Issue: Processing takes too long (&gt; 1 minute for small file)<a class="headerlink" href="#issue-processing-takes-too-long-1-minute-for-small-file" title="Permanent link">&para;</a></h4>
+<p><strong>Cause:</strong> Performance issue or blocking operation.</p>
+<p><strong>Solution:</strong>
+- Check backend terminal for errors
+- Check file size (should be &lt; 50MB)
+- Restart backend server</p>
+<hr />
+<h2 id="development-tools">Development Tools<a class="headerlink" href="#development-tools" title="Permanent link">&para;</a></h2>
+<h3 id="recommended-vs-code-extensions">Recommended VS Code Extensions<a class="headerlink" href="#recommended-vs-code-extensions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Python</strong> - Python language support</li>
+<li><strong>Pylance</strong> - Python language server</li>
+<li><strong>ES7+ React/Redux/React-Native snippets</strong> - React snippets</li>
+<li><strong>Tailwind CSS IntelliSense</strong> - Tailwind autocomplete</li>
+<li><strong>ESLint</strong> - JavaScript linting</li>
+<li><strong>Prettier</strong> - Code formatting</li>
+</ul>
+<h3 id="vs-code-settings">VS Code Settings<a class="headerlink" href="#vs-code-settings" title="Permanent link">&para;</a></h3>
+<p>Create <code>.vscode/settings.json</code> in project root:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="p">{</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="w">  </span><span class="nt">&quot;python.defaultInterpreterPath&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${workspaceFolder}/backend/venv/bin/python&quot;</span><span class="p">,</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="w">  </span><span class="nt">&quot;python.linting.enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="w">  </span><span class="nt">&quot;python.formatting.provider&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="w">  </span><span class="nt">&quot;editor.formatOnSave&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">  </span><span class="nt">&quot;[javascript]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="w">    </span><span class="nt">&quot;editor.defaultFormatter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;esbenp.prettier-vscode&quot;</span>
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-41-9" name="__codelineno-41-9" href="#__codelineno-41-9"></a><span class="w">  </span><span class="nt">&quot;[python]&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-41-10" name="__codelineno-41-10" href="#__codelineno-41-10"></a><span class="w">    </span><span class="nt">&quot;editor.defaultFormatter&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ms-python.black-formatter&quot;</span>
+<a id="__codelineno-41-11" name="__codelineno-41-11" href="#__codelineno-41-11"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-41-12" name="__codelineno-41-12" href="#__codelineno-41-12"></a><span class="p">}</span>
+</code></pre></div>
+<h3 id="useful-commands">Useful Commands<a class="headerlink" href="#useful-commands" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Check all running servers</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>lsof<span class="w"> </span>-i<span class="w"> </span>:8001<span class="w">  </span><span class="c1"># Backend</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>lsof<span class="w"> </span>-i<span class="w"> </span>:5174<span class="w">  </span><span class="c1"># Frontend</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a>lsof<span class="w"> </span>-i<span class="w"> </span>:8000<span class="w">  </span><span class="c1"># MkDocs</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="c1"># View backend logs in real-time</span>
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="c1"># (already visible in backend terminal)</span>
+<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a>
+<a id="__codelineno-42-9" name="__codelineno-42-9" href="#__codelineno-42-9"></a><span class="c1"># Clear node_modules and reinstall</span>
+<a id="__codelineno-42-10" name="__codelineno-42-10" href="#__codelineno-42-10"></a><span class="nb">cd</span><span class="w"> </span>frontend
+<a id="__codelineno-42-11" name="__codelineno-42-11" href="#__codelineno-42-11"></a>rm<span class="w"> </span>-rf<span class="w"> </span>node_modules<span class="w"> </span>package-lock.json
+<a id="__codelineno-42-12" name="__codelineno-42-12" href="#__codelineno-42-12"></a>npm<span class="w"> </span>install
+<a id="__codelineno-42-13" name="__codelineno-42-13" href="#__codelineno-42-13"></a>
+<a id="__codelineno-42-14" name="__codelineno-42-14" href="#__codelineno-42-14"></a><span class="c1"># Reset virtual environment</span>
+<a id="__codelineno-42-15" name="__codelineno-42-15" href="#__codelineno-42-15"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-42-16" name="__codelineno-42-16" href="#__codelineno-42-16"></a>rm<span class="w"> </span>-rf<span class="w"> </span>venv
+<a id="__codelineno-42-17" name="__codelineno-42-17" href="#__codelineno-42-17"></a>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<a id="__codelineno-42-18" name="__codelineno-42-18" href="#__codelineno-42-18"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<a id="__codelineno-42-19" name="__codelineno-42-19" href="#__codelineno-42-19"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<a id="__codelineno-42-20" name="__codelineno-42-20" href="#__codelineno-42-20"></a>
+<a id="__codelineno-42-21" name="__codelineno-42-21" href="#__codelineno-42-21"></a><span class="c1"># Clear MkDocs cache</span>
+<a id="__codelineno-42-22" name="__codelineno-42-22" href="#__codelineno-42-22"></a>rm<span class="w"> </span>-rf<span class="w"> </span>site/
+</code></pre></div>
+<hr />
+<h2 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<h3 id="backend-environment">Backend Environment<a class="headerlink" href="#backend-environment" title="Permanent link">&para;</a></h3>
+<p>Currently uses defaults in <code>backend/app/config.py</code>. No <code>.env</code> file needed for local development.</p>
+<p><strong>Default values:</strong>
+- <code>API_HOST</code>: "0.0.0.0"
+- <code>API_PORT</code>: 8001
+- <code>DATABASE_URL</code>: "sqlite:///./bbg_rebates.db"
+- <code>DEBUG</code>: True</p>
+<p><strong>To customize:</strong> Create <code>backend/.env</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>API_HOST=127.0.0.1
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>API_PORT=8001
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>DEBUG=True
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a>DATABASE_URL=sqlite:///./bbg_rebates.db
+</code></pre></div></p>
+<h3 id="frontend-environment">Frontend Environment<a class="headerlink" href="#frontend-environment" title="Permanent link">&para;</a></h3>
+<p>Create <code>frontend/.env</code>:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>VITE_API_URL=http://localhost:8001
+</code></pre></div></p>
+<p><strong>Note:</strong> Changes to <code>.env</code> require restarting the dev server.</p>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>Now that your environment is set up:</p>
+<ol>
+<li><strong>Read the codebase:</strong></li>
+<li>Start with <code>backend/app/main.py</code></li>
+<li>Look at <code>frontend/src/App.jsx</code></li>
+<li>
+<p>Trace through a file upload request</p>
+</li>
+<li>
+<p><strong>Make a test change:</strong></p>
+</li>
+<li>Edit a frontend component</li>
+<li>See it hot-reload in the browser</li>
+<li>Edit backend code</li>
+<li>
+<p>See uvicorn restart automatically</p>
+</li>
+<li>
+<p><strong>Explore the APIs:</strong></p>
+</li>
+<li>Use FastAPI docs at http://localhost:8001/docs</li>
+<li>Test endpoints directly</li>
+<li>
+<p>See request/response formats</p>
+</li>
+<li>
+<p><strong>Read other dev docs:</strong></p>
+</li>
+<li><a href="../developer-overview/">Developer Overview</a></li>
+<li><a href="../api-reference/">API Reference</a></li>
+<li><a href="../database-schema/">Database Schema</a></li>
+</ol>
+<hr />
+<h2 id="quick-reference">Quick Reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<h3 id="start-development-session">Start Development Session<a class="headerlink" href="#start-development-session" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># Terminal 1 - Backend</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="nb">cd</span><span class="w"> </span>backend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>uvicorn<span class="w"> </span>app.main:app<span class="w"> </span>--reload<span class="w"> </span>--port<span class="w"> </span><span class="m">8001</span>
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="c1"># Terminal 2 - Frontend</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a><span class="nb">cd</span><span class="w"> </span>frontend<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>npm<span class="w"> </span>run<span class="w"> </span>dev<span class="w"> </span>--<span class="w"> </span>--port<span class="w"> </span><span class="m">5174</span>
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="c1"># Terminal 3 - Documentation (optional)</span>
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>python3<span class="w"> </span>-m<span class="w"> </span>mkdocs<span class="w"> </span>serve
+</code></pre></div>
+<h3 id="stop-development-session">Stop Development Session<a class="headerlink" href="#stop-development-session" title="Permanent link">&para;</a></h3>
+<p>Press <code>Ctrl+C</code> in each terminal.</p>
+<h3 id="reset-everything">Reset Everything<a class="headerlink" href="#reset-everything" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="c1"># Reset database</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a><span class="nb">cd</span><span class="w"> </span>backend
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a>rm<span class="w"> </span>bbg_rebates.db
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a>python3<span class="w"> </span>seed_real_data.py
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>python3<span class="w"> </span>seed_rules.py
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a>
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a><span class="c1"># Reset frontend</span>
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a><span class="nb">cd</span><span class="w"> </span>../frontend
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a>rm<span class="w"> </span>-rf<span class="w"> </span>node_modules
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>npm<span class="w"> </span>install
+<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a>
+<a id="__codelineno-46-13" name="__codelineno-46-13" href="#__codelineno-46-13"></a><span class="c1"># Reset backend packages</span>
+<a id="__codelineno-46-14" name="__codelineno-46-14" href="#__codelineno-46-14"></a><span class="nb">cd</span><span class="w"> </span>../backend
+<a id="__codelineno-46-15" name="__codelineno-46-15" href="#__codelineno-46-15"></a>rm<span class="w"> </span>-rf<span class="w"> </span>venv
+<a id="__codelineno-46-16" name="__codelineno-46-16" href="#__codelineno-46-16"></a>python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<a id="__codelineno-46-17" name="__codelineno-46-17" href="#__codelineno-46-17"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
+<a id="__codelineno-46-18" name="__codelineno-46-18" href="#__codelineno-46-18"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre></div>
+<hr />
+<p><strong>Environment setup complete!</strong> You're ready to start developing. Check out the <a href="../developer-overview/">Developer Overview</a> for architecture details.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/aininja-pro/bbg" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "navigation.tracking", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

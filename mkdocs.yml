@@ -1,0 +1,81 @@
+site_name: BBG Rebate Processing Tool Documentation
+site_description: User documentation for the BBG Rebate Processing automation tool
+site_author: Builders Buying Group
+site_url: https://bbg-docs.example.com
+
+# Repository
+repo_name: aininja-pro/bbg
+repo_url: https://github.com/aininja-pro/bbg
+
+# Theme configuration
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+# Navigation structure
+nav:
+  - Home: README.md
+  - User Documentation:
+    - Getting Started: getting-started.md
+    - User Guide: user-guide.md
+    - Lookup Management: lookup-management.md
+    - Rules Engine: rules-engine.md
+    - Troubleshooting: troubleshooting.md
+    - FAQ: faq.md
+  - Developer Documentation:
+    - Overview: developer-overview.md
+    - Setup Development: setup-development.md
+    - API Reference: api-reference.md
+    - Database Schema: database-schema.md
+    - Deployment: deployment.md
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+# Plugins
+plugins:
+  - search
+
+# Extra
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aininja-pro/bbg

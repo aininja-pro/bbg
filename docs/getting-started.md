@@ -20,7 +20,7 @@ Simply open this URL in your web browser. We recommend using:
 
 When you open the tool, you'll see the main interface with three tabs at the top:
 
-[Screenshot: Main interface with three tabs]
+![Main interface with three tabs](images/main-interface-tabs.png)
 
 ### 1. Upload & Process Tab
 This is where you'll spend most of your time. Use this tab to upload Excel files and download the processed CSV files.
@@ -53,14 +53,14 @@ You have two ways to upload:
 2. Browse to select your file
 3. Click "Open"
 
-[Screenshot: File upload interface showing drag and drop area]
+![File upload interface showing drag and drop area](images/upload-drag-drop-area.png)
 
 ### Step 4: Process the File
 1. After the file uploads, click the **Process & Preview** button
 2. Wait a few seconds while the file is processed
 3. You'll see a loading indicator with a spinner
 
-[Screenshot: Processing indicator]
+![Processing indicator](images/processing-spinner.png)
 
 ### Step 5: Review the Preview
 Once processing completes, you'll see:
@@ -69,7 +69,7 @@ Once processing completes, you'll see:
 - A scrollable table showing all the data
 - Summary statistics
 
-[Screenshot: Data preview showing results]
+![Data preview showing results](images/data-preview-results.png)
 
 ### Step 6: Download Your CSV
 1. Review the preview to make sure everything looks correct
@@ -77,7 +77,7 @@ Once processing completes, you'll see:
 3. The file will download to your default downloads folder
 4. The filename will be automatically generated based on the original file name
 
-[Screenshot: Download button and success message]
+![Download button and success message](images/download-success.png)
 
 ### Step 7: Import to TradeNet
 The downloaded CSV is now ready to import directly into TradeNet. Follow your normal TradeNet import procedures.
@@ -92,7 +92,7 @@ If you have several files to process at once:
    - **Merged CSV**: All files combined into one CSV
    - **ZIP Archive**: Individual CSVs bundled in a ZIP file
 
-[Screenshot: Batch mode checkbox and output options]
+![Batch mode checkbox and output options](images/batch-mode-options.png)
 
 ### Step 2: Select Multiple Files
 1. Click the upload area
@@ -106,7 +106,6 @@ If you have several files to process at once:
 3. For merged CSV, review the preview before downloading
 4. For ZIP mode, the file downloads automatically
 
-[Screenshot: Batch processing interface]
 
 ## Understanding the Interface
 

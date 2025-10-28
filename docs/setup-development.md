@@ -249,6 +249,8 @@ ls -la bbg_rebates.db
 
 Should see a file sized ~500KB or larger.
 
+**Note:** This creates a local SQLite database for development. Production uses PostgreSQL on Render.
+
 **If Database Needs Reset:**
 ```bash
 rm bbg_rebates.db

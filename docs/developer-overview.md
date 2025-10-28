@@ -97,9 +97,10 @@ Technical documentation for developers who need to maintain, modify, or take ove
 
 ### Database
 
-- **SQLite** - Lightweight, file-based database
-- Location: `backend/bbg_rebates.db`
-- No external database server required
+- **Production:** PostgreSQL on Render.com
+- **Local Development:** SQLite (file-based)
+- Location (local): `backend/bbg_rebates.db`
+- SQLite for easy local development, PostgreSQL for production scalability
 
 ### Development Tools
 
@@ -388,18 +389,24 @@ BBG/
 
 ## Design Decisions
 
-### Why SQLite?
+### Why PostgreSQL in Production, SQLite in Development?
 
-**Decision:** Use SQLite instead of PostgreSQL/MySQL
+**Decision:** Use PostgreSQL on Render for production, SQLite for local development
 
 **Reasoning:**
-- ✅ Simple deployment (no external DB server)
-- ✅ Single file database (easy backup)
-- ✅ Sufficient for < 1000 records
-- ✅ 3-4 concurrent users max
-- ⚠️ Limited concurrency (writes lock database)
+- ✅ **PostgreSQL (Production):**
+  - Better concurrency support
+  - Production-grade reliability
+  - Managed by Render (automatic backups)
+  - Scales with growing user base
+  - Better performance under load
+- ✅ **SQLite (Development):**
+  - Simple local setup (no external DB server)
+  - Single file database (easy to reset)
+  - Faster development iteration
+  - No configuration needed
 
-**When to migrate:** If concurrent users exceed 10-15 or write-heavy workload
+**Current Status:** Deployed on Render with PostgreSQL database
 
 ### Why File-Based Product Extraction?
 

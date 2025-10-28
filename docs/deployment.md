@@ -83,17 +83,13 @@ allow_origins=[
 - `DATABASE_URL` - PostgreSQL connection string (if using PostgreSQL)
 - `ALLOWED_ORIGINS` - Your frontend URL
 
-**2.3 Optional: Add PostgreSQL Database**
+**2.3 Add PostgreSQL Database** ✅ **COMPLETED**
 1. Click "New +" → "PostgreSQL"
 2. Name: bbg-rebates-db
 3. Link to web service
-4. Note connection string
+4. Connection string added to environment variables
 
-**2.4 Optional: Add Persistent Disk (for SQLite)**
-If keeping SQLite:
-1. Go to web service settings
-2. Add "Disk" → Mount path: `/opt/render/project/backend`
-3. Size: 1GB ($1/mo)
+**Note:** You are currently using PostgreSQL on Render, not SQLite with persistent disk.
 
 ### Step 3: Seed Production Database
 
@@ -350,15 +346,14 @@ npm update
 - 750 hours/month render time
 - Limited bandwidth
 
-### Production Tier (Recommended)
+### Production Tier (Current Deployment)
 
 | Service | Plan | Cost |
 |---------|------|------|
 | Render (Backend) | Starter | $7/mo |
 | Render PostgreSQL | Starter | $7/mo |
-| Render Disk (if SQLite) | 1GB | $1/mo |
-| Vercel (Frontend) | Pro (optional) | $20/mo |
-| **Total** | | **$14-35/month** |
+| Vercel (Frontend) | Hobby/Pro | $0-20/mo |
+| **Total** | | **$14-34/month** |
 
 **Benefits:**
 - No sleep/cold starts

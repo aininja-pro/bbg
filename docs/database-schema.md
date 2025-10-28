@@ -4,10 +4,11 @@ Database structure and schema documentation for the BBG Rebate Processing Tool.
 
 ## Database Overview
 
-**Type:** SQLite
-**File:** `backend/bbg_rebates.db`
+**Type:** PostgreSQL (Production on Render) / SQLite (Local Development)
+**Production:** PostgreSQL on Render.com
+**Local Development:** `backend/bbg_rebates.db` (SQLite)
 **ORM:** SQLAlchemy 2.0+
-**Size:** ~500KB (with seed data)
+**Size:** ~500KB (with seed data, SQLite) / Variable (PostgreSQL)
 
 ## Tables
 
@@ -317,17 +318,21 @@ All frequently-queried columns are indexed:
 - **Supplier lookup:** < 1ms (indexed search)
 - **Rules fetch:** < 5ms (small table, indexed priority)
 
-### Limitations
+### Current Production Setup
 
-**SQLite Concurrency:**
+**PostgreSQL on Render:**
+- ✅ Multiple concurrent connections
+- ✅ Better write performance
+- ✅ Automatic backups by Render
+- ✅ Production-grade reliability
+
+**Local Development (SQLite):**
 - Multiple readers OK
 - Only ONE writer at a time
 - Write operations lock entire database
+- Sufficient for solo development
 
-**When to migrate to PostgreSQL:**
-- 10+ concurrent users
-- Frequent concurrent writes
-- Need for advanced features (replication, partitioning)
+**Note:** Production is already using PostgreSQL on Render for better concurrency and reliability.
 
 ---
 

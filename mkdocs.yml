@@ -10,6 +10,8 @@ repo_url: https://github.com/aininja-pro/bbg
 # Theme configuration
 theme:
   name: material
+  logo: images/bbg-logo.svg
+  favicon: images/bbg-logo.svg
   palette:
     # Light mode
     - scheme: default

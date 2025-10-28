@@ -76,9 +76,9 @@ The tool generates CSV files with exactly 15 columns matching TradeNet's import 
 ## Technology Stack
 
 **For Technical Users:**
-- **Frontend**: React, Vite, TailwindCSS
-- **Backend**: Python, FastAPI
-- **Database**: SQLite (members, suppliers, business rules)
+- **Frontend**: React, Vite, TailwindCSS (deployed on Render Static Site)
+- **Backend**: Python, FastAPI (deployed on Render Web Service)
+- **Database**: PostgreSQL on Render (SQLite for local development)
 - **Processing**: Python libraries (openpyxl, pandas)
 
 ## Documentation

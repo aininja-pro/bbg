@@ -4,19 +4,18 @@ Guide for deploying the BBG Rebate Processing Tool to production.
 
 ## Deployment Overview
 
-**Recommended Stack:**
-- **Backend:** Render.com (free tier or paid)
-- **Frontend:** Vercel (free tier)
-- **Database:** PostgreSQL on Render or keep SQLite with persistent disk
-- **Documentation:** GitHub Pages (free)
+**Current Production Stack:**
+- **Backend:** Render.com Web Service ✅ DEPLOYED
+- **Frontend:** Render.com Static Site ✅ DEPLOYED
+- **Database:** PostgreSQL on Render ✅ DEPLOYED
+- **Documentation:** GitHub Pages (optional)
 
 ---
 
 ## Prerequisites
 
 - GitHub account with repository access
-- Render.com account
-- Vercel account
+- Render.com account ✅ (you already have this)
 - Domain name (optional)
 
 ---
@@ -57,11 +56,11 @@ services:
 
 Edit `backend/app/main.py`:
 ```python
-# Add your Vercel URL to allowed origins
+# Add your Render Static Site URL to allowed origins
 allow_origins=[
     "http://localhost:5173",
     "http://localhost:5174",
-    "https://your-app.vercel.app",  # Add this
+    "https://your-frontend.onrender.com",  # Your Render Static Site URL
     "https://your-custom-domain.com",  # Add if using custom domain
 ]
 ```
@@ -112,9 +111,9 @@ You should see the FastAPI documentation.
 
 ---
 
-## Frontend Deployment (Vercel)
+## Frontend Deployment (Render Static Site)
 
-### Step 1: Prepare Frontend for Production
+### Step 1: Prepare Frontend for Production ✅ COMPLETED
 
 **1.1 Update API URL**
 
@@ -137,33 +136,29 @@ npm run build
 npm run preview
 ```
 
-### Step 2: Deploy to Vercel
+### Step 2: Deploy to Render Static Site ✅ COMPLETED
 
-**2.1 Install Vercel CLI** (optional)
-```bash
-npm install -g vercel
-```
-
-**2.2 Deploy via GitHub**
-1. Go to https://vercel.com/dashboard
-2. Click "Add New..." → "Project"
-3. Import your GitHub repository
+**2.1 Create Static Site**
+1. Go to https://render.com/dashboard
+2. Click "New +" → "Static Site"
+3. Connect your GitHub repository
 4. Configure:
-   - **Framework Preset:** Vite
+   - **Name:** bbg-rebate-frontend (or your chosen name)
    - **Root Directory:** `frontend`
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
+   - **Build Command:** `npm install && npm run build`
+   - **Publish Directory:** `frontend/dist`
 
-**2.3 Add Environment Variables**
-In Vercel project settings:
-- `VITE_API_URL` = `https://bbg-rebate-api.onrender.com`
+**2.2 Add Environment Variables**
+In Render static site settings → Environment:
+- **Key:** `VITE_API_URL`
+- **Value:** `https://bbg-rebate-api.onrender.com` (your backend URL)
 
-**2.4 Deploy**
-Click "Deploy" - takes 1-2 minutes
+**2.3 Deploy**
+Render automatically builds and deploys - takes 2-3 minutes
 
-### Step 3: Verify Frontend
+### Step 3: Verify Frontend ✅ DEPLOYED
 
-Visit: `https://your-app.vercel.app`
+Visit: `https://your-frontend.onrender.com`
 
 Test file upload and processing.
 
@@ -214,11 +209,16 @@ This automatically:
    Value: bbg-rebate-api.onrender.com
    ```
 
-### Frontend Custom Domain (Vercel)
+### Frontend Custom Domain (Render)
 
-1. Go to Vercel project → Settings → Domains
-2. Add domain (e.g., `rebates.your-domain.com`)
-3. Add DNS records as instructed by Vercel
+1. Go to Render dashboard → Your Static Site → Settings
+2. Add custom domain (e.g., `rebates.your-domain.com`)
+3. Add DNS records:
+   ```
+   Type: CNAME
+   Name: rebates
+   Value: your-frontend.onrender.com
+   ```
 
 ---
 
@@ -231,7 +231,7 @@ This automatically:
 | `API_HOST` | `0.0.0.0` | `0.0.0.0` |
 | `API_PORT` | `8001` | Set by Render |
 | `DATABASE_URL` | `sqlite:///./bbg_rebates.db` | PostgreSQL connection string |
-| `ALLOWED_ORIGINS` | `http://localhost:5174` | Your Vercel URL |
+| `ALLOWED_ORIGINS` | `http://localhost:5174` | Your Render Static Site URL |
 | `DEBUG` | `True` | `False` |
 
 ### Frontend
@@ -272,8 +272,7 @@ Set up monitoring for:
 - Error rates
 
 **Tools:**
-- Render built-in metrics
-- Vercel Analytics
+- Render built-in metrics (for both backend and frontend)
 - UptimeRobot (free uptime monitoring)
 - Sentry (error tracking)
 
@@ -304,23 +303,23 @@ npm update
 
 **Deploy Updates:**
 - Push to GitHub
-- Render and Vercel auto-deploy from main branch
+- Render auto-deploys both backend and frontend from main branch
 
 ---
 
 ## Rollback Procedure
 
-### Render (Backend)
+### Render (Backend Web Service)
 
-1. Go to Render dashboard → Your service → Events
+1. Go to Render dashboard → Your backend service → Events
 2. Find previous successful deployment
 3. Click "Redeploy" on that event
 
-### Vercel (Frontend)
+### Render (Frontend Static Site)
 
-1. Go to Vercel project → Deployments
-2. Find previous deployment
-3. Click "..." → "Promote to Production"
+1. Go to Render dashboard → Your static site → Events
+2. Find previous successful deployment
+3. Click "Redeploy" on that event
 
 ### Database Rollback
 
@@ -337,7 +336,8 @@ npm update
 | Service | Plan | Cost |
 |---------|------|------|
 | Render (Backend) | Free | $0 |
-| Vercel (Frontend) | Hobby | $0 |
+| Render (Frontend) | Free Static Site | $0 |
+| Render (PostgreSQL) | Free (if available) | $0 |
 | GitHub Pages (Docs) | Free | $0 |
 | **Total** | | **$0/month** |
 
@@ -345,15 +345,16 @@ npm update
 - Backend sleeps after 15 min inactivity (30s cold start)
 - 750 hours/month render time
 - Limited bandwidth
+- PostgreSQL free tier has storage limits
 
-### Production Tier (Current Deployment)
+### Production Tier (Current Deployment) ✅
 
 | Service | Plan | Cost |
 |---------|------|------|
-| Render (Backend) | Starter | $7/mo |
+| Render (Backend Web Service) | Starter | $7/mo |
+| Render (Frontend Static Site) | Free | $0 |
 | Render PostgreSQL | Starter | $7/mo |
-| Vercel (Frontend) | Hobby/Pro | $0-20/mo |
-| **Total** | | **$14-34/month** |
+| **Total** | | **$14/month** |
 
 **Benefits:**
 - No sleep/cold starts
@@ -386,16 +387,18 @@ npm update
 **Build Fails:**
 - Check `package.json` dependencies
 - Verify Node version (20+)
-- Check build logs in Vercel
+- Check build logs in Render dashboard
 
 **API Calls Fail:**
-- Verify VITE_API_URL is correct
+- Verify VITE_API_URL environment variable is correct
 - Check backend is running
 - Test API endpoint directly
+- Check CORS settings in backend
 
 **Environment Variables Not Working:**
-- Redeploy after adding env vars
+- Redeploy after adding env vars in Render
 - Check variable names (must start with VITE_)
+- Verify variables are set in Static Site settings, not Web Service
 
 ---
 
@@ -427,7 +430,7 @@ npm update
 
 For deployment issues:
 - **Render:** https://render.com/docs
-- **Vercel:** https://vercel.com/docs
+- **Render Community:** https://community.render.com
 - **GitHub Pages:** https://docs.github.com/pages
 
 ---

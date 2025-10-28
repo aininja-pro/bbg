@@ -2,7 +2,7 @@
 
 ## Overview
 
-The BBG Rebate Processing Tool is an internal automation system designed to transform quarterly rebate Excel files into TradeNet-ready CSV files. What previously took 3 weeks of manual processing now takes under 2 minutes.
+The BBG Rebate Processing Tool is an internal automation system designed to transform quarterly rebate Excel files into TradeNet-ready CSV files.
 
 ## What It Does
 

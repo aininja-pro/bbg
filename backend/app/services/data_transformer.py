@@ -10,23 +10,28 @@ from app.utils.exceptions import TransformationError
 class DataTransformer:
     """Transforms wide-format rebate data to long format and enriches it."""
 
-    # Standard output columns for transformed data (exact client format - 15 columns)
+    # Standard output columns for transformed data (18 columns with new proof points)
+    # Rob's requested order: pp_receipt and pp_brand_name BEFORE pp_dist_subcontractor,
+    # pp_prod_purchase AFTER pp_dist_subcontractor
     OUTPUT_COLUMNS = [
-        'member_name',
-        'bbg_member_id',
-        'confirmed_occupancy',
-        'job_code',
-        'address1',
-        'city',
-        'state',
-        'zip_postal',
-        'address_type',
-        'quantity',
-        'product_id',
-        'supplier_name',
-        'tradenet_supplier_id',
-        'pp_dist_subcontractor',
-        'tradenet_company_id',
+        'member_name',                # 1
+        'bbg_member_id',              # 2
+        'confirmed_occupancy',        # 3
+        'job_code',                   # 4
+        'address1',                   # 5
+        'city',                       # 6
+        'state',                      # 7
+        'zip_postal',                 # 8
+        'address_type',               # 9
+        'quantity',                   # 10
+        'product_id',                 # 11
+        'supplier_name',              # 12
+        'tradenet_supplier_id',       # 13
+        'pp_receipt',                 # 14 - NEW (optional, BEFORE pp_dist_subcontractor)
+        'pp_brand_name',              # 15 - NEW (optional, BEFORE pp_dist_subcontractor)
+        'pp_dist_subcontractor',      # 16 - Existing subcontractor field
+        'pp_prod_purchase',           # 17 - NEW (optional, AFTER pp_dist_subcontractor)
+        'tradenet_company_id',        # 18
     ]
 
     # Note: product_name and proof_point are enriched but not included in final output
@@ -161,6 +166,11 @@ class DataTransformer:
         # Add product ID and distributor based on column name
         df_long['product_id'] = df_long['product_column'].map(product_id_map)
         df_long['pp_dist_subcontractor'] = df_long['product_column'].map(distributor_map)
+
+        # Add new proof point columns (empty by default, populated via rules)
+        df_long['pp_receipt'] = ''
+        df_long['pp_brand_name'] = ''
+        df_long['pp_prod_purchase'] = ''
 
         # Add product order for sorting (to match Excel column order)
         df_long['_product_order'] = df_long['product_id'].map(product_order_map)

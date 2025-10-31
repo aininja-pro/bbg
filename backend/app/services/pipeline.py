@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.excel_processor import ExcelProcessor
 from app.services.data_transformer import DataTransformer
 from app.services.data_enricher import DataEnricher
+from app.repositories.settings import ColumnSettingsRepository
 from app.utils.exceptions import ExcelProcessingError
 
 
@@ -73,14 +74,28 @@ class ProcessingPipeline:
             # Step 8: Identify warnings
             self.warnings = self.enricher.identify_warnings(df)
 
-            # Step 9: Select only the required output columns (remove extras like product_name, proof_point)
-            output_columns = [
-                'member_name', 'bbg_member_id', 'confirmed_occupancy', 'job_code',
-                'address1', 'city', 'state', 'zip_postal', 'address_type', 'quantity',
-                'product_id', 'supplier_name', 'tradenet_supplier_id',
-                'pp_dist_subcontractor', 'tradenet_company_id'
-            ]
-            # Only keep columns that exist
+            # Step 9: Select output columns based on column settings
+            # Get enabled columns from database
+            column_settings = await ColumnSettingsRepository.get_all(self.db)
+
+            if column_settings:
+                # Use database settings to determine which columns to include
+                output_columns = []
+                for col_setting in sorted(column_settings, key=lambda x: x.display_order):
+                    # Include if enabled OR if it's a standard column (not custom)
+                    if col_setting.enabled or not col_setting.is_custom:
+                        output_columns.append(col_setting.column_name)
+            else:
+                # Fallback: All columns in correct order if no settings exist
+                output_columns = [
+                    'member_name', 'bbg_member_id', 'confirmed_occupancy', 'job_code',
+                    'address1', 'city', 'state', 'zip_postal', 'address_type', 'quantity',
+                    'product_id', 'supplier_name', 'tradenet_supplier_id',
+                    'pp_receipt', 'pp_brand_name', 'pp_dist_subcontractor',
+                    'pp_prod_purchase', 'tradenet_company_id'
+                ]
+
+            # Only keep columns that exist in the dataframe
             df = df[[col for col in output_columns if col in df.columns]]
 
             self.result = df

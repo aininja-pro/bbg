@@ -176,10 +176,42 @@ export function RulesManager() {
                       return null;
                     })()}
 
-                    {/* Display action */}
+                    {/* Display action(s) */}
                     <span className="font-semibold">
                       {rule.config.set_supplier ||
-                       (rule.config.then_action && `${rule.config.then_action.field} = ${rule.config.then_action.value}`)}
+                       (rule.config.then_actions && (() => {
+                         // Multiple actions
+                         const actions = rule.config.then_actions;
+                         return actions.map((action, i) => (
+                           <span key={i}>
+                             {i > 0 && <span className="text-gray-500"> + </span>}
+                             {action.type === 'move_column' ? (
+                               <span>
+                                 MOVE <span className="font-mono text-xs">{action.source_field}</span>
+                                 {' → '}
+                                 <span className="font-mono text-xs">{action.target_field}</span>
+                               </span>
+                             ) : (
+                               <span className="font-mono text-xs">{action.field} = {action.value}</span>
+                             )}
+                           </span>
+                         ));
+                       })()) ||
+                       (rule.config.then_action && (() => {
+                         // Single action (backward compatible)
+                         const action = rule.config.then_action;
+                         if (action.type === 'move_column') {
+                           return (
+                             <span>
+                               MOVE <span className="font-mono">{action.source_field}</span>
+                               {' → '}
+                               <span className="font-mono">{action.target_field}</span>
+                             </span>
+                           );
+                         } else {
+                           return `${action.field} = ${action.value}`;
+                         }
+                       })())}
                     </span>
                   </p>
                 </div>

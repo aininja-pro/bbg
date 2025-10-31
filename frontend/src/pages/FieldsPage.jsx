@@ -69,11 +69,14 @@ export function FieldsPage() {
     setSaveSuccess(false)
 
     try {
+      // Only save custom columns (the 3 new proof point fields)
+      const customColumnsOnly = columns.filter(col => col.is_custom)
+
       const response = await fetch(`${API_BASE_URL}/api/settings/columns/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          columns: columns.map(col => ({
+          columns: customColumnsOnly.map(col => ({
             column_name: col.column_name,
             enabled: col.enabled,
             display_order: col.display_order,
@@ -112,17 +115,16 @@ export function FieldsPage() {
     )
   }
 
-  // Group columns
-  const standardColumns = columns.filter(c => !c.is_custom)
+  // Only show custom columns (3 new proof point fields)
   const customColumns = columns.filter(c => c.is_custom)
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Output Fields</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Proof Point Fields</h2>
         <p className="mt-1 text-sm text-gray-500">
-          Select which columns to include in your CSV output
+          Select which additional proof point columns to include in your CSV output
         </p>
       </div>
 
@@ -182,108 +184,77 @@ export function FieldsPage() {
         </Card>
       )}
 
-      {/* Standard Columns */}
+      {/* Standard Columns Info */}
+      <Card className="border-gray-200 bg-gray-50">
+        <CardContent className="pt-4">
+          <div className="flex items-start space-x-3">
+            <svg className="w-5 h-5 text-gray-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm text-gray-700">
+              <p className="font-medium mb-1">Standard columns are always included</p>
+              <p className="text-gray-600">
+                The 15 standard TradeNet columns are required and cannot be disabled.
+                Use this tab to enable/disable the optional proof point fields below.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Proof Point Columns */}
       <Card>
         <CardHeader>
-          <CardTitle>Standard Columns</CardTitle>
-          <CardDescription>
-            Required TradeNet fields - these should generally remain enabled
-          </CardDescription>
+          <div>
+            <CardTitle>Optional Proof Point Fields</CardTitle>
+            <CardDescription>
+              Enable additional proof point columns to include in your CSV output. Data is populated from pp_dist_subcontractor via Business Rules.
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {standardColumns.map((column) => (
+          <div className="space-y-3">
+            {customColumns.map((column) => (
               <div
                 key={column.column_name}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex items-center justify-center w-8 h-8 bg-gray-100 text-gray-600 rounded font-mono text-xs">
-                    {column.display_order}
+                  <div className="flex items-center justify-center w-10 h-10 bg-blue-50 text-blue-700 rounded font-mono text-xs font-semibold">
+                    #{column.display_order}
                   </div>
                   <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 font-mono text-sm">
+                    <h4 className="font-semibold text-gray-900 font-mono">
                       {column.column_name}
                     </h4>
                     {column.description && (
-                      <p className="text-xs text-gray-500 mt-0.5">{column.description}</p>
+                      <p className="text-sm text-gray-600 mt-0.5">{column.description}</p>
                     )}
+                    <div className="mt-2 text-xs">
+                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                        Populated via Business Rules from pp_dist_subcontractor
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <span className="text-xs text-gray-500 w-16 text-right">
+                <label className="flex items-center space-x-3 cursor-pointer">
+                  <span className="text-sm text-gray-600 w-20 text-right font-medium">
                     {column.enabled ? 'Included' : 'Excluded'}
                   </span>
                   <button
                     onClick={() => toggleColumn(column.column_name)}
                     className={`
-                      relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                      ${column.enabled ? 'bg-[#178dc3]' : 'bg-gray-200'}
+                      relative inline-flex h-7 w-12 items-center rounded-full transition-colors
+                      ${column.enabled ? 'bg-[#178dc3]' : 'bg-gray-300'}
                     `}
                   >
                     <span
                       className={`
-                        inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                        inline-block h-5 w-5 transform rounded-full bg-white transition-transform shadow-sm
                         ${column.enabled ? 'translate-x-6' : 'translate-x-1'}
                       `}
                     />
-                  </button>
-                </label>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* New Proof Point Columns */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>New Proof Point Fields</CardTitle>
-              <CardDescription>
-                Additional proof point columns requested by client (currently disabled pending data source confirmation)
-              </CardDescription>
-            </div>
-            <div className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
-              Pending Data Source
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {customColumns.map((column) => (
-              <div
-                key={column.column_name}
-                className="flex items-center justify-between p-3 border rounded-lg bg-gray-50"
-              >
-                <div className="flex items-center space-x-4 flex-1">
-                  <div className="flex items-center justify-center w-8 h-8 bg-yellow-100 text-yellow-700 rounded font-mono text-xs">
-                    {column.display_order}
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-700 font-mono text-sm">
-                      {column.column_name}
-                    </h4>
-                    {column.description && (
-                      <p className="text-xs text-gray-500 mt-0.5">{column.description}</p>
-                    )}
-                    <p className="text-xs text-yellow-600 mt-1">
-                      ⚠️ Data source not yet configured - will be enabled when Rob provides details
-                    </p>
-                  </div>
-                </div>
-
-                <label className="flex items-center space-x-2 opacity-50 cursor-not-allowed">
-                  <span className="text-xs text-gray-400 w-16 text-right">
-                    Disabled
-                  </span>
-                  <button
-                    disabled
-                    className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 cursor-not-allowed"
-                  >
-                    <span className="inline-block h-4 w-4 transform rounded-full bg-white translate-x-1" />
                   </button>
                 </label>
               </div>
@@ -300,14 +271,20 @@ export function FieldsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <div className="text-sm text-gray-600">
-              <p className="font-medium text-gray-900 mb-1">How it works:</p>
+              <p className="font-medium text-gray-900 mb-2">How it works:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Toggle columns on/off to customize your CSV output</li>
+                <li>Enable proof point fields you want included in CSV output</li>
+                <li>Data starts in <span className="font-mono text-xs bg-gray-100 px-1">pp_dist_subcontractor</span></li>
+                <li>Use <strong>Business Rules</strong> to move data to these fields</li>
+                <li>Example: Move "Carrier" from pp_dist_subcontractor → pp_brand_name</li>
                 <li>Disabled columns won't appear in downloaded files</li>
-                <li>Column order matches the display order number</li>
-                <li>Changes apply to all future file processing</li>
-                <li>Click "Save Changes" to apply your preferences</li>
               </ul>
+              <div className="mt-3 p-3 bg-blue-50 rounded border border-blue-200">
+                <p className="font-medium text-blue-900 text-xs mb-1">💡 Pro Tip:</p>
+                <p className="text-blue-700 text-xs">
+                  Go to the Rules Engine tab to create rules that move data from pp_dist_subcontractor into these fields based on conditions like product ID or supplier name.
+                </p>
+              </div>
             </div>
           </div>
         </CardContent>

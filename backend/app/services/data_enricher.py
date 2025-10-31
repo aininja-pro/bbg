@@ -434,31 +434,59 @@ class DataEnricher:
 
             config = rule.config
             condition = config.get('condition', {})
-            then_action = config.get('then_action', {})
+            then_actions = config.get('then_actions', [])  # NEW: Multiple actions
+            then_action = config.get('then_action', {})  # OLD: Single action (backward compatible)
             else_action = config.get('else_action', {})
 
-            # Skip if no then_action
-            if not then_action:
-                continue
-
-            target_field = then_action.get('field')
-            then_value = then_action.get('value')
+            # Support both single action (old) and multiple actions (new)
+            if then_actions:
+                actions_list = then_actions
+            elif then_action:
+                actions_list = [then_action]
+            else:
+                continue  # Skip if no actions
 
             # Apply rule to each row
             for idx, row in df.iterrows():
-                # Convert row to dict for condition evaluation
                 row_data = row.to_dict()
 
-                # Evaluate condition
-                if self._evaluate_condition(row_data, condition):
-                    # Condition matched - apply THEN action
-                    df.at[idx, target_field] = then_value
+                # Evaluate condition once per row
+                condition_met = self._evaluate_condition(row_data, condition)
+
+                if condition_met:
+                    # Apply ALL actions in sequence
+                    for action in actions_list:
+                        action_type = action.get('type', 'set_value')
+
+                        if action_type == 'move_column':
+                            # Move data from source column to target column
+                            source_field = action.get('source_field')
+                            target_field = action.get('target_field')
+                            clear_source = action.get('clear_source', True)
+
+                            if source_field and target_field:
+                                source_value = df.at[idx, source_field]
+                                df.at[idx, target_field] = source_value
+
+                                # Clear source if requested
+                                if clear_source:
+                                    df.at[idx, source_field] = ''
+
+                        else:
+                            # Set field to value
+                            target_field = action.get('field')
+                            value = action.get('value')
+
+                            if target_field and value is not None:
+                                df.at[idx, target_field] = value
+
                 else:
                     # Condition didn't match - apply ELSE action if exists
                     if else_action:
+                        target_field = else_action.get('field')
                         else_value = else_action.get('value')
                         # Handle $(field_name) references - keep original value
-                        if not (else_value and else_value.startswith('$(') and else_value.endswith(')')):
+                        if target_field and else_value and not (else_value.startswith('$(') and else_value.endswith(')')):
                             df.at[idx, target_field] = else_value
 
         return df

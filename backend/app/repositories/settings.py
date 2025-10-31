@@ -169,7 +169,12 @@ class ColumnSettingsRepository:
     @staticmethod
     async def bulk_upsert(db: AsyncSession, columns: List[dict]) -> List[ColumnSettings]:
         """Bulk create or update column settings."""
+        # First, fetch ALL existing columns at once to avoid querying in loop
+        existing_columns_list = await ColumnSettingsRepository.get_all(db)
+        existing_map = {col.column_name: col for col in existing_columns_list}
+
         result = []
+
         for col_data in columns:
             column_name = col_data.get("column_name")
             enabled = col_data.get("enabled", True)
@@ -177,8 +182,8 @@ class ColumnSettingsRepository:
             is_custom = col_data.get("is_custom", False)
             description = col_data.get("description")
 
-            # Check if exists
-            db_column = await ColumnSettingsRepository.get_by_name(db, column_name)
+            # Check if exists in pre-fetched map
+            db_column = existing_map.get(column_name)
 
             if db_column:
                 # Update existing
@@ -196,6 +201,7 @@ class ColumnSettingsRepository:
                     description=description,
                 )
                 db.add(db_column)
+                existing_map[column_name] = db_column  # Add to map to prevent duplicates
 
             result.append(db_column)
 

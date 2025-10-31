@@ -15,7 +15,10 @@ const AVAILABLE_FIELDS = [
   'product_id',
   'supplier_name',
   'tradenet_supplier_id',
+  'pp_receipt',              // NEW
+  'pp_brand_name',           // NEW
   'pp_dist_subcontractor',
+  'pp_prod_purchase',        // NEW
   'tradenet_company_id',
 ]
 
@@ -47,8 +50,9 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
   const [conditions, setConditions] = useState([
     { field: 'product_id', operator: 'contains', value: '' }
   ])
-  const [thenField, setThenField] = useState('supplier_name')
-  const [thenValue, setThenValue] = useState('')
+  const [actions, setActions] = useState([
+    { type: 'set_value', field: 'supplier_name', value: '' }
+  ])
   const [hasElse, setHasElse] = useState(false)
   const [elseValue, setElseValue] = useState('')
   const [error, setError] = useState(null)
@@ -61,24 +65,24 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       const config = editingRule.config
       const condition = config.condition
 
-      // Handle OLD format
+      // Handle OLD format (single action)
       if (condition.supplier_name_equals) {
         setConditions([{ field: 'supplier_name', operator: 'equals', value: condition.supplier_name_equals }])
-        setThenField('supplier_name')
-        setThenValue(config.set_supplier || '')
+        setActions([{ type: 'set_value', field: 'supplier_name', value: config.set_supplier || '' }])
       } else if (condition.product_id_contains) {
         setConditions([{ field: 'product_id', operator: 'contains', value: condition.product_id_contains }])
-        setThenField('supplier_name')
-        setThenValue(config.set_supplier || '')
+        setActions([{ type: 'set_value', field: 'supplier_name', value: config.set_supplier || '' }])
       }
       // Handle NEW format
       else if (condition.logic && condition.rules) {
         setConditionLogic(condition.logic)
         setConditions(condition.rules)
 
-        if (config.then_action) {
-          setThenField(config.then_action.field)
-          setThenValue(config.then_action.value)
+        // Handle multiple actions (new) or single action (backward compatible)
+        if (config.then_actions) {
+          setActions(config.then_actions)
+        } else if (config.then_action) {
+          setActions([config.then_action])
         }
 
         if (config.else_action) {
@@ -96,11 +100,45 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     setRuleName('')
     setConditionLogic('AND')
     setConditions([{ field: 'product_id', operator: 'contains', value: '' }])
-    setThenField('supplier_name')
-    setThenValue('')
+    setActions([{ type: 'set_value', field: 'supplier_name', value: '' }])
     setHasElse(false)
     setElseValue('')
     setError(null)
+  }
+
+  const addAction = () => {
+    setActions([...actions, { type: 'set_value', field: 'supplier_name', value: '' }])
+  }
+
+  const removeAction = (index) => {
+    if (actions.length > 1) {
+      setActions(actions.filter((_, i) => i !== index))
+    }
+  }
+
+  const updateAction = (index, field, value) => {
+    const newActions = [...actions]
+    newActions[index] = { ...newActions[index], [field]: value }
+
+    // If changing action type, set defaults for that type
+    if (field === 'type') {
+      if (value === 'move_column') {
+        newActions[index] = {
+          type: 'move_column',
+          source_field: 'pp_dist_subcontractor',
+          target_field: 'pp_brand_name',
+          clear_source: true
+        }
+      } else if (value === 'set_value') {
+        newActions[index] = {
+          type: 'set_value',
+          field: 'supplier_name',
+          value: ''
+        }
+      }
+    }
+
+    setActions(newActions)
   }
 
   const addCondition = () => {
@@ -137,9 +175,40 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       }
     }
 
-    if (!thenValue.trim()) {
-      setError('THEN value is required')
-      return
+    // Validate all actions (apply defaults if missing)
+    const validatedActions = actions.map(action => {
+      if (action.type === 'set_value') {
+        return {
+          type: 'set_value',
+          field: action.field || 'supplier_name',
+          value: action.value || ''
+        }
+      } else if (action.type === 'move_column') {
+        return {
+          type: 'move_column',
+          source_field: action.source_field || 'pp_dist_subcontractor',
+          target_field: action.target_field || 'pp_brand_name',
+          clear_source: action.clear_source !== false
+        }
+      }
+      return action
+    })
+
+    // Now validate with defaults applied
+    for (let i = 0; i < validatedActions.length; i++) {
+      const action = validatedActions[i]
+
+      if (action.type === 'set_value') {
+        if (!action.value.trim()) {
+          setError(`Action ${i + 1}: Value is required`)
+          return
+        }
+      } else if (action.type === 'move_column') {
+        if (action.source_field === action.target_field) {
+          setError(`Action ${i + 1}: Source and target fields must be different`)
+          return
+        }
+      }
     }
 
     // Calculate next priority (max + 1)
@@ -148,7 +217,6 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       : 0
     const nextPriority = maxPriority + 1
 
-    // Build rule config
     const ruleConfig = {
       name: ruleName,
       rule_type: 'if_then_else',
@@ -159,10 +227,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
           logic: conditionLogic,
           rules: conditions
         },
-        then_action: {
-          field: thenField,
-          value: thenValue
-        }
+        then_actions: validatedActions  // Use validated actions with defaults
       }
     }
 
@@ -313,26 +378,128 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
             </Button>
           </div>
 
-          {/* THEN Action */}
+          {/* THEN Actions (Multiple) */}
           <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-            <h3 className="font-semibold text-gray-900 mb-3">THEN Set</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <select
-                value={thenField}
-                onChange={(e) => setThenField(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-gray-900">THEN Actions</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={addAction}
+                className="text-green-700 hover:bg-green-100"
               >
-                {AVAILABLE_FIELDS.map(field => (
-                  <option key={field} value={field}>{field}</option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={thenValue}
-                onChange={(e) => setThenValue(e.target.value)}
-                placeholder="New value"
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              />
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Action
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {actions.map((action, index) => (
+                <div key={index} className="bg-white rounded-lg p-3 border border-green-300">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
+                      {index + 1}
+                    </div>
+
+                    <div className="flex-1 space-y-3">
+                      {/* Action Type Selector */}
+                      <select
+                        value={action.type}
+                        onChange={(e) => updateAction(index, 'type', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                      >
+                        <option value="set_value">Set Field to Value</option>
+                        <option value="move_column">Move Column Data</option>
+                      </select>
+
+                      {/* Set Value Fields */}
+                      {action.type === 'set_value' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Field</label>
+                            <select
+                              value={action.field || 'supplier_name'}
+                              onChange={(e) => updateAction(index, 'field', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            >
+                              {AVAILABLE_FIELDS.map(field => (
+                                <option key={field} value={field}>{field}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Value</label>
+                            <input
+                              type="text"
+                              value={action.value || ''}
+                              onChange={(e) => updateAction(index, 'value', e.target.value)}
+                              placeholder="Enter value"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Move Column Fields */}
+                      {action.type === 'move_column' && (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Source</label>
+                              <select
+                                value={action.source_field || 'pp_dist_subcontractor'}
+                                onChange={(e) => updateAction(index, 'source_field', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                              >
+                                {AVAILABLE_FIELDS.map(field => (
+                                  <option key={field} value={field}>{field}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Target</label>
+                              <select
+                                value={action.target_field || 'pp_brand_name'}
+                                onChange={(e) => updateAction(index, 'target_field', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                              >
+                                {AVAILABLE_FIELDS.map(field => (
+                                  <option key={field} value={field}>{field}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <label className="flex items-center space-x-2 cursor-pointer text-sm">
+                            <input
+                              type="checkbox"
+                              checked={action.clear_source !== false}
+                              onChange={(e) => updateAction(index, 'clear_source', e.target.checked)}
+                              className="w-4 h-4 rounded"
+                              style={{ accentColor: '#178dc3' }}
+                            />
+                            <span className="text-gray-700">Clear source after move</span>
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Remove Button */}
+                    {actions.length > 1 && (
+                      <button
+                        onClick={() => removeAction(index)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        title="Remove action"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

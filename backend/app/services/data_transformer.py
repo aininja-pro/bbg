@@ -120,10 +120,6 @@ class DataTransformer:
                 distributor_map[unique_col_name] = product_info.get('distributor')
                 # Store the Excel column order for sorting
                 product_order_map[product_info['product_id']] = order_num
-                print(f"DEBUG: Added product column idx={col_idx}, product_id={product_info['product_id']}, col_name={col_name} → unique_name={unique_col_name}")
-
-        print(f"DEBUG: Total product columns to unpivot: {len(product_columns)}")
-        print(f"DEBUG: Product IDs: {list(product_id_map.values())}")
 
         if not product_columns:
             raise TransformationError("No product columns found to unpivot")

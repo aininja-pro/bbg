@@ -275,7 +275,7 @@ export function FieldsPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Enable proof point fields you want included in CSV output</li>
                 <li>Data starts in <span className="font-mono text-xs bg-gray-100 px-1">pp_dist_subcontractor</span></li>
-                <li>Use <strong>Business Rules</strong> to move data to these fields</li>
+                <li>Use <strong>Rules</strong> to move data to these fields</li>
                 <li>Example: Move "Carrier" from pp_dist_subcontractor → pp_brand_name</li>
                 <li>Disabled columns won't appear in downloaded files</li>
               </ul>

@@ -110,14 +110,42 @@ class DataTransformer:
         for order_num, (col_idx, product_info) in enumerate(sorted_products):
             if col_idx - 1 < len(df.columns):
                 col_name = df.columns[col_idx - 1]  # Convert 1-indexed to 0-indexed
-                product_columns.append(col_name)
-                product_id_map[col_name] = product_info['product_id']
-                distributor_map[col_name] = product_info.get('distributor')
+
+                # Make column name unique by appending product_id if duplicate
+                # This prevents overwrites when multiple columns have same name (e.g., "Cabinets")
+                unique_col_name = f"{col_name}_{product_info['product_id']}"
+
+                product_columns.append(unique_col_name)
+                product_id_map[unique_col_name] = product_info['product_id']
+                distributor_map[unique_col_name] = product_info.get('distributor')
                 # Store the Excel column order for sorting
                 product_order_map[product_info['product_id']] = order_num
+                print(f"DEBUG: Added product column idx={col_idx}, product_id={product_info['product_id']}, col_name={col_name} → unique_name={unique_col_name}")
+
+        print(f"DEBUG: Total product columns to unpivot: {len(product_columns)}")
+        print(f"DEBUG: Product IDs: {list(product_id_map.values())}")
 
         if not product_columns:
             raise TransformationError("No product columns found to unpivot")
+
+        # Rename columns in DataFrame to match unique names
+        # Build rename map: old col_name → unique col_name
+        rename_map = {}
+        for col_idx, product_info in active_products.items():
+            if col_idx - 1 < len(df.columns):
+                old_name = df.columns[col_idx - 1]
+                new_name = f"{old_name}_{product_info['product_id']}"
+                rename_map[old_name] = new_name
+
+        # Rename duplicate columns in DataFrame
+        # But we need to handle this carefully because rename() will fail if there are actual duplicates
+        # Instead, let's rename by position
+        new_column_names = list(df.columns)
+        for col_idx, product_info in active_products.items():
+            if col_idx - 1 < len(new_column_names):
+                new_column_names[col_idx - 1] = f"{new_column_names[col_idx - 1]}_{product_info['product_id']}"
+
+        df.columns = new_column_names
 
         # Expected base column names (case-insensitive matching)
         expected_base_columns = [

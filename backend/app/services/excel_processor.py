@@ -165,8 +165,17 @@ class ExcelProcessor:
             distributor = row_5[col_idx - 1].value if col_idx <= len(row_5) else None
             product_id = row_7[col_idx - 1].value if col_idx <= len(row_7) else None
 
-            # Check if this column is active (Row 2 = 1) AND has a product ID in Row 7
-            if active_flag == 1 and product_id:
+            # Debug logging for column Q (17)
+            if col_idx == 17:
+                print(f"DEBUG Column Q (17): active_flag={active_flag} (type={type(active_flag)}), product_id={product_id}, distributor={distributor}")
+
+            # Check if this column is active (Row 2 = 1 or "1") AND has a product ID in Row 7
+            # Handle both numeric 1 and string "1"
+            is_active = (active_flag == 1 or
+                        active_flag == 1.0 or
+                        str(active_flag).strip() == '1')
+
+            if is_active and product_id:
                 # Validate it's a real product ID (numeric)
                 try:
                     if isinstance(product_id, (int, float)):

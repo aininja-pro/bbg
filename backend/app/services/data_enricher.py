@@ -405,12 +405,18 @@ class DataEnricher:
 
         # Apply lookup
         if '_supplier_name_from_program' in df.columns:
+            # First pass: lookup from the _supplier_name_from_program column
             supplier_info = df['_supplier_name_from_program'].apply(lookup_supplier_id)
             df['supplier_name'] = supplier_info.apply(lambda x: x[0] if x else None)
             df['tradenet_supplier_id'] = supplier_info.apply(lambda x: x[1] if x else None)
 
             # Drop temporary column
             df = df.drop(columns=['_supplier_name_from_program'], errors='ignore')
+        elif 'supplier_name' in df.columns:
+            # Second pass (after rules): re-lookup tradenet_supplier_id from updated supplier_name
+            supplier_info = df['supplier_name'].apply(lookup_supplier_id)
+            df['supplier_name'] = supplier_info.apply(lambda x: x[0] if x else None)
+            df['tradenet_supplier_id'] = supplier_info.apply(lambda x: x[1] if x else None)
 
         return df
 
@@ -519,6 +525,10 @@ class DataEnricher:
 
         # Apply flexible rules AFTER all enrichment (so all fields are available)
         df = self.apply_flexible_rules(df)
+
+        # Re-match supplier IDs after rules may have changed supplier_name
+        # This ensures tradenet_supplier_id matches the updated supplier_name
+        df = await self.match_supplier_from_name(df)
 
         return df
 

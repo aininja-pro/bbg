@@ -191,7 +191,7 @@ class DataEnricher:
             return False
 
     def _evaluate_condition(self, row_data: Dict[str, Any], condition: Dict[str, Any]) -> bool:
-        """Evaluate a condition (supports both old and new formats).
+        """Evaluate a condition (supports old, current, and nested formats).
 
         Args:
             row_data: Dictionary with field values for current row
@@ -210,7 +210,37 @@ class DataEnricher:
             product_id = str(row_data.get('product_id', ''))
             return condition['product_id_contains'] in product_id
 
-        # NEW FORMAT: Flexible conditions with AND/OR logic
+        # NESTED FORMAT: type-based recursive evaluation
+        condition_type = condition.get('type')
+
+        if condition_type == 'group':
+            logic = condition.get('logic', 'AND')
+            children = condition.get('children', [])
+
+            if not children:
+                return False
+
+            results = []
+            for child in children:
+                # Recursive call handles both conditions and nested groups
+                result = self._evaluate_condition(row_data, child)
+                results.append(result)
+
+            if logic == 'AND':
+                return all(results)
+            elif logic == 'OR':
+                return any(results)
+            return False
+
+        elif condition_type == 'condition':
+            field = condition.get('field')
+            operator = condition.get('operator')
+            value = condition.get('value')
+            field_value = row_data.get(field)
+            return self._evaluate_operator(field_value, operator, value)
+
+        # CURRENT FLAT FORMAT: Flexible conditions with AND/OR logic
+        # Kept for backward compatibility during migration
         if 'logic' in condition and 'rules' in condition:
             logic = condition.get('logic', 'AND')
             rules = condition.get('rules', [])

@@ -47,8 +47,9 @@ const NUMERIC_FIELDS = ['bbg_member_id', 'quantity', 'tradenet_supplier_id', 'tr
 export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, existingRules = [] }) {
   const [ruleName, setRuleName] = useState('')
   const [conditionLogic, setConditionLogic] = useState('AND')
-  const [conditions, setConditions] = useState([
-    { field: 'product_id', operator: 'contains', value: '' }
+  // New nested structure: array of conditions or groups
+  const [conditionItems, setConditionItems] = useState([
+    { type: 'condition', field: 'product_id', operator: 'contains', value: '' }
   ])
   const [actions, setActions] = useState([
     { type: 'set_value', field: 'supplier_name', value: '' }
@@ -65,30 +66,41 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       const config = editingRule.config
       const condition = config.condition
 
+      // Handle NEW NESTED format (type: group)
+      if (condition.type === 'group') {
+        setConditionLogic(condition.logic || 'AND')
+        setConditionItems(condition.children || [])
+      }
       // Handle OLD format (single action)
-      if (condition.supplier_name_equals) {
-        setConditions([{ field: 'supplier_name', operator: 'equals', value: condition.supplier_name_equals }])
+      else if (condition.supplier_name_equals) {
+        setConditionItems([{ type: 'condition', field: 'supplier_name', operator: 'equals', value: condition.supplier_name_equals }])
         setActions([{ type: 'set_value', field: 'supplier_name', value: config.set_supplier || '' }])
       } else if (condition.product_id_contains) {
-        setConditions([{ field: 'product_id', operator: 'contains', value: condition.product_id_contains }])
+        setConditionItems([{ type: 'condition', field: 'product_id', operator: 'contains', value: condition.product_id_contains }])
         setActions([{ type: 'set_value', field: 'supplier_name', value: config.set_supplier || '' }])
       }
-      // Handle NEW format
+      // Handle FLAT format (logic + rules)
       else if (condition.logic && condition.rules) {
         setConditionLogic(condition.logic)
-        setConditions(condition.rules)
+        // Convert flat rules to typed conditions
+        setConditionItems(condition.rules.map(r => ({
+          type: 'condition',
+          field: r.field,
+          operator: r.operator,
+          value: r.value
+        })))
+      }
 
-        // Handle multiple actions (new) or single action (backward compatible)
-        if (config.then_actions) {
-          setActions(config.then_actions)
-        } else if (config.then_action) {
-          setActions([config.then_action])
-        }
+      // Handle actions
+      if (config.then_actions) {
+        setActions(config.then_actions)
+      } else if (config.then_action) {
+        setActions([config.then_action])
+      }
 
-        if (config.else_action) {
-          setHasElse(true)
-          setElseValue(config.else_action.value)
-        }
+      if (config.else_action) {
+        setHasElse(true)
+        setElseValue(config.else_action.value)
       }
     } else {
       // Reset form for new rule
@@ -99,7 +111,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
   const resetForm = () => {
     setRuleName('')
     setConditionLogic('AND')
-    setConditions([{ field: 'product_id', operator: 'contains', value: '' }])
+    setConditionItems([{ type: 'condition', field: 'product_id', operator: 'contains', value: '' }])
     setActions([{ type: 'set_value', field: 'supplier_name', value: '' }])
     setHasElse(false)
     setElseValue('')
@@ -141,20 +153,67 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     setActions(newActions)
   }
 
+  // Add a condition to root level
   const addCondition = () => {
-    setConditions([...conditions, { field: 'product_id', operator: 'contains', value: '' }])
+    setConditionItems([...conditionItems, { type: 'condition', field: 'product_id', operator: 'contains', value: '' }])
   }
 
-  const removeCondition = (index) => {
-    if (conditions.length > 1) {
-      setConditions(conditions.filter((_, i) => i !== index))
+  // Add a condition group to root level
+  const addConditionGroup = () => {
+    setConditionItems([...conditionItems, {
+      type: 'group',
+      logic: 'OR',
+      children: [
+        { type: 'condition', field: 'state', operator: 'equals', value: '' }
+      ]
+    }])
+  }
+
+  // Remove a condition or group at root level
+  const removeConditionItem = (index) => {
+    if (conditionItems.length > 1) {
+      setConditionItems(conditionItems.filter((_, i) => i !== index))
     }
   }
 
+  // Update a condition at root level
   const updateCondition = (index, field, value) => {
-    const updated = [...conditions]
-    updated[index][field] = value
-    setConditions(updated)
+    const updated = [...conditionItems]
+    updated[index] = { ...updated[index], [field]: value }
+    setConditionItems(updated)
+  }
+
+  // Update group logic
+  const updateGroupLogic = (index, logic) => {
+    const updated = [...conditionItems]
+    updated[index] = { ...updated[index], logic }
+    setConditionItems(updated)
+  }
+
+  // Add condition to a group
+  const addConditionToGroup = (groupIndex) => {
+    const updated = [...conditionItems]
+    const group = updated[groupIndex]
+    group.children = [...group.children, { type: 'condition', field: 'state', operator: 'equals', value: '' }]
+    setConditionItems(updated)
+  }
+
+  // Remove condition from a group
+  const removeConditionFromGroup = (groupIndex, conditionIndex) => {
+    const updated = [...conditionItems]
+    const group = updated[groupIndex]
+    if (group.children.length > 1) {
+      group.children = group.children.filter((_, i) => i !== conditionIndex)
+      setConditionItems(updated)
+    }
+  }
+
+  // Update a condition within a group
+  const updateGroupCondition = (groupIndex, conditionIndex, field, value) => {
+    const updated = [...conditionItems]
+    const group = updated[groupIndex]
+    group.children[conditionIndex] = { ...group.children[conditionIndex], [field]: value }
+    setConditionItems(updated)
   }
 
   const getOperatorsForField = (field) => {
@@ -168,11 +227,31 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       return
     }
 
-    for (let i = 0; i < conditions.length; i++) {
-      if (!conditions[i].value && !['is_empty', 'is_not_empty'].includes(conditions[i].operator)) {
-        setError(`Condition ${i + 1}: Value is required`)
-        return
+    // Validate all conditions (including nested)
+    const validateConditions = (items, path = '') => {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        const itemPath = path ? `${path} > Condition ${i + 1}` : `Condition ${i + 1}`
+
+        if (item.type === 'condition') {
+          if (!item.value && !['is_empty', 'is_not_empty'].includes(item.operator)) {
+            return `${itemPath}: Value is required`
+          }
+        } else if (item.type === 'group') {
+          if (!item.children || item.children.length === 0) {
+            return `Group ${i + 1}: At least one condition required`
+          }
+          const groupError = validateConditions(item.children, `Group ${i + 1}`)
+          if (groupError) return groupError
+        }
       }
+      return null
+    }
+
+    const conditionError = validateConditions(conditionItems)
+    if (conditionError) {
+      setError(conditionError)
+      return
     }
 
     // Validate all actions (apply defaults if missing)
@@ -217,6 +296,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       : 0
     const nextPriority = maxPriority + 1
 
+    // Build the new nested condition format
     const ruleConfig = {
       name: ruleName,
       rule_type: 'if_then_else',
@@ -224,17 +304,22 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       enabled: true,
       config: {
         condition: {
+          type: 'group',
           logic: conditionLogic,
-          rules: conditions
+          children: conditionItems
         },
-        then_actions: validatedActions  // Use validated actions with defaults
+        then_actions: validatedActions
       }
     }
 
     // Add ELSE action if enabled
     if (hasElse && elseValue) {
+      // Get first set_value action's field for else
+      const firstSetValueAction = validatedActions.find(a => a.type === 'set_value')
+      const thenField = firstSetValueAction?.field || 'supplier_name'
+
       ruleConfig.config.else_action = {
-        field: thenField, // Same field as THEN
+        field: thenField,
         value: elseValue
       }
     }
@@ -247,6 +332,108 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       setError(err.message || 'Failed to save rule')
     }
   }
+
+  // Render a single condition row
+  const renderCondition = (condition, index, onUpdate, onRemove, canRemove) => (
+    <div key={index} className="flex items-start space-x-2">
+      <div className="flex-1 flex gap-2">
+        {/* Field */}
+        <select
+          value={condition.field}
+          onChange={(e) => onUpdate(index, 'field', e.target.value)}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          {AVAILABLE_FIELDS.map(field => (
+            <option key={field} value={field}>{field}</option>
+          ))}
+        </select>
+
+        {/* Operator */}
+        <select
+          value={condition.operator}
+          onChange={(e) => onUpdate(index, 'operator', e.target.value)}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          {getOperatorsForField(condition.field).map(op => (
+            <option key={op.value} value={op.value}>{op.label}</option>
+          ))}
+        </select>
+
+        {/* Value */}
+        {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
+          <input
+            type="text"
+            value={condition.value}
+            onChange={(e) => onUpdate(index, 'value', e.target.value)}
+            placeholder="Value"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+        )}
+      </div>
+
+      {canRemove && (
+        <button
+          onClick={() => onRemove(index)}
+          className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+          title="Remove condition"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      )}
+    </div>
+  )
+
+  // Render a condition group
+  const renderGroup = (group, groupIndex) => (
+    <div key={groupIndex} className="border-2 border-blue-200 rounded-lg p-3 bg-blue-50">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium text-blue-700">Group</span>
+          <select
+            value={group.logic}
+            onChange={(e) => updateGroupLogic(groupIndex, e.target.value)}
+            className="px-2 py-1 border border-blue-300 rounded text-xs bg-white focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="AND">ALL (AND)</option>
+            <option value="OR">ANY (OR)</option>
+          </select>
+        </div>
+        <button
+          onClick={() => removeConditionItem(groupIndex)}
+          className="p-1 text-red-600 hover:bg-red-50 rounded"
+          title="Remove group"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="space-y-2">
+        {group.children.map((condition, condIndex) =>
+          renderCondition(
+            condition,
+            condIndex,
+            (idx, field, value) => updateGroupCondition(groupIndex, idx, field, value),
+            (idx) => removeConditionFromGroup(groupIndex, idx),
+            group.children.length > 1
+          )
+        )}
+      </div>
+
+      <button
+        onClick={() => addConditionToGroup(groupIndex)}
+        className="mt-2 text-xs text-blue-600 hover:text-blue-800 flex items-center"
+      >
+        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+        </svg>
+        Add to group
+      </button>
+    </div>
+  )
 
   if (!isOpen) return null
 
@@ -297,85 +484,58 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
           <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900">IF Conditions</h3>
-              {conditions.length > 1 && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Match:</span>
-                  <select
-                    value={conditionLogic}
-                    onChange={(e) => setConditionLogic(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="AND">ALL (AND)</option>
-                    <option value="OR">ANY (OR)</option>
-                  </select>
-                </div>
-              )}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Match:</span>
+                <select
+                  value={conditionLogic}
+                  onChange={(e) => setConditionLogic(e.target.value)}
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="AND">ALL (AND)</option>
+                  <option value="OR">ANY (OR)</option>
+                </select>
+              </div>
             </div>
 
             <div className="space-y-3">
-              {conditions.map((condition, index) => (
-                <div key={index} className="flex items-start space-x-2">
-                  <div className="flex-1 flex gap-2">
-                    {/* Field */}
-                    <select
-                      value={condition.field}
-                      onChange={(e) => updateCondition(index, 'field', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                      {AVAILABLE_FIELDS.map(field => (
-                        <option key={field} value={field}>{field}</option>
-                      ))}
-                    </select>
-
-                    {/* Operator */}
-                    <select
-                      value={condition.operator}
-                      onChange={(e) => updateCondition(index, 'operator', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                    >
-                      {getOperatorsForField(condition.field).map(op => (
-                        <option key={op.value} value={op.value}>{op.label}</option>
-                      ))}
-                    </select>
-
-                    {/* Value */}
-                    {!['is_empty', 'is_not_empty'].includes(condition.operator) && (
-                      <input
-                        type="text"
-                        value={condition.value}
-                        onChange={(e) => updateCondition(index, 'value', e.target.value)}
-                        placeholder="Value"
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-                      />
-                    )}
-                  </div>
-
-                  {conditions.length > 1 && (
-                    <button
-                      onClick={() => removeCondition(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      title="Remove condition"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
+              {conditionItems.map((item, index) => {
+                if (item.type === 'group') {
+                  return renderGroup(item, index)
+                } else {
+                  return renderCondition(
+                    item,
+                    index,
+                    updateCondition,
+                    removeConditionItem,
+                    conditionItems.length > 1
+                  )
+                }
+              })}
             </div>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={addCondition}
-              className="mt-3"
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Condition
-            </Button>
+            <div className="flex space-x-2 mt-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={addCondition}
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Condition
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={addConditionGroup}
+                className="text-blue-600 hover:bg-blue-50"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Add Group
+              </Button>
+            </div>
           </div>
 
           {/* THEN Actions (Multiple) */}
@@ -521,7 +681,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
             {hasElse && (
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">
-                  If condition doesn't match, set <span className="font-mono font-semibold">{thenField}</span> to:
+                  If condition doesn't match, set field to:
                 </p>
                 <input
                   type="text"

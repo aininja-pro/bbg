@@ -5,8 +5,9 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from app.config import settings
-from app.database import init_db, close_db
+from app.database import init_db, close_db, AsyncSessionLocal
 from app.routers import lookup, upload, rules, settings as settings_router
+from app.services.rule_migration import run_migration
 # Import models to ensure they're registered with SQLAlchemy
 from app.models.settings import Settings, ColumnSettings
 
@@ -16,6 +17,11 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager."""
     # Startup: Initialize database
     await init_db()
+
+    # Run rule migration to convert existing rules to nested format
+    async with AsyncSessionLocal() as db:
+        await run_migration(db)
+
     yield
     # Shutdown: Close database connections
     await close_db()

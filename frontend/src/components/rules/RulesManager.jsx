@@ -140,6 +140,37 @@ export function RulesManager() {
                     {rule.config.condition && (() => {
                       const condition = rule.config.condition;
 
+                      // Helper to render a single condition
+                      const renderCondition = (cond) => (
+                        <span className="font-mono">{cond.field} {cond.operator} {cond.value}</span>
+                      );
+
+                      // Helper to render nested structure
+                      const renderNestedCondition = (item, index, parentLogic, isLast) => {
+                        if (item.type === 'group') {
+                          return (
+                            <span key={index}>
+                              {index > 0 && <span className="font-semibold"> {parentLogic} </span>}
+                              <span className="text-blue-600">(</span>
+                              {item.children.map((child, i) => (
+                                <span key={i}>
+                                  {i > 0 && <span className="font-semibold text-blue-600"> {item.logic} </span>}
+                                  {renderCondition(child)}
+                                </span>
+                              ))}
+                              <span className="text-blue-600">)</span>
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span key={index}>
+                              {index > 0 && <span className="font-semibold"> {parentLogic} </span>}
+                              {renderCondition(item)}
+                            </span>
+                          );
+                        }
+                      };
+
                       // OLD FORMAT: supplier_name_equals or product_id_contains
                       if (condition.supplier_name_equals) {
                         return (
@@ -158,7 +189,19 @@ export function RulesManager() {
                         );
                       }
 
-                      // NEW FORMAT: flexible rules
+                      // NESTED FORMAT: type: 'group' with children
+                      if (condition.type === 'group' && condition.children) {
+                        return (
+                          <span>
+                            {condition.children.map((item, i) =>
+                              renderNestedCondition(item, i, condition.logic, i === condition.children.length - 1)
+                            )}
+                            {' → '}
+                          </span>
+                        );
+                      }
+
+                      // FLAT FORMAT: logic + rules (backward compatible)
                       if (condition.logic && condition.rules) {
                         return (
                           <span>

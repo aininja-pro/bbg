@@ -19,6 +19,7 @@ class RuleType(str, Enum):
 class RuleBase(BaseModel):
     """Base schema for Rule."""
     name: str = Field(..., max_length=255)
+    group: Optional[str] = Field(None, max_length=100)
     rule_type: RuleType
     priority: int = Field(default=0, ge=0)
     enabled: bool = Field(default=True)
@@ -33,6 +34,7 @@ class RuleCreate(RuleBase):
 class RuleUpdate(BaseModel):
     """Schema for updating a Rule."""
     name: Optional[str] = Field(None, max_length=255)
+    group: Optional[str] = Field(None, max_length=100)
     rule_type: Optional[RuleType] = None
     priority: Optional[int] = Field(None, ge=0)
     enabled: Optional[bool] = None

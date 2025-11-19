@@ -11,6 +11,31 @@ export function RulesManager() {
   const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingRule, setEditingRule] = useState(null)
+  const [collapsedGroups, setCollapsedGroups] = useState({})
+
+  // Group rules by their group field
+  const groupedRules = rules.reduce((acc, rule) => {
+    const groupName = rule.group || 'Ungrouped'
+    if (!acc[groupName]) {
+      acc[groupName] = []
+    }
+    acc[groupName].push(rule)
+    return acc
+  }, {})
+
+  // Sort group names (Ungrouped always last)
+  const sortedGroupNames = Object.keys(groupedRules).sort((a, b) => {
+    if (a === 'Ungrouped') return 1
+    if (b === 'Ungrouped') return -1
+    return a.localeCompare(b)
+  })
+
+  const toggleGroupCollapse = (groupName) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }))
+  }
 
   useEffect(() => {
     fetchRules()
@@ -122,184 +147,217 @@ export function RulesManager() {
           </div>
         )}
 
-        <div className="space-y-3">
-          {rules.map((rule) => (
-            <div
-              key={rule.id}
-              className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center space-x-4 flex-1">
-                <div className="flex items-center justify-center w-8 h-8 bg-[#178dc3] bg-opacity-20 text-[#178dc3] rounded font-semibold text-sm">
-                  {rule.priority}
-                </div>
+        <div className="space-y-4">
+          {sortedGroupNames.map((groupName) => {
+            const groupRules = groupedRules[groupName]
+            const isCollapsed = collapsedGroups[groupName]
 
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{rule.name}</h4>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {/* Display rule condition summary */}
-                    {rule.config.condition && (() => {
-                      const condition = rule.config.condition;
+            return (
+              <div key={groupName} className="border rounded-lg overflow-hidden">
+                {/* Group Header */}
+                <button
+                  onClick={() => toggleGroupCollapse(groupName)}
+                  className="w-full flex items-center justify-between p-3 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  <div className="flex items-center space-x-2">
+                    <svg
+                      className={`w-4 h-4 text-gray-500 transition-transform ${isCollapsed ? '' : 'rotate-90'}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="font-semibold text-gray-900">{groupName}</span>
+                    <span className="text-sm text-gray-500">({groupRules.length} rule{groupRules.length !== 1 ? 's' : ''})</span>
+                  </div>
+                </button>
 
-                      // Helper to render a single condition
-                      const renderCondition = (cond) => (
-                        <span className="font-mono">{cond.field} {cond.operator} {cond.value}</span>
-                      );
+                {/* Rules in this group */}
+                {!isCollapsed && (
+                  <div className="divide-y">
+                    {groupRules.map((rule) => (
+                      <div
+                        key={rule.id}
+                        className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-center space-x-4 flex-1">
+                          <div className="flex items-center justify-center w-8 h-8 bg-[#178dc3] bg-opacity-20 text-[#178dc3] rounded font-semibold text-sm">
+                            {rule.priority}
+                          </div>
 
-                      // Helper to render nested structure
-                      const renderNestedCondition = (item, index, parentLogic, isLast) => {
-                        if (item.type === 'group') {
-                          return (
-                            <span key={index}>
-                              {index > 0 && <span className="font-semibold"> {parentLogic} </span>}
-                              <span className="text-blue-600">(</span>
-                              {item.children.map((child, i) => (
-                                <span key={i}>
-                                  {i > 0 && <span className="font-semibold text-blue-600"> {item.logic} </span>}
-                                  {renderCondition(child)}
-                                </span>
-                              ))}
-                              <span className="text-blue-600">)</span>
-                            </span>
-                          );
-                        } else {
-                          return (
-                            <span key={index}>
-                              {index > 0 && <span className="font-semibold"> {parentLogic} </span>}
-                              {renderCondition(item)}
-                            </span>
-                          );
-                        }
-                      };
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{rule.name}</h4>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {/* Display rule condition summary */}
+                              {rule.config.condition && (() => {
+                                const condition = rule.config.condition;
 
-                      // OLD FORMAT: supplier_name_equals or product_id_contains
-                      if (condition.supplier_name_equals) {
-                        return (
-                          <span>
-                            supplier name equals: <span className="font-mono">{condition.supplier_name_equals}</span>
-                            {' → '}
-                          </span>
-                        );
-                      }
-                      if (condition.product_id_contains) {
-                        return (
-                          <span>
-                            product id contains: <span className="font-mono">{condition.product_id_contains}</span>
-                            {' → '}
-                          </span>
-                        );
-                      }
+                                // Helper to render a single condition
+                                const renderCondition = (cond) => (
+                                  <span className="font-mono">{cond.field} {cond.operator} {cond.value}</span>
+                                );
 
-                      // NESTED FORMAT: type: 'group' with children
-                      if (condition.type === 'group' && condition.children) {
-                        return (
-                          <span>
-                            {condition.children.map((item, i) =>
-                              renderNestedCondition(item, i, condition.logic, i === condition.children.length - 1)
-                            )}
-                            {' → '}
-                          </span>
-                        );
-                      }
+                                // Helper to render nested structure
+                                const renderNestedCondition = (item, index, parentLogic, isLast) => {
+                                  if (item.type === 'group') {
+                                    return (
+                                      <span key={index}>
+                                        {index > 0 && <span className="font-semibold"> {parentLogic} </span>}
+                                        <span className="text-blue-600">(</span>
+                                        {item.children.map((child, i) => (
+                                          <span key={i}>
+                                            {i > 0 && <span className="font-semibold text-blue-600"> {item.logic} </span>}
+                                            {renderCondition(child)}
+                                          </span>
+                                        ))}
+                                        <span className="text-blue-600">)</span>
+                                      </span>
+                                    );
+                                  } else {
+                                    return (
+                                      <span key={index}>
+                                        {index > 0 && <span className="font-semibold"> {parentLogic} </span>}
+                                        {renderCondition(item)}
+                                      </span>
+                                    );
+                                  }
+                                };
 
-                      // FLAT FORMAT: logic + rules (backward compatible)
-                      if (condition.logic && condition.rules) {
-                        return (
-                          <span>
-                            {condition.rules.map((r, i) => (
-                              <span key={i}>
-                                {i > 0 && <span className="font-semibold"> {condition.logic} </span>}
-                                <span className="font-mono">{r.field} {r.operator} {r.value}</span>
+                                // OLD FORMAT: supplier_name_equals or product_id_contains
+                                if (condition.supplier_name_equals) {
+                                  return (
+                                    <span>
+                                      supplier name equals: <span className="font-mono">{condition.supplier_name_equals}</span>
+                                      {' → '}
+                                    </span>
+                                  );
+                                }
+                                if (condition.product_id_contains) {
+                                  return (
+                                    <span>
+                                      product id contains: <span className="font-mono">{condition.product_id_contains}</span>
+                                      {' → '}
+                                    </span>
+                                  );
+                                }
+
+                                // NESTED FORMAT: type: 'group' with children
+                                if (condition.type === 'group' && condition.children) {
+                                  return (
+                                    <span>
+                                      {condition.children.map((item, i) =>
+                                        renderNestedCondition(item, i, condition.logic, i === condition.children.length - 1)
+                                      )}
+                                      {' → '}
+                                    </span>
+                                  );
+                                }
+
+                                // FLAT FORMAT: logic + rules (backward compatible)
+                                if (condition.logic && condition.rules) {
+                                  return (
+                                    <span>
+                                      {condition.rules.map((r, i) => (
+                                        <span key={i}>
+                                          {i > 0 && <span className="font-semibold"> {condition.logic} </span>}
+                                          <span className="font-mono">{r.field} {r.operator} {r.value}</span>
+                                        </span>
+                                      ))}
+                                      {' → '}
+                                    </span>
+                                  );
+                                }
+
+                                return null;
+                              })()}
+
+                              {/* Display action(s) */}
+                              <span className="font-semibold">
+                                {rule.config.set_supplier ||
+                                 (rule.config.then_actions && (() => {
+                                   // Multiple actions
+                                   const actions = rule.config.then_actions;
+                                   return actions.map((action, i) => (
+                                     <span key={i}>
+                                       {i > 0 && <span className="text-gray-500"> + </span>}
+                                       {action.type === 'move_column' ? (
+                                         <span>
+                                           MOVE <span className="font-mono text-xs">{action.source_field}</span>
+                                           {' → '}
+                                           <span className="font-mono text-xs">{action.target_field}</span>
+                                         </span>
+                                       ) : (
+                                         <span className="font-mono text-xs">{action.field} = {action.value}</span>
+                                       )}
+                                     </span>
+                                   ));
+                                 })()) ||
+                                 (rule.config.then_action && (() => {
+                                   // Single action (backward compatible)
+                                   const action = rule.config.then_action;
+                                   if (action.type === 'move_column') {
+                                     return (
+                                       <span>
+                                         MOVE <span className="font-mono">{action.source_field}</span>
+                                         {' → '}
+                                         <span className="font-mono">{action.target_field}</span>
+                                       </span>
+                                     );
+                                   } else {
+                                     return `${action.field} = ${action.value}`;
+                                   }
+                                 })())}
                               </span>
-                            ))}
-                            {' → '}
-                          </span>
-                        );
-                      }
+                            </p>
+                          </div>
 
-                      return null;
-                    })()}
+                          <div className="flex items-center space-x-2">
+                            {/* Enable/Disable Toggle */}
+                            <button
+                              onClick={() => toggleRule(rule.id, rule.enabled)}
+                              className={`
+                                relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                                ${rule.enabled ? 'bg-[#178dc3]' : 'bg-gray-200'}
+                              `}
+                            >
+                              <span
+                                className={`
+                                  inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                                  ${rule.enabled ? 'translate-x-6' : 'translate-x-1'}
+                                `}
+                              />
+                            </button>
+                            <span className="text-xs text-gray-500 w-16">
+                              {rule.enabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                          </div>
+                        </div>
 
-                    {/* Display action(s) */}
-                    <span className="font-semibold">
-                      {rule.config.set_supplier ||
-                       (rule.config.then_actions && (() => {
-                         // Multiple actions
-                         const actions = rule.config.then_actions;
-                         return actions.map((action, i) => (
-                           <span key={i}>
-                             {i > 0 && <span className="text-gray-500"> + </span>}
-                             {action.type === 'move_column' ? (
-                               <span>
-                                 MOVE <span className="font-mono text-xs">{action.source_field}</span>
-                                 {' → '}
-                                 <span className="font-mono text-xs">{action.target_field}</span>
-                               </span>
-                             ) : (
-                               <span className="font-mono text-xs">{action.field} = {action.value}</span>
-                             )}
-                           </span>
-                         ));
-                       })()) ||
-                       (rule.config.then_action && (() => {
-                         // Single action (backward compatible)
-                         const action = rule.config.then_action;
-                         if (action.type === 'move_column') {
-                           return (
-                             <span>
-                               MOVE <span className="font-mono">{action.source_field}</span>
-                               {' → '}
-                               <span className="font-mono">{action.target_field}</span>
-                             </span>
-                           );
-                         } else {
-                           return `${action.field} = ${action.value}`;
-                         }
-                       })())}
-                    </span>
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  {/* Enable/Disable Toggle */}
-                  <button
-                    onClick={() => toggleRule(rule.id, rule.enabled)}
-                    className={`
-                      relative inline-flex h-6 w-11 items-center rounded-full transition-colors
-                      ${rule.enabled ? 'bg-[#178dc3]' : 'bg-gray-200'}
-                    `}
-                  >
-                    <span
-                      className={`
-                        inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                        ${rule.enabled ? 'translate-x-6' : 'translate-x-1'}
-                      `}
-                    />
-                  </button>
-                  <span className="text-xs text-gray-500 w-16">
-                    {rule.enabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditRule(rule)}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteRule(rule.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              <div className="flex items-center space-x-2 ml-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEditRule(rule)}
-                >
-                  Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteRule(rule.id)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
+            )
+          })}
 
           {rules.length === 0 && (
             <div className="text-center py-12 text-gray-500">

@@ -46,6 +46,7 @@ const NUMERIC_FIELDS = ['bbg_member_id', 'quantity', 'tradenet_supplier_id', 'tr
 
 export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, existingRules = [] }) {
   const [ruleName, setRuleName] = useState('')
+  const [ruleGroup, setRuleGroup] = useState('')
   const [conditionLogic, setConditionLogic] = useState('AND')
   // New nested structure: array of conditions or groups
   const [conditionItems, setConditionItems] = useState([
@@ -58,10 +59,14 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
   const [elseValue, setElseValue] = useState('')
   const [error, setError] = useState(null)
 
+  // Get unique groups from existing rules for suggestions
+  const existingGroups = [...new Set(existingRules.map(r => r.group).filter(Boolean))].sort()
+
   useEffect(() => {
     if (editingRule) {
       // Populate form with existing rule data
       setRuleName(editingRule.name)
+      setRuleGroup(editingRule.group || '')
 
       const config = editingRule.config
       const condition = config.condition
@@ -110,6 +115,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
 
   const resetForm = () => {
     setRuleName('')
+    setRuleGroup('')
     setConditionLogic('AND')
     setConditionItems([{ type: 'condition', field: 'product_id', operator: 'contains', value: '' }])
     setActions([{ type: 'set_value', field: 'supplier_name', value: '' }])
@@ -299,6 +305,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     // Build the new nested condition format
     const ruleConfig = {
       name: ruleName,
+      group: ruleGroup || null,
       rule_type: 'if_then_else',
       priority: editingRule ? editingRule.priority : nextPriority,
       enabled: true,
@@ -478,6 +485,29 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
               placeholder="e.g., Product 5534 is Air Vent"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
+          </div>
+
+          {/* Group/Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Group/Category <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={ruleGroup}
+              onChange={(e) => setRuleGroup(e.target.value)}
+              placeholder="e.g., Carrier, CertainTeed, GAF"
+              list="group-suggestions"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <datalist id="group-suggestions">
+              {existingGroups.map(group => (
+                <option key={group} value={group} />
+              ))}
+            </datalist>
+            <p className="text-xs text-gray-500 mt-1">
+              Group related rules together for easier management
+            </p>
           </div>
 
           {/* IF Conditions */}

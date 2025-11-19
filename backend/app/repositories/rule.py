@@ -1,6 +1,6 @@
 """Repository layer for rules operations."""
 from typing import List, Optional
-from sqlalchemy import select, delete, update
+from sqlalchemy import select, delete, update, nulls_last
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.rule import Rule
@@ -12,13 +12,18 @@ class RuleRepository:
 
     @staticmethod
     async def get_all(db: AsyncSession, enabled_only: bool = False) -> List[Rule]:
-        """Get all rules ordered by priority.
+        """Get all rules ordered by group then priority.
 
         Args:
             db: Database session
             enabled_only: If True, only return enabled rules
         """
-        query = select(Rule).order_by(Rule.priority, Rule.id)
+        # Order by group (nulls last to put ungrouped at end), then priority within each group
+        query = select(Rule).order_by(
+            nulls_last(Rule.group),
+            Rule.priority,
+            Rule.id
+        )
 
         if enabled_only:
             query = query.where(Rule.enabled == True)

@@ -13,6 +13,7 @@ class TradeNetMember(Base):
     tradenet_company_id = Column(String(100), nullable=False, index=True)
     bbg_member_id = Column(String(100), nullable=True, index=True)  # Can be empty in CSV
     member_name = Column(String(255), nullable=False, index=True)  # Used by data_enricher.py
+    territory_manager = Column(String(255), nullable=True, index=True)  # Territory Manager name
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):

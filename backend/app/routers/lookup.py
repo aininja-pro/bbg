@@ -297,10 +297,14 @@ async def bulk_upload_members(
                 # Use "Company Name" if available, otherwise "Full Company Name"
                 member_name = row.get('Company Name', '').strip() or row.get('Full Company Name', '').strip()
 
+                # Get Territory Manager from CSV (column 10)
+                territory_manager = row.get('Territory Manager', '').strip() or None
+
                 member_data = TradeNetMemberCreate(
                     tradenet_company_id=row.get('TradeNet Company ID', '').strip(),
                     bbg_member_id=row.get('Buying Group ID', '').strip() or None,
                     member_name=member_name,
+                    territory_manager=territory_manager,
                 )
                 members.append(member_data)
             except Exception as e:

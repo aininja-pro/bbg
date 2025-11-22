@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from '../ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card'
 
-export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFilesSelect }) {
+export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFilesSelect, acceptedFileTypes }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFiles, setSelectedFiles] = useState([])
 
@@ -31,9 +31,11 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
             }
           })
 
+          // Call parent callback with updated files
           if (onFilesSelect) {
             onFilesSelect(updatedFiles)
           }
+
           return updatedFiles
         })
       } else {
@@ -47,22 +49,21 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
   }, [onFileSelect, onFilesSelect, batchMode])
 
   const removeFile = (indexToRemove) => {
-    setSelectedFiles(prev => {
-      const newFiles = prev.filter((_, index) => index !== indexToRemove)
-      if (onFilesSelect) {
-        onFilesSelect(newFiles)
-      }
-      return newFiles
-    })
+    setSelectedFiles(prev => prev.filter((_, index) => index !== indexToRemove))
   }
+
+  // Default to Excel files if no acceptedFileTypes provided
+  const defaultAcceptedTypes = {
+    'application/vnd.ms-excel.sheet.macroEnabled.12': ['.xlsm'],
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+  }
+
+  const acceptTypes = acceptedFileTypes || defaultAcceptedTypes
 
   // Create separate dropzone configurations for single and batch modes
   const singleDropzoneOptions = {
     onDrop,
-    accept: {
-      'application/vnd.ms-excel.sheet.macroEnabled.12': ['.xlsm'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    },
+    accept: acceptTypes,
     maxFiles: 1,
     multiple: false,
     disabled: isProcessing,
@@ -70,10 +71,7 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
 
   const batchDropzoneOptions = {
     onDrop,
-    accept: {
-      'application/vnd.ms-excel.sheet.macroEnabled.12': ['.xlsm'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-    },
+    accept: acceptTypes,
     maxFiles: 0, // unlimited
     multiple: true,
     disabled: isProcessing,
@@ -86,14 +84,19 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
 
   const displayFiles = batchMode ? selectedFiles : (selectedFile ? [selectedFile] : [])
 
+  // Determine file type description based on acceptedFileTypes
+  const isCSV = acceptedFileTypes && acceptedFileTypes['text/csv']
+  const fileTypeDescription = isCSV ? 'CSV files (.csv)' : 'Excel files (.xlsm, .xlsx)'
+  const supportedFormats = isCSV ? '.csv' : '.xlsm, .xlsx'
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg">Upload Rebate {batchMode ? 'Files' : 'File'}</CardTitle>
+        <CardTitle className="text-lg">Upload {isCSV ? '' : 'Rebate'} {batchMode ? 'Files' : 'File'}</CardTitle>
         <CardDescription className="text-xs">
           {batchMode
-            ? 'Drag and drop multiple Excel files (.xlsm) or click to browse'
-            : 'Drag and drop your quarterly rebate Excel file (.xlsm) or click to browse'
+            ? `Drag and drop multiple ${fileTypeDescription} or click to browse`
+            : `Drag and drop your ${isCSV ? 'CSV file' : 'quarterly rebate Excel file'} or click to browse`
           }
         </CardDescription>
       </CardHeader>
@@ -154,7 +157,7 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
                   {batchMode && displayFiles.length > 0 ? 'Add more files by dragging or clicking' : 'or click to browse'}
                 </p>
                 <p className="text-xs text-gray-400">
-                  Supported formats: .xlsm, .xlsx (Max 50MB{batchMode ? ' per file' : ''})
+                  Supported formats: {supportedFormats} (Max 50MB{batchMode ? ' per file' : ''})
                 </p>
               </div>
             )}

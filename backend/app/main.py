@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_db, close_db, AsyncSessionLocal
-from app.routers import lookup, upload, rules, settings as settings_router
+from app.routers import lookup, upload, rules, settings as settings_router, distribution
 from app.services.rule_migration import run_migration
 # Import models to ensure they're registered with SQLAlchemy
 from app.models.settings import Settings, ColumnSettings
@@ -50,6 +50,7 @@ app.include_router(lookup.router)
 app.include_router(upload.router)
 app.include_router(rules.router)
 app.include_router(settings_router.router)
+app.include_router(distribution.router)
 
 
 @app.get("/")

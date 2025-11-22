@@ -167,4 +167,49 @@ export const api = {
 
     return await response.json();
   },
+
+  // DISTRIBUTION ENDPOINTS (PHASE 2)
+
+  /**
+   * Process distribution reports (Supplier or Territory Manager)
+   * @param {File[]} files - Array of CSV files to process
+   * @param {string} mode - 'mode1' (Supplier) or 'mode2' (Territory Manager)
+   * @returns {Promise<Object>} - Job status with job_id
+   */
+  async processDistribution(files, mode) {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await fetch(`${API_BASE_URL}/api/distribution/process?mode=${mode}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Distribution processing failed' }));
+      throw new Error(error.detail || 'Failed to process distribution');
+    }
+
+    return await response.json();
+  },
+
+  /**
+   * Get distribution processing status
+   * @param {string} jobId - The job ID to check
+   * @returns {Promise<Object>} - Job status with progress
+   */
+  async getDistributionStatus(jobId) {
+    const response = await fetch(`${API_BASE_URL}/api/distribution/status/${jobId}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Failed to get status' }));
+      throw new Error(error.detail || 'Failed to get distribution status');
+    }
+
+    return await response.json();
+  },
 };

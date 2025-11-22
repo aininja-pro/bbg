@@ -707,7 +707,7 @@ async def download_by_job_id(
     await ProcessedFileRepository.record_download(db, job_id)
 
     # Return the cached data
-    if processed_file.file_type == 'batch_zip':
+    if processed_file.file_type == 'batch_zip' or processed_file.file_type.startswith('distribution_'):
         # Decode base64 ZIP
         zip_bytes = base64.b64decode(processed_file.processed_data)
 

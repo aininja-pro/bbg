@@ -51,8 +51,14 @@ async def process_distribution(
     # Generate job ID
     job_id = str(uuid.uuid4())
 
-    # Collect original filenames
-    original_filenames = [file.filename for file in files]
+    # Collect original filenames and READ file contents before passing to background
+    original_filenames = []
+    file_contents = []
+
+    for file in files:
+        original_filenames.append(file.filename)
+        content = await file.read()
+        file_contents.append((file.filename, content))
 
     # Create initial processed file record
     file_data = ProcessedFileCreate(
@@ -69,9 +75,9 @@ async def process_distribution(
 
     await ProcessedFileRepository.create(db, file_data)
 
-    # Process files in background - create new DB session for background task
+    # Process files in background - pass file contents, not UploadFile objects
     asyncio.create_task(
-        _process_distribution_task(job_id, files, mode)
+        _process_distribution_task(job_id, file_contents, mode)
     )
 
     return {
@@ -83,7 +89,7 @@ async def process_distribution(
 
 async def _process_distribution_task(
     job_id: str,
-    files: List[UploadFile],
+    file_contents: List[tuple],
     mode: str
 ):
     """
@@ -91,7 +97,7 @@ async def _process_distribution_task(
 
     Args:
         job_id: Job ID for tracking
-        files: List of uploaded CSV files
+        file_contents: List of (filename, bytes) tuples
         mode: "mode1" or "mode2"
     """
     temp_files = []
@@ -126,15 +132,14 @@ async def _process_distribution_task(
             # Update: 0% - Saving files
             await update_progress(0, "Saving uploaded files...")
 
-            # Save uploaded files to temporary directory
+            # Save file contents to temporary directory
             temp_dir = tempfile.mkdtemp()
 
-            for file in files:
-                temp_path = os.path.join(temp_dir, file.filename)
-                contents = await file.read()
+            for filename, content in file_contents:
+                temp_path = os.path.join(temp_dir, filename)
 
                 with open(temp_path, 'wb') as f:
-                    f.write(contents)
+                    f.write(content)
 
                 temp_files.append(temp_path)
 

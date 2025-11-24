@@ -176,7 +176,7 @@ async def _process_distribution_task(
                 total_rows=total_rows,
                 file_size_bytes=len(zip_bytes),
                 processing_time_seconds=0,  # Could track this if needed
-                processing_metadata={"mode": mode, "file_count": len(files)}
+                processing_metadata={"mode": mode, "file_count": len(file_contents)}
             )
 
             await ProcessedFileRepository.update_status(

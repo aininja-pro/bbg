@@ -11,6 +11,7 @@ class TradeNetMemberBase(BaseModel):
     bbg_member_id: Optional[str] = Field(None, max_length=100)
     member_name: str = Field(..., max_length=255)
     territory_manager: Optional[str] = Field(None, max_length=255)
+    member_status: Optional[str] = Field(None, max_length=50)
 
 
 class TradeNetMemberCreate(TradeNetMemberBase):
@@ -24,6 +25,7 @@ class TradeNetMemberUpdate(BaseModel):
     bbg_member_id: Optional[str] = Field(None, max_length=100)
     member_name: Optional[str] = Field(None, max_length=255)
     territory_manager: Optional[str] = Field(None, max_length=255)
+    member_status: Optional[str] = Field(None, max_length=50)
 
 
 class TradeNetMemberResponse(TradeNetMemberBase):

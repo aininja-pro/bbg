@@ -13,6 +13,7 @@ export function DistributionPage() {
   const [downloadReady, setDownloadReady] = useState(false)
   const [statusInfo, setStatusInfo] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(Date.now())
+  const [isDragging, setIsDragging] = useState(false)
   const pollingIntervalRef = useRef(null)
 
   const handleFilesSelect = (selectedFiles) => {
@@ -22,6 +23,36 @@ export function DistributionPage() {
     setDownloadReady(false)
     setJobId(null)
     setStatusInfo(null)
+  }
+
+  const handleDragEnter = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(file => file.name.endsWith('.csv'))
+    if (droppedFiles.length > 0) {
+      handleFilesSelect(droppedFiles)
+    } else {
+      setError('Please drop CSV files only')
+    }
   }
 
   const checkStatus = async (currentJobId) => {
@@ -213,8 +244,16 @@ export function DistributionPage() {
       <Card>
         <CardContent className="pt-4 pb-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-2">Upload CSV Files</h3>
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#178dc3] transition-colors cursor-pointer"
-            onClick={() => document.getElementById('csv-file-input').click()}>
+          <div
+            className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
+              isDragging ? 'border-[#178dc3] bg-blue-50' : 'border-gray-300 hover:border-[#178dc3]'
+            }`}
+            onClick={() => document.getElementById('csv-file-input').click()}
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <input
               key={fileInputKey}
               id="csv-file-input"
@@ -229,7 +268,9 @@ export function DistributionPage() {
             <svg className="w-8 h-8 mx-auto text-[#178dc3] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="text-xs text-gray-700 mt-1">Click to upload CSV files</p>
+            <p className="text-xs text-gray-700 mt-1 font-medium">
+              {isDragging ? 'Drop CSV files here' : 'Click to upload CSV files'}
+            </p>
             <p className="text-xs text-gray-500">or drag and drop (multiple files supported)</p>
           </div>
           {files.length > 0 && (

@@ -300,11 +300,15 @@ async def bulk_upload_members(
                 # Get Territory Manager from CSV (column 10)
                 territory_manager = row.get('Territory Manager', '').strip() or None
 
+                # Get Member Status from CSV (column 7)
+                member_status = row.get('Member Status', '').strip() or None
+
                 member_data = TradeNetMemberCreate(
                     tradenet_company_id=row.get('TradeNet Company ID', '').strip(),
                     bbg_member_id=row.get('Buying Group ID', '').strip() or None,
                     member_name=member_name,
                     territory_manager=territory_manager,
+                    member_status=member_status,
                 )
                 members.append(member_data)
             except Exception as e:

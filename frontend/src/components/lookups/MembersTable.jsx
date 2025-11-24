@@ -17,7 +17,8 @@ export function MembersTable() {
     tradenet_company_id: '',
     bbg_member_id: '',
     member_name: '',
-    territory_manager: ''
+    territory_manager: '',
+    member_status: ''
   })
 
   useEffect(() => {
@@ -103,7 +104,8 @@ export function MembersTable() {
       tradenet_company_id: member.tradenet_company_id,
       bbg_member_id: member.bbg_member_id || '',
       member_name: member.member_name,
-      territory_manager: member.territory_manager || ''
+      territory_manager: member.territory_manager || '',
+      member_status: member.member_status || ''
     })
   }
 
@@ -113,7 +115,8 @@ export function MembersTable() {
       tradenet_company_id: '',
       bbg_member_id: '',
       member_name: '',
-      territory_manager: ''
+      territory_manager: '',
+      member_status: ''
     })
   }
 
@@ -286,13 +289,24 @@ export function MembersTable() {
                       )}
                     </div>
                   </th>
+                  <th
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('member_status')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Status</span>
+                      {sortColumn === 'member_status' && (
+                        <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedMembers.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
                       {searchTerm ? 'No members found matching your search' : 'No members found. Upload a CSV file to get started.'}
                     </td>
                   </tr>
@@ -303,6 +317,7 @@ export function MembersTable() {
                       <td className="px-4 py-3 text-sm text-gray-900">{member.bbg_member_id || '-'}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{member.member_name}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{member.territory_manager || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{member.member_status || '-'}</td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center space-x-2">
                           <button
@@ -380,6 +395,17 @@ export function MembersTable() {
                   value={formData.territory_manager}
                   onChange={(e) => setFormData({ ...formData, territory_manager: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178dc3] focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <input
+                  type="text"
+                  value={formData.member_status}
+                  onChange={(e) => setFormData({ ...formData, member_status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178dc3] focus:border-transparent"
+                  placeholder="e.g., Tier 1, Tier 2"
                 />
               </div>
             </div>

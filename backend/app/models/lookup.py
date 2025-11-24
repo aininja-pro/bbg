@@ -14,6 +14,7 @@ class TradeNetMember(Base):
     bbg_member_id = Column(String(100), nullable=True, index=True)  # Can be empty in CSV
     member_name = Column(String(255), nullable=False, index=True)  # Used by data_enricher.py
     territory_manager = Column(String(255), nullable=True, index=True)  # Territory Manager name
+    member_status = Column(String(50), nullable=True)  # Member Status (Tier 1, Tier 2, etc.)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):

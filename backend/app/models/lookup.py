@@ -15,6 +15,7 @@ class TradeNetMember(Base):
     member_name = Column(String(255), nullable=False, index=True)  # Used by data_enricher.py
     territory_manager = Column(String(255), nullable=True, index=True)  # Territory Manager name
     member_status = Column(String(50), nullable=True)  # Member Status (Tier 1, Tier 2, etc.)
+    active_flag = Column(Integer, nullable=True)  # Company Active Flag: 0 or 1
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):

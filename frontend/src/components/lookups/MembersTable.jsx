@@ -18,7 +18,8 @@ export function MembersTable() {
     bbg_member_id: '',
     member_name: '',
     territory_manager: '',
-    member_status: ''
+    member_status: '',
+    active_flag: 1
   })
 
   useEffect(() => {
@@ -105,7 +106,8 @@ export function MembersTable() {
       bbg_member_id: member.bbg_member_id || '',
       member_name: member.member_name,
       territory_manager: member.territory_manager || '',
-      member_status: member.member_status || ''
+      member_status: member.member_status || '',
+      active_flag: member.active_flag !== null ? member.active_flag : 1
     })
   }
 
@@ -116,7 +118,8 @@ export function MembersTable() {
       bbg_member_id: '',
       member_name: '',
       territory_manager: '',
-      member_status: ''
+      member_status: '',
+      active_flag: 1
     })
   }
 
@@ -300,13 +303,24 @@ export function MembersTable() {
                       )}
                     </div>
                   </th>
+                  <th
+                    className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort('active_flag')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Active</span>
+                      {sortColumn === 'active_flag' && (
+                        <span>{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                      )}
+                    </div>
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {sortedMembers.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan="7" className="px-4 py-8 text-center text-gray-500">
                       {searchTerm ? 'No members found matching your search' : 'No members found. Upload a CSV file to get started.'}
                     </td>
                   </tr>
@@ -315,9 +329,18 @@ export function MembersTable() {
                     <tr key={member.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm text-gray-900">{member.tradenet_company_id}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{member.bbg_member_id || '-'}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{member.member_name}</td>
+                      <td className="px-3 py-3 text-sm font-medium text-gray-900">{member.member_name}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{member.territory_manager || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{member.member_status || '-'}</td>
+                      <td className="px-3 py-3 text-sm text-center">
+                        {member.active_flag === 1 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Yes</span>
+                        ) : member.active_flag === 0 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">No</span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="flex items-center space-x-2">
                           <button
@@ -407,6 +430,18 @@ export function MembersTable() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178dc3] focus:border-transparent"
                   placeholder="e.g., Tier 1, Tier 2"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Active</label>
+                <select
+                  value={formData.active_flag}
+                  onChange={(e) => setFormData({ ...formData, active_flag: parseInt(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#178dc3] focus:border-transparent"
+                >
+                  <option value="1">Yes (1)</option>
+                  <option value="0">No (0)</option>
+                </select>
               </div>
             </div>
 

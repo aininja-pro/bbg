@@ -12,28 +12,16 @@ export function DistributionPage() {
   const [error, setError] = useState(null)
   const [downloadReady, setDownloadReady] = useState(false)
   const [statusInfo, setStatusInfo] = useState(null)
+  const [fileInputKey, setFileInputKey] = useState(Date.now())
   const pollingIntervalRef = useRef(null)
 
   const handleFilesSelect = (selectedFiles) => {
     console.log('handleFilesSelect called with', selectedFiles.length, 'files')
-
-    // Only reset state if files actually changed
-    setFiles(prev => {
-      // Check if files array is actually different
-      const filesChanged = JSON.stringify(prev.map(f => f.name)) !== JSON.stringify(selectedFiles.map(f => f.name))
-
-      if (filesChanged) {
-        console.log('Files changed - resetting state')
-        setError(null)
-        setDownloadReady(false)
-        setJobId(null)
-        setStatusInfo(null)
-      } else {
-        console.log('Files unchanged - keeping state')
-      }
-
-      return selectedFiles
-    })
+    setFiles(selectedFiles)
+    setError(null)
+    setDownloadReady(false)
+    setJobId(null)
+    setStatusInfo(null)
   }
 
   const checkStatus = async (currentJobId) => {
@@ -162,6 +150,7 @@ export function DistributionPage() {
     setError(null)
     setDownloadReady(false)
     setStatusInfo(null)
+    setFileInputKey(Date.now()) // Reset file input
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current)
       pollingIntervalRef.current = null
@@ -227,11 +216,14 @@ export function DistributionPage() {
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-[#178dc3] transition-colors cursor-pointer"
             onClick={() => document.getElementById('csv-file-input').click()}>
             <input
+              key={fileInputKey}
               id="csv-file-input"
               type="file"
               accept=".csv"
               multiple
-              onChange={(e) => handleFilesSelect(Array.from(e.target.files))}
+              onChange={(e) => {
+                handleFilesSelect(Array.from(e.target.files))
+              }}
               className="hidden"
             />
             <svg className="w-8 h-8 mx-auto text-[#178dc3] opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,7 +239,14 @@ export function DistributionPage() {
                 {files.map((file, idx) => (
                   <div key={idx} className="text-xs text-gray-500 flex items-center justify-between bg-gray-50 p-1.5 rounded">
                     <span className="truncate">{file.name}</span>
-                    <button onClick={() => handleFilesSelect(files.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 ml-2 font-bold">×</button>
+                    <button onClick={(e) => {
+                      e.stopPropagation()
+                      const newFiles = files.filter((_, i) => i !== idx)
+                      handleFilesSelect(newFiles)
+                      if (newFiles.length === 0) {
+                        setFileInputKey(Date.now())
+                      }
+                    }} className="text-red-500 hover:text-red-700 ml-2 font-bold">×</button>
                   </div>
                 ))}
               </div>
@@ -270,18 +269,40 @@ export function DistributionPage() {
         </Button>
       )}
 
-      {/* Processing Status - Compact */}
+      {/* Processing Status - Compact with Real Progress Bar */}
       {isProcessing && (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="pt-4 pb-4">
-            <div className="flex items-center space-x-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-blue-900">Processing Reports...</h3>
-                <p className="text-xs text-blue-700">{mode === 'mode1' ? 'Supplier reports' : 'TM reports'}</p>
-                {statusInfo && statusInfo.total_rows > 0 && (
-                  <p className="text-xs text-blue-600 mt-1">{statusInfo.total_rows?.toLocaleString()} rows</p>
-                )}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-blue-900">Processing Reports...</h3>
+                  <p className="text-xs text-blue-700">{mode === 'mode1' ? 'Generating supplier reports' : 'Generating TM reports'}</p>
+                  {statusInfo && statusInfo.total_rows > 0 && (
+                    <p className="text-xs text-blue-600 mt-1">{statusInfo.total_rows?.toLocaleString()} rows</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Real Progress Bar */}
+              <div className="space-y-1">
+                <div className="w-full bg-blue-200 rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="h-full bg-[#178dc3] rounded-full transition-all duration-300 ease-out"
+                    style={{
+                      width: `${statusInfo?.metadata?.progress || 0}%`
+                    }}>
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-blue-700">
+                    {statusInfo?.metadata?.progress_message || 'Starting...'}
+                  </span>
+                  <span className="text-blue-600 font-medium">
+                    {statusInfo?.metadata?.progress || 0}%
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>

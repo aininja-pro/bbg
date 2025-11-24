@@ -36,27 +36,43 @@ class ReportGenerator:
     @staticmethod
     def format_worksheet(ws):
         """
-        Format worksheet with bold headers and auto-sized columns.
+        Format worksheet with bold headers, auto-sized columns, frozen header, and convert text numbers to real numbers.
 
         Args:
             ws: openpyxl Worksheet object
         """
+        # Freeze the header row (row 1)
+        ws.freeze_panes = 'A2'
+
         # Make header row bold and centered
         for cell in ws[1]:
             cell.font = Font(bold=True, size=11)
             cell.alignment = Alignment(horizontal='center', vertical='center')
 
-        # Auto-size columns based on content
+        # Auto-size columns and convert numeric strings to numbers
         for column in ws.columns:
             max_length = 0
             column_letter = column[0].column_letter
 
-            for cell in column:
+            for idx, cell in enumerate(column):
                 try:
                     if cell.value:
                         cell_length = len(str(cell.value))
                         if cell_length > max_length:
                             max_length = cell_length
+
+                        # Convert numeric strings to actual numbers (skip header)
+                        if idx > 0 and isinstance(cell.value, str):
+                            # Try to convert to number to avoid Excel green warning flags
+                            try:
+                                # Try integer first
+                                if '.' not in cell.value:
+                                    cell.value = int(cell.value)
+                                else:
+                                    cell.value = float(cell.value)
+                            except (ValueError, AttributeError):
+                                # Keep as string if conversion fails
+                                pass
                 except:
                     pass
 
@@ -236,11 +252,19 @@ class ReportGenerator:
         # Filter to relevant columns
         df_filtered = df[MODE1_COLUMNS].copy() if all(col in df.columns for col in MODE1_COLUMNS) else df
 
-        # Sort by product_id, member_name
-        if 'product_id' in df_filtered.columns and 'member_name' in df_filtered.columns:
-            df_filtered = df_filtered.sort_values(['product_id', 'member_name'])
-        elif 'product_id' in df_filtered.columns:
-            df_filtered = df_filtered.sort_values(['product_id'])
+        # Sort by member_name, state, city, zip_postal
+        sort_columns = []
+        if 'member_name' in df_filtered.columns:
+            sort_columns.append('member_name')
+        if 'state' in df_filtered.columns:
+            sort_columns.append('state')
+        if 'city' in df_filtered.columns:
+            sort_columns.append('city')
+        if 'zip_postal' in df_filtered.columns:
+            sort_columns.append('zip_postal')
+
+        if sort_columns:
+            df_filtered = df_filtered.sort_values(sort_columns)
 
         # Sheet 1: "AllData" with all rows (add 2 empty columns)
         ws_all = wb.create_sheet("AllData")
@@ -260,7 +284,10 @@ class ReportGenerator:
         if 'product_id' in df_filtered.columns:
             product_ids = df_filtered['product_id'].unique()
 
-            for product_id in product_ids:
+            # Sort product IDs in ascending order for tab creation
+            product_ids_sorted = sorted([str(pid) for pid in product_ids if not pd.isna(pid) and pid != ''])
+
+            for product_id in product_ids_sorted:
                 if pd.isna(product_id) or product_id == '':
                     continue
 
@@ -317,11 +344,19 @@ class ReportGenerator:
         # Filter to relevant columns
         df_filtered = df[MODE2_COLUMNS].copy() if all(col in df.columns for col in MODE2_COLUMNS) else df
 
-        # Sort by product_id, closing_date (same as Mode 1)
-        if 'product_id' in df_filtered.columns:
-            df_filtered = df_filtered.sort_values(['product_id', 'closing_date'])
-        elif 'supplier_name' in df_filtered.columns:
-            df_filtered = df_filtered.sort_values(['supplier_name', 'closing_date'])
+        # Sort by member_name, state, city, zip_postal (same as Mode 1)
+        sort_columns = []
+        if 'member_name' in df_filtered.columns:
+            sort_columns.append('member_name')
+        if 'state' in df_filtered.columns:
+            sort_columns.append('state')
+        if 'city' in df_filtered.columns:
+            sort_columns.append('city')
+        if 'zip_postal' in df_filtered.columns:
+            sort_columns.append('zip_postal')
+
+        if sort_columns:
+            df_filtered = df_filtered.sort_values(sort_columns)
 
         # Sheet 1: "All Data" with all rows
         ws_all = wb.create_sheet("All Data")
@@ -336,7 +371,10 @@ class ReportGenerator:
         if 'supplier_name' in df_filtered.columns:
             supplier_names = df_filtered['supplier_name'].unique()
 
-            for supplier_name in supplier_names:
+            # Sort supplier names alphabetically (A-Z)
+            supplier_names_sorted = sorted([str(name) for name in supplier_names if not pd.isna(name) and name != ''])
+
+            for supplier_name in supplier_names_sorted:
                 if pd.isna(supplier_name) or supplier_name == '':
                     continue
 
@@ -375,7 +413,8 @@ class ReportGenerator:
     async def create_distribution_zip(
         mode: str,
         df: pd.DataFrame,
-        db: Optional[AsyncSession] = None
+        db: Optional[AsyncSession] = None,
+        progress_callback = None
     ) -> bytes:
         """
         Create a ZIP file containing all Excel files for the selected mode.
@@ -398,6 +437,8 @@ class ReportGenerator:
                     raise ValueError("DataFrame must have 'supplier_name' column for Mode 1")
 
                 supplier_names = df['supplier_name'].unique()
+                total_suppliers = len(supplier_names)
+                processed_count = 0
 
                 for supplier_name in supplier_names:
                     if pd.isna(supplier_name) or supplier_name == '':
@@ -412,6 +453,12 @@ class ReportGenerator:
                     # Add to ZIP with sanitized filename
                     filename = f"{ReportGenerator.sanitize_filename(str(supplier_name))}.xlsx"
                     zip_file.writestr(filename, excel_bytes)
+
+                    # Update progress
+                    processed_count += 1
+                    if progress_callback:
+                        progress_pct = int((processed_count / total_suppliers) * 100)
+                        await progress_callback(progress_pct, f"{processed_count} of {total_suppliers} suppliers")
 
                     # Clean up
                     del supplier_df, excel_bytes
@@ -429,6 +476,8 @@ class ReportGenerator:
                     raise ValueError("DataFrame must have 'tm' column for Mode 2")
 
                 tm_names = df_enriched['tm'].unique()
+                total_tms = len(tm_names)
+                processed_count = 0
 
                 for tm_name in tm_names:
                     if pd.isna(tm_name) or tm_name == '':
@@ -443,6 +492,12 @@ class ReportGenerator:
                     # Add to ZIP with sanitized filename
                     filename = f"TM_{ReportGenerator.sanitize_filename(str(tm_name))}.xlsx"
                     zip_file.writestr(filename, excel_bytes)
+
+                    # Update progress
+                    processed_count += 1
+                    if progress_callback:
+                        progress_pct = int((processed_count / total_tms) * 100)
+                        await progress_callback(progress_pct, f"{processed_count} of {total_tms} TMs")
 
                     # Clean up
                     del tm_df, excel_bytes

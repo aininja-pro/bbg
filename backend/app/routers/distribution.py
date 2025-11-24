@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database import get_db
+from app.database import get_db, AsyncSessionLocal
 from app.models.processed_file import ProcessedFile
 from app.services.report_generator import ReportGenerator
 from app.repositories.processed_file import ProcessedFileRepository
@@ -69,9 +69,9 @@ async def process_distribution(
 
     await ProcessedFileRepository.create(db, file_data)
 
-    # Process files in background
+    # Process files in background - create new DB session for background task
     asyncio.create_task(
-        _process_distribution_task(job_id, files, mode, db)
+        _process_distribution_task(job_id, files, mode)
     )
 
     return {
@@ -84,8 +84,7 @@ async def process_distribution(
 async def _process_distribution_task(
     job_id: str,
     files: List[UploadFile],
-    mode: str,
-    db: AsyncSession
+    mode: str
 ):
     """
     Background task to process distribution reports.
@@ -94,79 +93,105 @@ async def _process_distribution_task(
         job_id: Job ID for tracking
         files: List of uploaded CSV files
         mode: "mode1" or "mode2"
-        db: Database session
     """
     temp_files = []
 
-    try:
-        # Save uploaded files to temporary directory
-        temp_dir = tempfile.mkdtemp()
+    # Create new database session for background task
+    async with AsyncSessionLocal() as db:
+        try:
+            # Save uploaded files to temporary directory
+            temp_dir = tempfile.mkdtemp()
 
-        for file in files:
-            temp_path = os.path.join(temp_dir, file.filename)
-            contents = await file.read()
+            for file in files:
+                temp_path = os.path.join(temp_dir, file.filename)
+                contents = await file.read()
 
-            with open(temp_path, 'wb') as f:
-                f.write(contents)
+                with open(temp_path, 'wb') as f:
+                    f.write(contents)
 
-            temp_files.append(temp_path)
+                temp_files.append(temp_path)
 
-        # Merge CSV files
-        merged_df = await ReportGenerator.merge_csv_files(temp_files)
+            # Merge CSV files
+            merged_df = await ReportGenerator.merge_csv_files(temp_files)
 
-        total_rows = len(merged_df)
+            total_rows = len(merged_df)
 
-        # Generate distribution ZIP
-        zip_bytes = await ReportGenerator.create_distribution_zip(
-            mode=mode,
-            df=merged_df,
-            db=db if mode == "mode2" else None
-        )
+            # Progress callback to update database
+            async def update_progress(percentage: int, message: str):
+                await ProcessedFileRepository.update_status(
+                    db=db,
+                    job_id=job_id,
+                    status="processing",
+                    error_message=None
+                )
+                # Update metadata with progress
+                processed_file = await ProcessedFileRepository.get_by_job_id(db, job_id)
+                if processed_file:
+                    metadata = processed_file.processing_metadata or {}
+                    metadata['progress'] = percentage
+                    metadata['progress_message'] = message
+                    # Quick update (without full update_processed_data call)
+                    from sqlalchemy import update
+                    from app.models.processed_file import ProcessedFile as ProcessedFileModel
+                    await db.execute(
+                        update(ProcessedFileModel)
+                        .where(ProcessedFileModel.job_id == job_id)
+                        .values(processing_metadata=metadata)
+                    )
+                    await db.commit()
 
-        # Encode ZIP as base64 for storage
-        zip_base64 = base64.b64encode(zip_bytes).decode('utf-8')
+            # Generate distribution ZIP with progress tracking
+            zip_bytes = await ReportGenerator.create_distribution_zip(
+                mode=mode,
+                df=merged_df,
+                db=db if mode == "mode2" else None,
+                progress_callback=update_progress
+            )
 
-        # Update processed file record with results
-        await ProcessedFileRepository.update_processed_data(
-            db=db,
-            job_id=job_id,
-            processed_data=zip_base64,
-            total_rows=total_rows,
-            file_size_bytes=len(zip_bytes),
-            processing_time_seconds=0,  # Could track this if needed
-            processing_metadata={"mode": mode, "file_count": len(files)}
-        )
+            # Encode ZIP as base64 for storage
+            zip_base64 = base64.b64encode(zip_bytes).decode('utf-8')
 
-        await ProcessedFileRepository.update_status(
-            db=db,
-            job_id=job_id,
-            status="completed"
-        )
+            # Update processed file record with results
+            await ProcessedFileRepository.update_processed_data(
+                db=db,
+                job_id=job_id,
+                processed_data=zip_base64,
+                total_rows=total_rows,
+                file_size_bytes=len(zip_bytes),
+                processing_time_seconds=0,  # Could track this if needed
+                processing_metadata={"mode": mode, "file_count": len(files)}
+            )
 
-    except Exception as e:
-        # Update status to failed
-        error_message = str(e)
-        await ProcessedFileRepository.update_status(
-            db=db,
-            job_id=job_id,
-            status="failed",
-            error_message=error_message
-        )
+            await ProcessedFileRepository.update_status(
+                db=db,
+                job_id=job_id,
+                status="completed"
+            )
 
-    finally:
-        # Clean up temporary files
-        for temp_file in temp_files:
+        except Exception as e:
+            # Update status to failed
+            error_message = str(e)
+            await ProcessedFileRepository.update_status(
+                db=db,
+                job_id=job_id,
+                status="failed",
+                error_message=error_message
+            )
+
+        finally:
+            # Clean up temporary files
+            for temp_file in temp_files:
+                try:
+                    os.remove(temp_file)
+                except:
+                    pass
+
+            # Clean up temp directory
             try:
-                os.remove(temp_file)
+                if 'temp_dir' in locals():
+                    os.rmdir(temp_dir)
             except:
                 pass
-
-        # Clean up temp directory
-        try:
-            if 'temp_dir' in locals():
-                os.rmdir(temp_dir)
-        except:
-            pass
 
 
 @router.get("/status/{job_id}")

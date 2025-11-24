@@ -99,23 +99,6 @@ async def _process_distribution_task(
     # Create new database session for background task
     async with AsyncSessionLocal() as db:
         try:
-            # Save uploaded files to temporary directory
-            temp_dir = tempfile.mkdtemp()
-
-            for file in files:
-                temp_path = os.path.join(temp_dir, file.filename)
-                contents = await file.read()
-
-                with open(temp_path, 'wb') as f:
-                    f.write(contents)
-
-                temp_files.append(temp_path)
-
-            # Merge CSV files
-            merged_df = await ReportGenerator.merge_csv_files(temp_files)
-
-            total_rows = len(merged_df)
-
             # Progress callback to update database
             async def update_progress(percentage: int, message: str):
                 await ProcessedFileRepository.update_status(
@@ -140,12 +123,41 @@ async def _process_distribution_task(
                     )
                     await db.commit()
 
-            # Generate distribution ZIP with progress tracking
+            # Update: 0% - Saving files
+            await update_progress(0, "Saving uploaded files...")
+
+            # Save uploaded files to temporary directory
+            temp_dir = tempfile.mkdtemp()
+
+            for file in files:
+                temp_path = os.path.join(temp_dir, file.filename)
+                contents = await file.read()
+
+                with open(temp_path, 'wb') as f:
+                    f.write(contents)
+
+                temp_files.append(temp_path)
+
+            # Update: 5% - Merging CSVs
+            await update_progress(5, "Merging CSV files...")
+
+            # Merge CSV files
+            merged_df = await ReportGenerator.merge_csv_files(temp_files)
+
+            total_rows = len(merged_df)
+
+            # Update: 10% - Analyzing data
+            await update_progress(10, f"Analyzing data... ({total_rows:,} rows)")
+
+            # Update: 15% - Starting generation
+            await update_progress(15, "Starting report generation...")
+
+            # Generate distribution ZIP with progress tracking (15-100%)
             zip_bytes = await ReportGenerator.create_distribution_zip(
                 mode=mode,
                 df=merged_df,
                 db=db if mode == "mode2" else None,
-                progress_callback=update_progress
+                progress_callback=lambda pct, msg: update_progress(15 + int(pct * 0.85), msg)
             )
 
             # Encode ZIP as base64 for storage

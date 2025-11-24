@@ -14,6 +14,7 @@ export function DistributionPage() {
   const [statusInfo, setStatusInfo] = useState(null)
   const [fileInputKey, setFileInputKey] = useState(Date.now())
   const [isDragging, setIsDragging] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const pollingIntervalRef = useRef(null)
 
   const handleFilesSelect = (selectedFiles) => {
@@ -150,6 +151,8 @@ export function DistributionPage() {
   const handleDownload = async () => {
     if (!jobId) return
 
+    setIsDownloading(true)
+
     try {
       console.log('Downloading file for job:', jobId)
       const blob = await api.downloadByJobId(jobId)
@@ -165,12 +168,14 @@ export function DistributionPage() {
       setTimeout(() => {
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
+        setIsDownloading(false)
       }, 100)
 
       console.log('Download triggered successfully')
     } catch (err) {
       console.error('Download error:', err)
       setError(err.message || 'Failed to download file')
+      setIsDownloading(false)
     }
   }
 
@@ -367,11 +372,24 @@ export function DistributionPage() {
                   </p>
                 )}
                 <div className="mt-3 flex space-x-2">
-                  <Button onClick={handleDownload} className="bg-green-600 hover:bg-green-700 text-sm py-2">
-                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download ZIP
+                  <Button
+                    onClick={handleDownload}
+                    disabled={isDownloading}
+                    className="bg-green-600 hover:bg-green-700 text-sm py-2"
+                  >
+                    {isDownloading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download ZIP
+                      </>
+                    )}
                   </Button>
                   <Button onClick={handleReset} variant="outline" className="text-sm py-2">
                     Reset

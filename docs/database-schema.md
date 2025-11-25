@@ -22,14 +22,23 @@ TradeNet Members directory
 | tradenet_company_id | VARCHAR(100) | NOT NULL, INDEXED | TradeNet company ID |
 | bbg_member_id | VARCHAR(100) | INDEXED | BBG member ID (can be empty) |
 | member_name | VARCHAR(255) | NOT NULL, INDEXED | Company name |
+| territory_manager | VARCHAR(255) | INDEXED | Territory Manager name (Phase 2) |
+| member_status | VARCHAR(50) | NULL | Member tier (Tier 1, Tier 2, etc.) |
+| active_flag | INTEGER | NULL | Active status: 1=Yes, 0=No |
 | last_updated | DATETIME | DEFAULT NOW | Last update timestamp |
 
 **Indexes:**
 - `ix_lookup_members_tradenet_company_id`
 - `ix_lookup_members_bbg_member_id`
 - `ix_lookup_members_member_name`
+- `ix_lookup_members_territory_manager`
 
 **Typical Row Count:** ~911 members
+
+**Phase 2 Fields:**
+- `territory_manager`: Used for Mode 2 distribution (TM Reports)
+- `member_status`: Member tier classification
+- `active_flag`: Company active status from CSV
 
 ---
 

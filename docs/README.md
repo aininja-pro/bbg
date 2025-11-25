@@ -2,7 +2,10 @@
 
 ## Overview
 
-The BBG Rebate Processing Tool is an internal automation system designed to transform quarterly rebate Excel files into TradeNet-ready CSV files.
+The BBG Rebate Processing Tool is a two-phase internal automation system:
+
+**Phase 1 - Import Converter**: Transform quarterly rebate Excel files into TradeNet-ready CSV files
+**Phase 2 - Export Converter**: Split merged CSV data into distributable Excel reports by supplier or territory manager
 
 ## What It Does
 
@@ -83,23 +86,37 @@ The tool generates CSV files with exactly 15 columns matching TradeNet's import 
 
 ## Documentation
 
+### Phase 1 - Import Converter
 - [Getting Started Guide](getting-started.md) - First-time setup and access
 - [User Guide](user-guide.md) - Complete instructions for processing files
 - [Lookup Management](lookup-management.md) - Managing member and supplier directories
 - [Rules Engine](rules-engine.md) - Creating and managing business rules
+
+### Phase 2 - Export Converter
+- [Export Converter Guide](export-converter.md) - Generate supplier and TM distribution reports
+
+### General
 - [Troubleshooting](troubleshooting.md) - Common issues and solutions
 - [FAQ](faq.md) - Frequently asked questions
 
 ## Quick Start
 
-1. Open the tool in your web browser (URL provided by IT)
-2. Click or drag an Excel file to upload
+### Phase 1 - Import Converter (Process Rebates)
+1. Open the tool and go to **Import Converter** tab
+2. Click or drag Excel rebate file(s) to upload
 3. Click **Process & Preview** to see the results
 4. Review the preview data
-5. Click **Download CSV** to get your file
-6. Import the CSV into TradeNet
+5. Click **Download CSV** to get your merged file
 
-That's it! For detailed instructions, see the [User Guide](user-guide.md).
+### Phase 2 - Export Converter (Generate Reports)
+1. Go to **Export Converter → Reports** tab
+2. Upload the merged CSV from Phase 1
+3. Select **Supplier Reports** or **Territory Manager Reports**
+4. Click **Generate Reports** and watch progress
+5. Click **Download ZIP** when ready
+6. Extract and distribute Excel files
+
+For detailed instructions, see the [User Guide](user-guide.md) and [Export Converter Guide](export-converter.md).
 
 ## Support
 

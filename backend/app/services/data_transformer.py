@@ -296,6 +296,7 @@ class DataTransformer:
             'city': 'city',
             'state': 'state',
             'zip': 'zip_postal',
+            'zipcode': 'zip_postal',
             'postal': 'zip_postal',
             'zip code': 'zip_postal',
             'postal code': 'zip_postal',

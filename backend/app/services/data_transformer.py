@@ -4,6 +4,7 @@ from datetime import datetime
 import pandas as pd
 from openpyxl.worksheet.worksheet import Worksheet
 
+from openpyxl.utils import get_column_letter
 from app.utils.exceptions import TransformationError
 
 
@@ -39,6 +40,7 @@ class DataTransformer:
     def __init__(self):
         """Initialize the data transformer."""
         self.df: Optional[pd.DataFrame] = None
+        self.warnings: List[Dict[str, Any]] = []
 
     def extract_data_from_sheet(
         self,
@@ -65,6 +67,28 @@ class DataTransformer:
         # Extract headers
         for cell in sheet[header_row]:
             headers.append(cell.value if cell.value else f"Column_{cell.column}")
+
+        # Infer names for blank headers and record warnings
+        for i, header in enumerate(headers):
+            if header and str(header).startswith('Column_'):
+                col_num = int(str(header).split('_')[1])
+                col_letter = get_column_letter(col_num)
+                inferred_name = None
+
+                # Infer "Address" if positioned between job code and city
+                prev = str(headers[i - 1]).lower().strip() if i > 0 and headers[i - 1] else ''
+                nxt = str(headers[i + 1]).lower().strip() if i < len(headers) - 1 and headers[i + 1] else ''
+                if any(k in prev for k in ['job code', 'job name', 'jobcode']) and 'city' in nxt:
+                    inferred_name = 'Address'
+                    headers[i] = inferred_name
+
+                inferred_suffix = f" — inferred as '{inferred_name}'" if inferred_name else " — could not infer name"
+                self.warnings.append({
+                    'type': 'blank_column_header',
+                    'column_position': col_num,
+                    'inferred_name': inferred_name,
+                    'message': f"Column {col_letter} has a blank header{inferred_suffix}"
+                })
 
         # Extract data rows (starting after header)
         for row in sheet.iter_rows(min_row=header_row + 1, values_only=True):

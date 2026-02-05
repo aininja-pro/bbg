@@ -71,10 +71,14 @@ class ProcessingPipeline:
             # Step 8: Enrich with lookup tables (pass file-specific products)
             df = await self.enricher.enrich_all(df, file_products=file_products)
 
-            # Step 8: Identify warnings
-            self.warnings = self.enricher.identify_warnings(df)
+            # Merge transformer warnings (e.g. blank column headers) into pipeline
+            if self.transformer.warnings:
+                self.warnings.extend(self.transformer.warnings)
 
-            # Step 9: Select output columns based on column settings
+            # Step 9: Identify enrichment warnings
+            self.warnings.extend(self.enricher.identify_warnings(df))
+
+            # Step 10: Select output columns based on column settings
             # Get enabled columns from database
             column_settings = await ColumnSettingsRepository.get_all(self.db)
 

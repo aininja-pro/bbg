@@ -68,8 +68,9 @@ class DataTransformer:
         for cell in sheet[header_row]:
             headers.append(cell.value if cell.value else f"Column_{cell.column}")
 
-        # Infer names for blank headers and record warnings
-        for i, header in enumerate(headers):
+        # Infer names for blank headers in base columns (A–G only).
+        # Product columns beyond G are handled by active_products detection.
+        for i, header in enumerate(headers[:7]):
             if header and str(header).startswith('Column_'):
                 col_num = int(str(header).split('_')[1])
                 col_letter = get_column_letter(col_num)

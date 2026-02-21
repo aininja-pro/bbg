@@ -8,7 +8,7 @@ import { GenerateReportsPage } from './pages/GenerateReportsPage'
 import bbgLogo from './assets/bbg-logo.svg'
 
 function App() {
-  const [mainTab, setMainTab] = useState('processing')
+  const [mainTab, setMainTab] = useState('generate')
   const [processingSubTab, setProcessingSubTab] = useState('upload')
   const [reportsSubTab, setReportsSubTab] = useState('distribution')
 
@@ -36,6 +36,22 @@ function App() {
       <div className="bg-white border-b shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-12">
+            <button
+              onClick={() => setMainTab('generate')}
+              className={`
+                py-4 px-1 inline-flex items-center border-b-4 font-semibold text-base transition-colors
+                ${mainTab === 'generate'
+                  ? 'border-[#178dc3] text-[#178dc3]'
+                  : 'border-transparent text-gray-600 hover:text-gray-800 hover:border-gray-300'
+                }
+              `}
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Generate Usage Report
+            </button>
+
             <button
               onClick={() => setMainTab('processing')}
               className={`
@@ -72,6 +88,7 @@ function App() {
       </div>
 
       {/* Sub-Navigation Tabs */}
+      {(mainTab === 'processing' || mainTab === 'reports') && (
       <div className="bg-gray-50 border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {mainTab === 'processing' && (
@@ -161,22 +178,6 @@ function App() {
               </button>
 
               <button
-                onClick={() => setReportsSubTab('generate')}
-                className={`
-                  py-3 px-1 inline-flex items-center border-b-2 font-medium text-sm transition-colors
-                  ${reportsSubTab === 'generate'
-                    ? 'border-[#178dc3] text-[#178dc3]'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }
-                `}
-              >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Generate Reports
-              </button>
-
-              <button
                 onClick={() => setReportsSubTab('lookups')}
                 className={`
                   py-3 px-1 inline-flex items-center border-b-2 font-medium text-sm transition-colors
@@ -195,9 +196,13 @@ function App() {
           )}
         </div>
       </div>
+      )}
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        {/* Generate Usage Report */}
+        {mainTab === 'generate' && <GenerateReportsPage />}
+
         {/* Phase 1 - Processing Content */}
         {mainTab === 'processing' && processingSubTab === 'upload' && <UploadPage />}
         {mainTab === 'processing' && processingSubTab === 'rules' && <RulesManager />}
@@ -206,7 +211,6 @@ function App() {
 
         {/* Phase 2 - Reports Content */}
         {mainTab === 'reports' && reportsSubTab === 'distribution' && <DistributionPage />}
-        {mainTab === 'reports' && reportsSubTab === 'generate' && <GenerateReportsPage />}
         {mainTab === 'reports' && reportsSubTab === 'lookups' && <LookupTablesPage />}
       </main>
 

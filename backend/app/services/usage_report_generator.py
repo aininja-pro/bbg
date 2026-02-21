@@ -10,6 +10,7 @@ Adapted from generate_reports.py to run entirely in memory (no disk writes).
 """
 
 import io
+import re
 import zipfile
 from xml.sax.saxutils import escape
 
@@ -17,6 +18,7 @@ import openpyxl
 
 # The Usage-Reporting sheet is sheet2.xml in the ZIP
 SHEET_PATH = "xl/worksheets/sheet2.xml"
+WORKBOOK_PATH = "xl/workbook.xml"
 
 # Exact XML strings for the 3 cells in the template (verified by inspection)
 # B6: empty numeric cell  ->  replace with numeric value
@@ -67,6 +69,16 @@ def generate_single_report(template_bytes, member_id, builder_name, state):
                     xml_str = xml_str.replace(B6_TEMPLATE, make_b6_xml(member_id), 1)
                     xml_str = xml_str.replace(B7_TEMPLATE, make_b7_xml(safe_name), 1)
                     xml_str = xml_str.replace(C7_TEMPLATE, make_c7_xml(safe_state), 1)
+                    data = xml_str.encode("utf-8")
+                elif item.filename == WORKBOOK_PATH:
+                    xml_str = data.decode("utf-8")
+                    # Force full recalculation on open so formulas referencing B6 update
+                    xml_str = re.sub(
+                        r'<calcPr([^/]*)/>',
+                        r'<calcPr\1 fullCalcOnLoad="1"/>',
+                        xml_str,
+                        count=1,
+                    )
                     data = xml_str.encode("utf-8")
 
                 zout.writestr(item, data, compress_type=item.compress_type)

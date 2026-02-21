@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     # CORS - can be comma-separated string or list
-    ALLOWED_ORIGINS: Union[List[str], str] = "http://localhost:3000,http://localhost:5173,http://localhost:5174"
+    ALLOWED_ORIGINS: Union[List[str], str] = "http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5180"
 
     @field_validator('ALLOWED_ORIGINS', mode='before')
     @classmethod

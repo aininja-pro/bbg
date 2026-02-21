@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone'
 import { Button } from '../ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card'
 
-export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFilesSelect, acceptedFileTypes }) {
+export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFilesSelect, acceptedFileTypes, title, description, dropzoneText }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [selectedFiles, setSelectedFiles] = useState([])
 
@@ -92,12 +92,12 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader className="pb-4">
-        <CardTitle className="text-lg">Upload {isCSV ? '' : 'Rebate'} {batchMode ? 'Files' : 'File'}</CardTitle>
+        <CardTitle className="text-lg">{title || `Upload ${isCSV ? '' : 'Rebate'} ${batchMode ? 'Files' : 'File'}`}</CardTitle>
         <CardDescription className="text-xs">
-          {batchMode
+          {description || (batchMode
             ? `Drag and drop multiple ${fileTypeDescription} or click to browse`
             : `Drag and drop your ${isCSV ? 'CSV file' : 'quarterly rebate Excel file'} or click to browse`
-          }
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent key={batchMode ? 'batch-mode' : 'single-mode'}>
@@ -151,7 +151,7 @@ export function FileUpload({ onFileSelect, isProcessing, batchMode = false, onFi
             ) : (
               <div className="space-y-1.5">
                 <p className="text-base font-medium text-gray-700">
-                  {isDragActive ? 'Drop your files here' : batchMode ? 'Drag & drop files or click to browse' : 'Drag & drop your rebate file'}
+                  {isDragActive ? 'Drop your files here' : dropzoneText || (batchMode ? 'Drag & drop files or click to browse' : 'Drag & drop your rebate file')}
                 </p>
                 <p className="text-sm text-gray-500">
                   {batchMode && displayFiles.length > 0 ? 'Add more files by dragging or clicking' : 'or click to browse'}

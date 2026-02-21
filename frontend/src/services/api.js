@@ -168,6 +168,53 @@ export const api = {
     return await response.json();
   },
 
+  // USAGE REPORT GENERATION
+
+  /**
+   * Generate per-builder usage reports from a master list and template
+   * @param {File} masterList - Master Builder List (.xlsx)
+   * @param {File} template - Template file (.xlsm)
+   * @returns {Promise<{blob: Blob, filesGenerated: number, rowsSkipped: number, warnings: string[]}>}
+   */
+  async generateReports(masterList, template) {
+    const formData = new FormData();
+    formData.append('master_list', masterList);
+    formData.append('template', template);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/generate-reports`, {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ detail: 'Report generation failed' }));
+        throw new Error(error.detail || 'Failed to generate reports');
+      }
+
+      const blob = await response.blob();
+      const filesGenerated = parseInt(response.headers.get('X-Files-Generated') || '0', 10);
+      const rowsSkipped = parseInt(response.headers.get('X-Rows-Skipped') || '0', 10);
+      let warnings = [];
+      try {
+        const warningsHeader = response.headers.get('X-Warnings');
+        if (warningsHeader) {
+          warnings = JSON.parse(warningsHeader);
+        }
+      } catch {
+        // ignore parse errors
+      }
+
+      return { blob, filesGenerated, rowsSkipped, warnings };
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  },
+
   // DISTRIBUTION ENDPOINTS (PHASE 2)
 
   /**

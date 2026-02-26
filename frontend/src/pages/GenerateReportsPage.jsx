@@ -110,7 +110,7 @@ export function GenerateReportsPage() {
               <div>
                 <h3 className="text-lg font-medium text-blue-900">Generating Reports...</h3>
                 <p className="text-sm text-blue-700">
-                  This may take 30-60 seconds for large builder lists. Please don't close this tab.
+                  This may take a few minutes for large builder lists. Please don't close this tab.
                 </p>
               </div>
             </div>

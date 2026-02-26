@@ -161,7 +161,7 @@ def generate_all_reports(master_list_bytes, template_bytes):
     zip_buffer = io.BytesIO()
     files_generated = 0
 
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zout:
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_STORED) as zout:
         for builder in builders:
             try:
                 report_bytes = generate_single_report(

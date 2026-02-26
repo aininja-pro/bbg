@@ -1,8 +1,10 @@
 """API endpoint for generating per-builder Usage Report XLSM files."""
 
+import asyncio
 import io
 import json
 from datetime import datetime
+from functools import partial
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, status
 from fastapi.responses import StreamingResponse
@@ -40,7 +42,11 @@ async def generate_reports(
     template_bytes = await template.read()
 
     try:
-        result = generate_all_reports(master_list_bytes, template_bytes)
+        # Run in thread pool — this is CPU-bound and would block the event loop
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(
+            None, partial(generate_all_reports, master_list_bytes, template_bytes)
+        )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

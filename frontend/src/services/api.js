@@ -181,38 +181,30 @@ export const api = {
     formData.append('master_list', masterList);
     formData.append('template', template);
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 120000);
+    const response = await fetch(`${API_BASE_URL}/api/generate-reports`, {
+      method: 'POST',
+      body: formData,
+    });
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/generate-reports`, {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ detail: 'Report generation failed' }));
-        throw new Error(error.detail || 'Failed to generate reports');
-      }
-
-      const blob = await response.blob();
-      const filesGenerated = parseInt(response.headers.get('X-Files-Generated') || '0', 10);
-      const rowsSkipped = parseInt(response.headers.get('X-Rows-Skipped') || '0', 10);
-      let warnings = [];
-      try {
-        const warningsHeader = response.headers.get('X-Warnings');
-        if (warningsHeader) {
-          warnings = JSON.parse(warningsHeader);
-        }
-      } catch {
-        // ignore parse errors
-      }
-
-      return { blob, filesGenerated, rowsSkipped, warnings };
-    } finally {
-      clearTimeout(timeoutId);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Report generation failed' }));
+      throw new Error(error.detail || 'Failed to generate reports');
     }
+
+    const filesGenerated = parseInt(response.headers.get('X-Files-Generated') || '0', 10);
+    const rowsSkipped = parseInt(response.headers.get('X-Rows-Skipped') || '0', 10);
+    let warnings = [];
+    try {
+      const warningsHeader = response.headers.get('X-Warnings');
+      if (warningsHeader) {
+        warnings = JSON.parse(warningsHeader);
+      }
+    } catch {
+      // ignore parse errors
+    }
+
+    const blob = await response.blob();
+    return { blob, filesGenerated, rowsSkipped, warnings };
   },
 
   // DISTRIBUTION ENDPOINTS (PHASE 2)

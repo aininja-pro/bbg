@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import os
 import re
 import shutil
@@ -25,6 +26,8 @@ from typing import Callable
 from xml.sax.saxutils import escape
 
 import openpyxl
+
+logger = logging.getLogger(__name__)
 
 # The Usage-Reporting sheet is sheet2.xml in the ZIP
 SHEET_PATH = "xl/worksheets/sheet2.xml"
@@ -43,9 +46,10 @@ _CALC_PR_RE = re.compile(rb'<calcPr([^/]*)/>')
 
 def _get_default_batch_size() -> int:
     try:
-        return max(1, int(os.getenv("USAGE_REPORT_BATCH_SIZE", "50")))
+        return max(1, int(os.getenv("USAGE_REPORT_BATCH_SIZE", "20")))
     except ValueError:
-        return 50
+        logger.warning("Invalid USAGE_REPORT_BATCH_SIZE value %r; defaulting to 20", os.getenv("USAGE_REPORT_BATCH_SIZE"))
+        return 20
 
 
 DEFAULT_BATCH_SIZE = _get_default_batch_size()
@@ -207,6 +211,12 @@ def _run_batch_subprocess(
         stderr = (exc.stderr or "").strip()
         stdout = (exc.stdout or "").strip()
         message = stderr or stdout or f"batch exited with code {exc.returncode}"
+        logger.error(
+            "Usage report batch subprocess failed for builders %s-%s: %s",
+            start + 1,
+            end,
+            message,
+        )
         raise RuntimeError(message) from exc
 
     if not os.path.exists(result_path):
@@ -271,6 +281,13 @@ def generate_all_reports(
     os.makedirs(job_dir, exist_ok=True)
 
     builders, warnings = parse_master_list(master_list_path)
+    logger.info(
+        "Usage report job staging complete: builders=%s skipped_rows=%s batch_size=%s job_dir=%s",
+        len(builders),
+        len(warnings),
+        max(1, batch_size or DEFAULT_BATCH_SIZE),
+        job_dir,
+    )
     if not builders:
         return {
             "success": False,
@@ -286,6 +303,7 @@ def generate_all_reports(
     zip_path = os.path.join(job_dir, FINAL_ZIP_FILENAME)
     effective_batch_size = max(1, batch_size or DEFAULT_BATCH_SIZE)
     files_generated = 0
+    total_batches = (len(builders) + effective_batch_size - 1) // effective_batch_size
 
     try:
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as batch_archive:
@@ -293,6 +311,16 @@ def generate_all_reports(
                 end = min(start + effective_batch_size, len(builders))
                 output_dir = _batch_output_dir(job_dir, batch_index)
                 result_path = _batch_result_path(job_dir, batch_index)
+                batch_number = batch_index + 1
+
+                logger.info(
+                    "Usage report batch %s/%s starting: builders=%s-%s current_files_generated=%s",
+                    batch_number,
+                    total_batches,
+                    start + 1,
+                    end,
+                    files_generated,
+                )
 
                 try:
                     batch_result = _run_batch_subprocess(
@@ -320,6 +348,15 @@ def generate_all_reports(
                 if on_progress:
                     on_progress(files_generated)
 
+                logger.info(
+                    "Usage report batch %s/%s complete: batch_files=%s total_files=%s batch_warnings=%s",
+                    batch_number,
+                    total_batches,
+                    batch_result["files_generated"],
+                    files_generated,
+                    len(batch_result["warnings"]),
+                )
+
                 shutil.rmtree(output_dir, ignore_errors=True)
     except Exception:
         if os.path.exists(zip_path):
@@ -334,6 +371,14 @@ def generate_all_reports(
     if files_generated == 0:
         os.unlink(zip_path)
         zip_path = None
+
+    logger.info(
+        "Usage report job finished: success=%s files_generated=%s rows_skipped=%s zip_path=%s",
+        files_generated > 0,
+        files_generated,
+        len(warnings),
+        zip_path,
+    )
 
     return {
         "success": files_generated > 0,

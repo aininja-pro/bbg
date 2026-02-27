@@ -10,6 +10,7 @@ import shutil
 import threading
 import tempfile
 import uuid
+import logging
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, status
@@ -19,6 +20,7 @@ from starlette.background import BackgroundTask
 from app.services.usage_report_generator import generate_all_reports
 
 router = APIRouter(prefix="/api", tags=["Usage Reports"])
+logger = logging.getLogger(__name__)
 
 # In-memory job store.  Keyed by job_id (str).
 # Values: {"status": "processing"|"complete"|"failed",
@@ -53,8 +55,16 @@ def _run_generation(job_id: str, master_list_path: str, template_path: str, job_
     def _on_progress(files_generated):
         with _jobs_lock:
             _jobs[job_id]["files_generated"] = files_generated
+        logger.info("Usage report job %s progress update: files_generated=%s", job_id, files_generated)
 
     try:
+        logger.info(
+            "Usage report job %s started: master_list_path=%s template_path=%s job_dir=%s",
+            job_id,
+            master_list_path,
+            template_path,
+            job_dir,
+        )
         result = generate_all_reports(
             master_list_path=master_list_path,
             template_path=template_path,
@@ -71,6 +81,14 @@ def _run_generation(job_id: str, master_list_path: str, template_path: str, job_
                 "warnings": result["warnings"],
                 "error": result["warnings"][0] if not result["success"] and result["warnings"] else None,
             })
+        logger.info(
+            "Usage report job %s finished: status=%s files_generated=%s rows_skipped=%s warnings=%s",
+            job_id,
+            "complete" if result["success"] else "failed",
+            result["files_generated"],
+            result["rows_skipped"],
+            len(result["warnings"]),
+        )
     except Exception as exc:
         _remove_path(os.path.join(job_dir, "reports.zip"))
         _remove_tree(job_dir)
@@ -80,6 +98,7 @@ def _run_generation(job_id: str, master_list_path: str, template_path: str, job_
                 "error": str(exc),
                 "zip_path": None,
             })
+        logger.exception("Usage report job %s crashed", job_id)
     else:
         _remove_path(master_list_path)
         _remove_path(template_path)
@@ -140,6 +159,14 @@ async def generate_reports(
             "warnings": [],
             "error": None,
         }
+
+    logger.info(
+        "Usage report job %s queued: master_list=%s template=%s job_dir=%s",
+        job_id,
+        master_list.filename,
+        template.filename,
+        job_dir,
+    )
 
     thread = threading.Thread(
         target=_run_generation,

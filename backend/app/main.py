@@ -1,8 +1,12 @@
 """FastAPI application entry point for BBG Rebate Processing Tool."""
+import glob
+import os
+import tempfile
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from contextlib import asynccontextmanager
 
 from app.config import settings
 from app.database import init_db, close_db, AsyncSessionLocal
@@ -15,6 +19,13 @@ from app.models.settings import Settings, ColumnSettings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
+    # Clean up any orphaned temp files from previous runs
+    for path in glob.glob(os.path.join(tempfile.gettempdir(), "bbg_reports_*.zip")):
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+
     # Startup: Initialize database
     await init_db()
 

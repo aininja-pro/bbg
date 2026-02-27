@@ -1,13 +1,14 @@
 """API endpoint for generating per-builder Usage Report XLSM files."""
 
 import asyncio
-import io
 import json
+import os
 from datetime import datetime
 from functools import partial
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, status
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 from app.services.usage_report_generator import generate_all_reports
 
@@ -73,8 +74,12 @@ async def generate_reports(
         "X-Warnings": json.dumps(result["warnings"]),
     }
 
-    return StreamingResponse(
-        io.BytesIO(result["zip_bytes"]),
+    # Serve from disk; delete temp file after the response is sent
+    cleanup = BackgroundTask(os.unlink, result["zip_path"])
+
+    return FileResponse(
+        path=result["zip_path"],
         media_type="application/zip",
         headers=headers,
+        background=cleanup,
     )

@@ -6,12 +6,15 @@ including VBA macros, form control buttons, drawings, images, and formatting.
 Only the 3 target cells (B6, B7, C7) on the Usage-Reporting sheet are modified
 via direct string replacement — no XML parsing, zero risk of mangling the file.
 
-Adapted from generate_reports.py to run entirely in memory (no disk writes).
+Individual XLSMs are built in memory; the outer ZIP is written to a temp file on disk.
 """
 
 import io
+import os
 import re
+import tempfile
 import zipfile
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from xml.sax.saxutils import escape
 
 import openpyxl
@@ -44,46 +47,67 @@ def make_c7_xml(state):
     return f'<c r="C7" s="2" t="inlineStr"><is><t>{state}</t></is></c>'
 
 
-def generate_single_report(template_bytes, member_id, builder_name, state):
-    """
-    Generate a single XLSM report by rewriting the ZIP in memory.
+def _prepare_template(template_bytes):
+    """Read the template ZIP once and cache all entries.
 
-    Replaces only the 3 target cell strings in sheet2.xml.
-    All other content (buttons, drawings, macros, etc.) is preserved byte-for-byte.
-
-    Returns the modified XLSM file as bytes.
+    Returns (entries, sheet_xml, workbook_xml) where:
+      - entries: list of (ZipInfo, bytes) for all entries EXCEPT sheet2 and workbook
+      - sheet_xml: the raw sheet2.xml string (to be customized per builder)
+      - workbook_xml: the workbook.xml string with fullCalcOnLoad already applied
     """
-    # Escape XML-special characters in string values
+    entries = []
+    sheet_xml = None
+    workbook_xml = None
+
+    with zipfile.ZipFile(io.BytesIO(template_bytes), "r") as zin:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+
+            if item.filename == SHEET_PATH:
+                sheet_xml = data.decode("utf-8")
+            elif item.filename == WORKBOOK_PATH:
+                xml_str = data.decode("utf-8")
+                xml_str = re.sub(
+                    r'<calcPr([^/]*)/>',
+                    r'<calcPr\1 fullCalcOnLoad="1"/>',
+                    xml_str,
+                    count=1,
+                )
+                workbook_xml = xml_str.encode("utf-8")
+                entries.append((item, workbook_xml))
+            else:
+                entries.append((item, data))
+
+    return entries, sheet_xml
+
+
+def _build_report(entries, sheet_xml, member_id, builder_name, state):
+    """Build a single XLSM using cached template entries."""
     safe_name = escape(str(builder_name))
     safe_state = escape(str(state))
 
+    # Customize sheet2.xml for this builder
+    customized = sheet_xml
+    customized = customized.replace(B6_TEMPLATE, make_b6_xml(member_id), 1)
+    customized = customized.replace(B7_TEMPLATE, make_b7_xml(safe_name), 1)
+    customized = customized.replace(C7_TEMPLATE, make_c7_xml(safe_state), 1)
+    sheet_data = customized.encode("utf-8")
+
     output_buffer = io.BytesIO()
-
-    with zipfile.ZipFile(io.BytesIO(template_bytes), "r") as zin:
-        with zipfile.ZipFile(output_buffer, "w") as zout:
-            for item in zin.infolist():
-                data = zin.read(item.filename)
-
-                if item.filename == SHEET_PATH:
-                    xml_str = data.decode("utf-8")
-                    xml_str = xml_str.replace(B6_TEMPLATE, make_b6_xml(member_id), 1)
-                    xml_str = xml_str.replace(B7_TEMPLATE, make_b7_xml(safe_name), 1)
-                    xml_str = xml_str.replace(C7_TEMPLATE, make_c7_xml(safe_state), 1)
-                    data = xml_str.encode("utf-8")
-                elif item.filename == WORKBOOK_PATH:
-                    xml_str = data.decode("utf-8")
-                    # Force full recalculation on open so formulas referencing B6 update
-                    xml_str = re.sub(
-                        r'<calcPr([^/]*)/>',
-                        r'<calcPr\1 fullCalcOnLoad="1"/>',
-                        xml_str,
-                        count=1,
-                    )
-                    data = xml_str.encode("utf-8")
-
-                zout.writestr(item, data, compress_type=item.compress_type)
+    with zipfile.ZipFile(output_buffer, "w", zipfile.ZIP_DEFLATED) as zout:
+        for item, data in entries:
+            zout.writestr(item, data)
+        # Write the customized sheet
+        sheet_info = zipfile.ZipInfo(SHEET_PATH)
+        zout.writestr(sheet_info, sheet_data)
 
     return output_buffer.getvalue()
+
+
+def generate_single_report(template_bytes, member_id, builder_name, state):
+    """Generate a single XLSM report (legacy interface for standalone use)."""
+    entries, sheet_xml = _prepare_template(template_bytes)
+    return _build_report(entries, sheet_xml, member_id, builder_name, state)
 
 
 def parse_master_list(master_list_bytes):
@@ -136,11 +160,11 @@ def parse_master_list(master_list_bytes):
 def generate_all_reports(master_list_bytes, template_bytes):
     """
     Orchestrate full report generation: parse the master list, generate each
-    report, and bundle everything into a single ZIP file.
+    report in parallel, and bundle everything into a single ZIP on disk.
 
     Returns dict with:
       - success: bool
-      - zip_bytes: bytes (the ZIP archive) or None on total failure
+      - zip_path: str (path to temp ZIP file) or None on total failure
       - files_generated: int
       - rows_skipped: int
       - warnings: list of strings
@@ -151,37 +175,66 @@ def generate_all_reports(master_list_bytes, template_bytes):
     if not builders:
         return {
             "success": False,
-            "zip_bytes": None,
+            "zip_path": None,
             "files_generated": 0,
             "rows_skipped": len(warnings),
             "warnings": warnings or ["No valid builder rows found in the Master Builder List."],
         }
 
-    # Generate reports and bundle into a ZIP
-    zip_buffer = io.BytesIO()
-    files_generated = 0
+    # Read the template once — cache all ZIP entries in memory
+    entries, sheet_xml = _prepare_template(template_bytes)
 
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_STORED) as zout:
-        for builder in builders:
-            try:
-                report_bytes = generate_single_report(
-                    template_bytes,
-                    builder["member_id"],
-                    builder["builder_name"],
-                    builder["state"],
-                )
-                filename = f"{builder['file_name']}.xlsm"
-                zout.writestr(filename, report_bytes)
-                files_generated += 1
-            except Exception as exc:
-                warnings.append(
-                    f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
-                    f"Failed to generate report — {exc}"
-                )
+    # Create a temp file for the outer ZIP (avoids holding everything in RAM)
+    fd, zip_path = tempfile.mkstemp(suffix=".zip", prefix="bbg_reports_")
+    os.close(fd)
+
+    try:
+        files_generated = 0
+        max_workers = min(os.cpu_count() or 4, 8)
+
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zout:
+            # Generate XLSMs in parallel — zlib releases the GIL so threads
+            # get real parallelism during compression.  entries and sheet_xml
+            # are read-only, each thread builds its own BytesIO/ZipFile.
+            with ThreadPoolExecutor(max_workers=max_workers) as pool:
+                future_to_builder = {
+                    pool.submit(
+                        _build_report,
+                        entries,
+                        sheet_xml,
+                        builder["member_id"],
+                        builder["builder_name"],
+                        builder["state"],
+                    ): builder
+                    for builder in builders
+                }
+
+                for future in as_completed(future_to_builder):
+                    builder = future_to_builder[future]
+                    try:
+                        report_bytes = future.result()
+                        filename = f"{builder['file_name']}.xlsm"
+                        # Write to outer ZIP sequentially (zipfile isn't thread-safe)
+                        zout.writestr(filename, report_bytes)
+                        files_generated += 1
+                    except Exception as exc:
+                        warnings.append(
+                            f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
+                            f"Failed to generate report — {exc}"
+                        )
+    except Exception:
+        # Clean up temp file on failure
+        if os.path.exists(zip_path):
+            os.unlink(zip_path)
+        raise
+
+    if files_generated == 0:
+        os.unlink(zip_path)
+        zip_path = None
 
     return {
         "success": files_generated > 0,
-        "zip_bytes": zip_buffer.getvalue(),
+        "zip_path": zip_path,
         "files_generated": files_generated,
         "rows_skipped": len(warnings),
         "warnings": warnings,

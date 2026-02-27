@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FileUpload } from '../components/upload/FileUpload'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
@@ -19,6 +19,24 @@ export function GenerateReportsPage() {
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
   const [showWarnings, setShowWarnings] = useState(false)
+  const [elapsed, setElapsed] = useState(0)
+  const timerRef = useRef(null)
+
+  useEffect(() => {
+    if (isProcessing) {
+      setElapsed(0)
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000)
+    } else {
+      clearInterval(timerRef.current)
+    }
+    return () => clearInterval(timerRef.current)
+  }, [isProcessing])
+
+  const formatTime = (s) => {
+    const mins = Math.floor(s / 60)
+    const secs = s % 60
+    return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`
+  }
 
   const handleGenerate = async () => {
     if (!masterList || !template) return
@@ -108,7 +126,9 @@ export function GenerateReportsPage() {
             <div className="flex items-center space-x-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#178dc3]"></div>
               <div>
-                <h3 className="text-lg font-medium text-blue-900">Generating Reports...</h3>
+                <h3 className="text-lg font-medium text-blue-900">
+                  Generating Reports... <span className="font-normal text-blue-600">({formatTime(elapsed)})</span>
+                </h3>
                 <p className="text-sm text-blue-700">
                   This may take a few minutes for large builder lists. Please don't close this tab.
                 </p>

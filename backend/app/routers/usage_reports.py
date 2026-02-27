@@ -54,6 +54,7 @@ def _load_job(job_id: str):
 def _run_generation_subprocess(job_id: str, master_list_path: str, template_path: str, job_dir: str, status_path: str):
     command = [
         sys.executable,
+        "-u",
         os.path.abspath(usage_report_generator.__file__),
         "run-job",
         "--job-id",
@@ -68,12 +69,12 @@ def _run_generation_subprocess(job_id: str, master_list_path: str, template_path
         status_path,
     ]
 
+    logger.info("Usage report job %s launching worker subprocess", job_id)
+
     try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        subprocess.run(command, check=True)
     except subprocess.CalledProcessError as exc:
-        stderr = (exc.stderr or "").strip()
-        stdout = (exc.stdout or "").strip()
-        message = stderr or stdout or f"job exited with code {exc.returncode}"
+        message = f"job exited with code {exc.returncode}"
         current_state = _load_job(job_id)
         if current_state and current_state["status"] == "processing":
             write_job_state(

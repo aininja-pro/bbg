@@ -226,6 +226,7 @@ def _run_batch_subprocess(
 ) -> dict:
     command = [
         sys.executable,
+        "-u",
         os.path.abspath(__file__),
         "batch",
         "--template",
@@ -242,12 +243,16 @@ def _run_batch_subprocess(
         str(end),
     ]
 
+    logger.info(
+        "Launching usage report batch subprocess for builders %s-%s",
+        start + 1,
+        end,
+    )
+
     try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        subprocess.run(command, check=True)
     except subprocess.CalledProcessError as exc:
-        stderr = (exc.stderr or "").strip()
-        stdout = (exc.stdout or "").strip()
-        message = stderr or stdout or f"batch exited with code {exc.returncode}"
+        message = f"batch exited with code {exc.returncode}"
         logger.error(
             "Usage report batch subprocess failed for builders %s-%s: %s",
             start + 1,
@@ -541,4 +546,8 @@ def _run_cli(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=os.getenv("LOG_LEVEL", "INFO").upper(),
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
     sys.exit(_run_cli(sys.argv[1:]))

@@ -29,8 +29,12 @@ _jobs_lock = threading.Lock()
 
 def _run_generation(job_id: str, master_list_bytes: bytes, template_bytes: bytes):
     """Run report generation in a background thread and update the job store."""
+    def _on_progress(files_generated):
+        with _jobs_lock:
+            _jobs[job_id]["files_generated"] = files_generated
+
     try:
-        result = generate_all_reports(master_list_bytes, template_bytes)
+        result = generate_all_reports(master_list_bytes, template_bytes, on_progress=_on_progress)
 
         with _jobs_lock:
             _jobs[job_id].update({

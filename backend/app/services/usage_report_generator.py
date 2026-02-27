@@ -9,12 +9,12 @@ via direct string replacement — no XML parsing, zero risk of mangling the file
 Individual XLSMs are built in memory; the outer ZIP is written to a temp file on disk.
 """
 
+import gc
 import io
 import os
 import re
 import tempfile
 import zipfile
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from xml.sax.saxutils import escape
 
 import openpyxl
@@ -157,10 +157,14 @@ def parse_master_list(master_list_bytes):
     return builders, warnings
 
 
-def generate_all_reports(master_list_bytes, template_bytes):
+def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
     """
     Orchestrate full report generation: parse the master list, generate each
-    report in parallel, and bundle everything into a single ZIP on disk.
+    report sequentially, and bundle everything into a single ZIP on disk.
+
+    Args:
+        on_progress: optional callback(files_generated: int) called after each
+                     builder so the caller can report live progress.
 
     Returns dict with:
       - success: bool
@@ -169,8 +173,9 @@ def generate_all_reports(master_list_bytes, template_bytes):
       - rows_skipped: int
       - warnings: list of strings
     """
-    # Parse the master list
+    # Parse the master list then free the bytes
     builders, warnings = parse_master_list(master_list_bytes)
+    del master_list_bytes
 
     if not builders:
         return {
@@ -183,6 +188,8 @@ def generate_all_reports(master_list_bytes, template_bytes):
 
     # Read the template once — cache all ZIP entries in memory
     entries, sheet_xml = _prepare_template(template_bytes)
+    del template_bytes
+    gc.collect()
 
     # Create a temp file for the outer ZIP (avoids holding everything in RAM)
     fd, zip_path = tempfile.mkstemp(suffix=".zip", prefix="bbg_reports_")
@@ -190,41 +197,29 @@ def generate_all_reports(master_list_bytes, template_bytes):
 
     try:
         files_generated = 0
-        max_workers = min(os.cpu_count() or 4, 4)
-        chunk_size = 50  # Limit in-flight results to bound peak memory
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zout:
-            # Process builders in chunks so completed XLSM bytes don't
-            # accumulate across all 700+ futures (would exceed 2GB on Render).
-            for i in range(0, len(builders), chunk_size):
-                chunk = builders[i : i + chunk_size]
+            for builder in builders:
+                try:
+                    report_bytes = _build_report(
+                        entries,
+                        sheet_xml,
+                        builder["member_id"],
+                        builder["builder_name"],
+                        builder["state"],
+                    )
+                    filename = f"{builder['file_name']}.xlsm"
+                    zout.writestr(filename, report_bytes)
+                    del report_bytes
+                    files_generated += 1
 
-                with ThreadPoolExecutor(max_workers=max_workers) as pool:
-                    future_to_builder = {
-                        pool.submit(
-                            _build_report,
-                            entries,
-                            sheet_xml,
-                            b["member_id"],
-                            b["builder_name"],
-                            b["state"],
-                        ): b
-                        for b in chunk
-                    }
-
-                    for future in as_completed(future_to_builder):
-                        builder = future_to_builder[future]
-                        try:
-                            report_bytes = future.result()
-                            filename = f"{builder['file_name']}.xlsm"
-                            zout.writestr(filename, report_bytes)
-                            files_generated += 1
-                        except Exception as exc:
-                            warnings.append(
-                                f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
-                                f"Failed to generate report — {exc}"
-                            )
-                # futures and results go out of scope here, freeing memory
+                    if on_progress:
+                        on_progress(files_generated)
+                except Exception as exc:
+                    warnings.append(
+                        f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
+                        f"Failed to generate report — {exc}"
+                    )
     except Exception:
         # Clean up temp file on failure
         if os.path.exists(zip_path):

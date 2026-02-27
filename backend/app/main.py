@@ -1,7 +1,6 @@
 """FastAPI application entry point for BBG Rebate Processing Tool."""
-import glob
 import os
-import tempfile
+import shutil
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -19,12 +18,14 @@ from app.models.settings import Settings, ColumnSettings
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    # Clean up any orphaned temp files from previous runs
-    for path in glob.glob(os.path.join(tempfile.gettempdir(), "bbg_reports_*.zip")):
-        try:
-            os.unlink(path)
-        except OSError:
-            pass
+    # Clean up any orphaned job directories from previous runs.
+    # Job dirs live under backend/_jobs/ (not /tmp) to avoid Render's 2 GB /tmp cap.
+    from app.routers.usage_reports import _JOBS_BASE_DIR
+    if os.path.isdir(_JOBS_BASE_DIR):
+        for entry in os.listdir(_JOBS_BASE_DIR):
+            entry_path = os.path.join(_JOBS_BASE_DIR, entry)
+            if os.path.isdir(entry_path):
+                shutil.rmtree(entry_path, ignore_errors=True)
 
     # Startup: Initialize database
     await init_db()

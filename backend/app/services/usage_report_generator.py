@@ -348,7 +348,7 @@ def generate_all_reports(
     total_batches = (len(builders) + effective_batch_size - 1) // effective_batch_size
 
     try:
-        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as batch_archive:
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as batch_archive:
             for batch_index, start in enumerate(range(0, len(builders), effective_batch_size)):
                 end = min(start + effective_batch_size, len(builders))
                 output_dir = _batch_output_dir(job_dir, batch_index)

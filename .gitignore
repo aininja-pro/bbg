@@ -60,6 +60,7 @@ logs/
 tmp/
 temp/
 *.tmp
+_jobs/
 
 # Uploaded files (development)
 uploads/

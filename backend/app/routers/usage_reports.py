@@ -5,7 +5,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import threading
 import uuid
 from datetime import datetime
@@ -26,8 +25,17 @@ router = APIRouter(prefix="/api", tags=["Usage Reports"])
 logger = logging.getLogger(__name__)
 
 
+# Use a _jobs/ directory within the backend instead of /tmp.
+# Render's /tmp is a separate tmpfs volume capped at 2 GB — writing hundreds
+# of XLSM files there causes eviction.  The app filesystem has far more space.
+_JOBS_BASE_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "_jobs",
+)
+
+
 def _job_dir(job_id: str) -> str:
-    return os.path.join(tempfile.gettempdir(), f"bbg_usage_job_{job_id}")
+    return os.path.join(_JOBS_BASE_DIR, f"bbg_usage_job_{job_id}")
 
 
 def _status_path(job_id: str) -> str:

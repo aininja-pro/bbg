@@ -190,38 +190,41 @@ def generate_all_reports(master_list_bytes, template_bytes):
 
     try:
         files_generated = 0
-        max_workers = min(os.cpu_count() or 4, 8)
+        max_workers = min(os.cpu_count() or 4, 4)
+        chunk_size = 50  # Limit in-flight results to bound peak memory
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zout:
-            # Generate XLSMs in parallel — zlib releases the GIL so threads
-            # get real parallelism during compression.  entries and sheet_xml
-            # are read-only, each thread builds its own BytesIO/ZipFile.
-            with ThreadPoolExecutor(max_workers=max_workers) as pool:
-                future_to_builder = {
-                    pool.submit(
-                        _build_report,
-                        entries,
-                        sheet_xml,
-                        builder["member_id"],
-                        builder["builder_name"],
-                        builder["state"],
-                    ): builder
-                    for builder in builders
-                }
+            # Process builders in chunks so completed XLSM bytes don't
+            # accumulate across all 700+ futures (would exceed 2GB on Render).
+            for i in range(0, len(builders), chunk_size):
+                chunk = builders[i : i + chunk_size]
 
-                for future in as_completed(future_to_builder):
-                    builder = future_to_builder[future]
-                    try:
-                        report_bytes = future.result()
-                        filename = f"{builder['file_name']}.xlsm"
-                        # Write to outer ZIP sequentially (zipfile isn't thread-safe)
-                        zout.writestr(filename, report_bytes)
-                        files_generated += 1
-                    except Exception as exc:
-                        warnings.append(
-                            f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
-                            f"Failed to generate report — {exc}"
-                        )
+                with ThreadPoolExecutor(max_workers=max_workers) as pool:
+                    future_to_builder = {
+                        pool.submit(
+                            _build_report,
+                            entries,
+                            sheet_xml,
+                            b["member_id"],
+                            b["builder_name"],
+                            b["state"],
+                        ): b
+                        for b in chunk
+                    }
+
+                    for future in as_completed(future_to_builder):
+                        builder = future_to_builder[future]
+                        try:
+                            report_bytes = future.result()
+                            filename = f"{builder['file_name']}.xlsm"
+                            zout.writestr(filename, report_bytes)
+                            files_generated += 1
+                        except Exception as exc:
+                            warnings.append(
+                                f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
+                                f"Failed to generate report — {exc}"
+                            )
+                # futures and results go out of scope here, freeing memory
     except Exception:
         # Clean up temp file on failure
         if os.path.exists(zip_path):

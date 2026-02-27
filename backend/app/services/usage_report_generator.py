@@ -47,7 +47,7 @@ _CALC_PR_RE = re.compile(rb'<calcPr([^/]*)/>')
 
 def _get_default_batch_size() -> int:
     try:
-        return max(1, int(os.getenv("USAGE_REPORT_BATCH_SIZE", "20")))
+        return max(1, int(os.getenv("USAGE_REPORT_BATCH_SIZE", "50")))
     except ValueError:
         logger.warning("Invalid USAGE_REPORT_BATCH_SIZE value %r; defaulting to 20", os.getenv("USAGE_REPORT_BATCH_SIZE"))
         return 20

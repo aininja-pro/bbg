@@ -281,7 +281,7 @@ def _write_batch_reports(
     generated_files = []
 
     for builder in builders:
-        output_name = f"{builder['file_name']}.xlsm"
+        output_name = f"{builder['file_name'].replace('/', '-')}.xlsm"
         output_path = os.path.join(output_dir, output_name)
 
         try:

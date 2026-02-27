@@ -20,7 +20,9 @@ export function GenerateReportsPage() {
   const [error, setError] = useState(null)
   const [showWarnings, setShowWarnings] = useState(false)
   const [elapsed, setElapsed] = useState(0)
+  const [filesGenerated, setFilesGenerated] = useState(0)
   const timerRef = useRef(null)
+  const pollingRef = useRef(null)
 
   useEffect(() => {
     if (isProcessing) {
@@ -31,6 +33,11 @@ export function GenerateReportsPage() {
     }
     return () => clearInterval(timerRef.current)
   }, [isProcessing])
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => clearInterval(pollingRef.current)
+  }, [])
 
   const formatTime = (s) => {
     const mins = Math.floor(s / 60)
@@ -44,12 +51,38 @@ export function GenerateReportsPage() {
     setIsProcessing(true)
     setError(null)
     setResult(null)
+    setFilesGenerated(0)
 
     try {
-      const response = await api.generateReports(masterList, template)
+      // 1. Start the job (returns immediately)
+      const { job_id } = await api.startReportGeneration(masterList, template)
 
-      // Auto-download the ZIP
-      const url = window.URL.createObjectURL(response.blob)
+      // 2. Poll for status every 2 seconds
+      const statusResult = await new Promise((resolve, reject) => {
+        pollingRef.current = setInterval(async () => {
+          try {
+            const status = await api.getReportStatus(job_id)
+            setFilesGenerated(status.files_generated || 0)
+
+            if (status.status === 'complete') {
+              clearInterval(pollingRef.current)
+              resolve(status)
+            } else if (status.status === 'failed') {
+              clearInterval(pollingRef.current)
+              reject(new Error(status.error || 'Report generation failed'))
+            }
+          } catch (err) {
+            clearInterval(pollingRef.current)
+            reject(err)
+          }
+        }, 2000)
+      })
+
+      // 3. Download the ZIP
+      const blob = await api.downloadReport(job_id)
+
+      // 4. Auto-download
+      const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
 
@@ -65,7 +98,11 @@ export function GenerateReportsPage() {
         document.body.removeChild(a)
       }, 100)
 
-      setResult(response)
+      setResult({
+        filesGenerated: statusResult.files_generated,
+        rowsSkipped: statusResult.rows_skipped,
+        warnings: statusResult.warnings || [],
+      })
     } catch (err) {
       setError(err.message || 'Report generation failed')
     } finally {
@@ -130,7 +167,9 @@ export function GenerateReportsPage() {
                   Generating Reports... <span className="font-normal text-blue-600">({formatTime(elapsed)})</span>
                 </h3>
                 <p className="text-sm text-blue-700">
-                  This may take a few minutes for large builder lists. Please don't close this tab.
+                  {filesGenerated > 0
+                    ? `${filesGenerated} reports generated so far. Please don't close this tab.`
+                    : 'This may take a few minutes for large builder lists. Please don\'t close this tab.'}
                 </p>
               </div>
             </div>

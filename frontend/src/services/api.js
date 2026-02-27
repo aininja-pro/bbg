@@ -176,7 +176,10 @@ export const api = {
    * @param {File} template - Template file (.xlsm)
    * @returns {Promise<{blob: Blob, filesGenerated: number, rowsSkipped: number, warnings: string[]}>}
    */
-  async generateReports(masterList, template) {
+  /**
+   * Start report generation (returns immediately with a job_id)
+   */
+  async startReportGeneration(masterList, template) {
     const formData = new FormData();
     formData.append('master_list', masterList);
     formData.append('template', template);
@@ -191,20 +194,35 @@ export const api = {
       throw new Error(error.detail || 'Failed to generate reports');
     }
 
-    const filesGenerated = parseInt(response.headers.get('X-Files-Generated') || '0', 10);
-    const rowsSkipped = parseInt(response.headers.get('X-Rows-Skipped') || '0', 10);
-    let warnings = [];
-    try {
-      const warningsHeader = response.headers.get('X-Warnings');
-      if (warningsHeader) {
-        warnings = JSON.parse(warningsHeader);
-      }
-    } catch {
-      // ignore parse errors
+    return await response.json(); // { job_id }
+  },
+
+  /**
+   * Poll report generation status
+   */
+  async getReportStatus(jobId) {
+    const response = await fetch(`${API_BASE_URL}/api/generate-reports/${jobId}/status`);
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Failed to get status' }));
+      throw new Error(error.detail || 'Failed to get report status');
     }
 
-    const blob = await response.blob();
-    return { blob, filesGenerated, rowsSkipped, warnings };
+    return await response.json();
+  },
+
+  /**
+   * Download completed report ZIP
+   */
+  async downloadReport(jobId) {
+    const response = await fetch(`${API_BASE_URL}/api/generate-reports/${jobId}/download`);
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Download failed' }));
+      throw new Error(error.detail || 'Failed to download reports');
+    }
+
+    return await response.blob();
   },
 
   // DISTRIBUTION ENDPOINTS (PHASE 2)

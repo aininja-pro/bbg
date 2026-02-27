@@ -1,8 +1,13 @@
-"""API endpoint for generating per-builder Usage Report XLSM files."""
+"""API endpoints for generating per-builder Usage Report XLSM files.
 
-import asyncio
-import json
+Uses a background-job pattern so the POST returns immediately with a job_id.
+The frontend polls GET /status/{job_id} until complete, then fetches the ZIP
+from GET /download/{job_id}.  This avoids Render's request-timeout limit.
+"""
+
 import os
+import threading
+import uuid
 from datetime import datetime
 from functools import partial
 
@@ -14,16 +19,45 @@ from app.services.usage_report_generator import generate_all_reports
 
 router = APIRouter(prefix="/api", tags=["Usage Reports"])
 
+# In-memory job store.  Keyed by job_id (str).
+# Values: {"status": "processing"|"complete"|"failed",
+#          "zip_path": str|None, "files_generated": int,
+#          "rows_skipped": int, "warnings": list, "error": str|None}
+_jobs: dict = {}
+_jobs_lock = threading.Lock()
+
+
+def _run_generation(job_id: str, master_list_bytes: bytes, template_bytes: bytes):
+    """Run report generation in a background thread and update the job store."""
+    try:
+        result = generate_all_reports(master_list_bytes, template_bytes)
+
+        with _jobs_lock:
+            _jobs[job_id].update({
+                "status": "complete" if result["success"] else "failed",
+                "zip_path": result.get("zip_path"),
+                "files_generated": result["files_generated"],
+                "rows_skipped": result["rows_skipped"],
+                "warnings": result["warnings"],
+                "error": result["warnings"][0] if not result["success"] and result["warnings"] else None,
+            })
+    except Exception as exc:
+        with _jobs_lock:
+            _jobs[job_id].update({
+                "status": "failed",
+                "error": str(exc),
+            })
+
 
 @router.post("/generate-reports")
 async def generate_reports(
     master_list: UploadFile = File(...),
     template: UploadFile = File(...),
 ):
-    """Generate per-builder Usage Report XLSM files.
+    """Start per-builder report generation in the background.
 
-    Accepts a Master Builder List (.xlsx) and a template (.xlsm),
-    returns a ZIP archive containing one XLSM per builder row.
+    Returns a job_id immediately.  Poll /generate-reports/{job_id}/status
+    until status is 'complete', then GET /generate-reports/{job_id}/download.
     """
     # Validate file types
     if not master_list.filename.endswith(".xlsx"):
@@ -42,23 +76,61 @@ async def generate_reports(
     master_list_bytes = await master_list.read()
     template_bytes = await template.read()
 
-    try:
-        # Run in thread pool — this is CPU-bound and would block the event loop
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(
-            None, partial(generate_all_reports, master_list_bytes, template_bytes)
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Report generation failed: {exc}",
-        )
+    # Create job and kick off background thread
+    job_id = str(uuid.uuid4())
+    with _jobs_lock:
+        _jobs[job_id] = {
+            "status": "processing",
+            "zip_path": None,
+            "files_generated": 0,
+            "rows_skipped": 0,
+            "warnings": [],
+            "error": None,
+        }
 
-    if not result["success"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=result["warnings"][0] if result["warnings"] else "No reports generated.",
-        )
+    thread = threading.Thread(
+        target=_run_generation,
+        args=(job_id, master_list_bytes, template_bytes),
+        daemon=True,
+    )
+    thread.start()
+
+    return {"job_id": job_id}
+
+
+@router.get("/generate-reports/{job_id}/status")
+async def report_status(job_id: str):
+    """Poll this endpoint until status is 'complete' or 'failed'."""
+    with _jobs_lock:
+        job = _jobs.get(job_id)
+
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    return {
+        "status": job["status"],
+        "files_generated": job["files_generated"],
+        "rows_skipped": job["rows_skipped"],
+        "warnings": job["warnings"],
+        "error": job["error"],
+    }
+
+
+@router.get("/generate-reports/{job_id}/download")
+async def report_download(job_id: str):
+    """Download the completed ZIP.  Cleans up temp file + job entry afterward."""
+    with _jobs_lock:
+        job = _jobs.get(job_id)
+
+    if job is None:
+        raise HTTPException(status_code=404, detail="Job not found.")
+
+    if job["status"] != "complete":
+        raise HTTPException(status_code=409, detail="Job is not complete yet.")
+
+    zip_path = job["zip_path"]
+    if not zip_path or not os.path.exists(zip_path):
+        raise HTTPException(status_code=410, detail="ZIP file no longer available.")
 
     # Build dynamic filename based on current quarter/year
     now = datetime.now()
@@ -66,20 +138,17 @@ async def generate_reports(
     year_short = now.strftime("%y")
     zip_filename = f"BBG_Usage_Reports_Q{quarter}_{year_short}.zip"
 
-    # Pass summary info via custom response headers
-    headers = {
-        "Content-Disposition": f"attachment; filename={zip_filename}",
-        "X-Files-Generated": str(result["files_generated"]),
-        "X-Rows-Skipped": str(result["rows_skipped"]),
-        "X-Warnings": json.dumps(result["warnings"]),
-    }
-
-    # Serve from disk; delete temp file after the response is sent
-    cleanup = BackgroundTask(os.unlink, result["zip_path"])
+    def _cleanup():
+        try:
+            os.unlink(zip_path)
+        except OSError:
+            pass
+        with _jobs_lock:
+            _jobs.pop(job_id, None)
 
     return FileResponse(
-        path=result["zip_path"],
+        path=zip_path,
         media_type="application/zip",
-        headers=headers,
-        background=cleanup,
+        filename=zip_filename,
+        background=BackgroundTask(_cleanup),
     )

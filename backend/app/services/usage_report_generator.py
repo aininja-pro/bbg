@@ -34,6 +34,7 @@ SHEET_PATH = "xl/worksheets/sheet2.xml"
 WORKBOOK_PATH = "xl/workbook.xml"
 MANIFEST_FILENAME = "builders.json"
 FINAL_ZIP_FILENAME = "reports.zip"
+STATUS_FILENAME = "status.json"
 
 # Exact XML byte strings for the 3 cells in the template (verified by inspection).
 # Using bytes avoids a decode/encode round-trip on the large sheet XML.
@@ -157,13 +158,49 @@ def parse_master_list(master_list_path):
 
 
 def _write_json(path: str, payload) -> None:
-    with open(path, "w", encoding="utf-8") as json_file:
+    temp_path = f"{path}.tmp"
+    with open(temp_path, "w", encoding="utf-8") as json_file:
         json.dump(payload, json_file)
+    os.replace(temp_path, path)
 
 
 def _read_json(path: str):
     with open(path, "r", encoding="utf-8") as json_file:
         return json.load(json_file)
+
+
+def make_job_state(
+    *,
+    status_value: str,
+    zip_path: str | None = None,
+    files_generated: int = 0,
+    rows_skipped: int = 0,
+    warnings: list[str] | None = None,
+    error: str | None = None,
+):
+    return {
+        "status": status_value,
+        "zip_path": zip_path,
+        "files_generated": files_generated,
+        "rows_skipped": rows_skipped,
+        "warnings": warnings or [],
+        "error": error,
+    }
+
+
+def read_job_state(status_path: str):
+    return _read_json(status_path)
+
+
+def write_job_state(status_path: str, payload) -> None:
+    _write_json(status_path, payload)
+
+
+def update_job_state(status_path: str, **updates):
+    state = read_job_state(status_path)
+    state.update(updates)
+    write_job_state(status_path, state)
+    return state
 
 
 def _load_builders_slice(manifest_path: str, start: int, end: int):
@@ -389,6 +426,72 @@ def generate_all_reports(
     }
 
 
+def run_generation_job(
+    job_id: str,
+    master_list_path: str,
+    template_path: str,
+    job_dir: str,
+    status_path: str,
+) -> int:
+    def _on_progress(files_generated):
+        update_job_state(status_path, files_generated=files_generated)
+        logger.info("Usage report job %s progress update: files_generated=%s", job_id, files_generated)
+
+    try:
+        logger.info(
+            "Usage report job %s started in subprocess: master_list_path=%s template_path=%s job_dir=%s",
+            job_id,
+            master_list_path,
+            template_path,
+            job_dir,
+        )
+        result = generate_all_reports(
+            master_list_path=master_list_path,
+            template_path=template_path,
+            job_dir=job_dir,
+            on_progress=_on_progress,
+        )
+        final_status = "complete" if result["success"] else "failed"
+        write_job_state(
+            status_path,
+            make_job_state(
+                status_value=final_status,
+                zip_path=result.get("zip_path"),
+                files_generated=result["files_generated"],
+                rows_skipped=result["rows_skipped"],
+                warnings=result["warnings"],
+                error=result["warnings"][0] if final_status == "failed" and result["warnings"] else None,
+            ),
+        )
+        logger.info(
+            "Usage report job %s finished in subprocess: status=%s files_generated=%s rows_skipped=%s warnings=%s",
+            job_id,
+            final_status,
+            result["files_generated"],
+            result["rows_skipped"],
+            len(result["warnings"]),
+        )
+        return 0
+    except Exception as exc:
+        write_job_state(
+            status_path,
+            make_job_state(
+                status_value="failed",
+                zip_path=None,
+                warnings=[],
+                error=str(exc),
+            ),
+        )
+        logger.exception("Usage report job %s crashed in subprocess", job_id)
+        return 1
+    finally:
+        for path in (master_list_path, template_path):
+            try:
+                os.unlink(path)
+            except OSError:
+                pass
+
+
 def _parse_args(argv: list[str]):
     parser = argparse.ArgumentParser(description="Usage report batch worker")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -400,6 +503,13 @@ def _parse_args(argv: list[str]):
     batch_parser.add_argument("--result-path", required=True)
     batch_parser.add_argument("--start", required=True, type=int)
     batch_parser.add_argument("--end", required=True, type=int)
+
+    run_job_parser = subparsers.add_parser("run-job", help="Run a full usage report job")
+    run_job_parser.add_argument("--job-id", required=True)
+    run_job_parser.add_argument("--master-list", required=True)
+    run_job_parser.add_argument("--template", required=True)
+    run_job_parser.add_argument("--job-dir", required=True)
+    run_job_parser.add_argument("--status-path", required=True)
 
     return parser.parse_args(argv)
 
@@ -417,6 +527,15 @@ def _run_cli(argv: list[str]) -> int:
         )
         _write_json(args.result_path, result)
         return 0
+
+    if args.command == "run-job":
+        return run_generation_job(
+            job_id=args.job_id,
+            master_list_path=args.master_list,
+            template_path=args.template,
+            job_dir=args.job_dir,
+            status_path=args.status_path,
+        )
 
     raise ValueError(f"Unsupported command: {args.command}")
 

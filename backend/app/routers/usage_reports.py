@@ -1,43 +1,37 @@
-"""API endpoints for generating per-builder Usage Report XLSM files.
+"""API endpoints for generating per-builder Usage Report XLSM files."""
 
-Uses a background-job pattern so the POST returns immediately with a job_id.
-The frontend polls GET /status/{job_id} until complete, then fetches the ZIP
-from GET /download/{job_id}.  This avoids Render's request-timeout limit.
-"""
-
+import logging
 import os
 import shutil
-import threading
+import subprocess
+import sys
 import tempfile
+import threading
 import uuid
-import logging
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, status
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
-from app.services.usage_report_generator import generate_all_reports
+import app.services.usage_report_generator as usage_report_generator
+from app.services.usage_report_generator import (
+    STATUS_FILENAME,
+    make_job_state,
+    read_job_state,
+    write_job_state,
+)
 
 router = APIRouter(prefix="/api", tags=["Usage Reports"])
 logger = logging.getLogger(__name__)
 
-# In-memory job store.  Keyed by job_id (str).
-# Values: {"status": "processing"|"complete"|"failed",
-#          "zip_path": str|None, "files_generated": int,
-#          "rows_skipped": int, "warnings": list, "error": str|None}
-_jobs: dict = {}
-_jobs_lock = threading.Lock()
+
+def _job_dir(job_id: str) -> str:
+    return os.path.join(tempfile.gettempdir(), f"bbg_usage_job_{job_id}")
 
 
-def _remove_path(path: str | None) -> None:
-    if not path:
-        return
-
-    try:
-        os.unlink(path)
-    except OSError:
-        pass
+def _status_path(job_id: str) -> str:
+    return os.path.join(_job_dir(job_id), STATUS_FILENAME)
 
 
 def _remove_tree(path: str | None) -> None:
@@ -50,64 +44,59 @@ def _copy_upload_to_path(upload: UploadFile, destination_path: str) -> None:
         shutil.copyfileobj(upload.file, destination, length=1024 * 1024)
 
 
-def _run_generation(job_id: str, master_list_path: str, template_path: str, job_dir: str):
-    """Run report generation in a background thread and update the job store."""
-    def _on_progress(files_generated):
-        with _jobs_lock:
-            _jobs[job_id]["files_generated"] = files_generated
-        logger.info("Usage report job %s progress update: files_generated=%s", job_id, files_generated)
+def _load_job(job_id: str):
+    status_path = _status_path(job_id)
+    if not os.path.exists(status_path):
+        return None
+    return read_job_state(status_path)
+
+
+def _run_generation_subprocess(job_id: str, master_list_path: str, template_path: str, job_dir: str, status_path: str):
+    command = [
+        sys.executable,
+        os.path.abspath(usage_report_generator.__file__),
+        "run-job",
+        "--job-id",
+        job_id,
+        "--master-list",
+        master_list_path,
+        "--template",
+        template_path,
+        "--job-dir",
+        job_dir,
+        "--status-path",
+        status_path,
+    ]
 
     try:
-        logger.info(
-            "Usage report job %s started: master_list_path=%s template_path=%s job_dir=%s",
-            job_id,
-            master_list_path,
-            template_path,
-            job_dir,
-        )
-        result = generate_all_reports(
-            master_list_path=master_list_path,
-            template_path=template_path,
-            job_dir=job_dir,
-            on_progress=_on_progress,
-        )
+        subprocess.run(command, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        stderr = (exc.stderr or "").strip()
+        stdout = (exc.stdout or "").strip()
+        message = stderr or stdout or f"job exited with code {exc.returncode}"
+        current_state = _load_job(job_id)
+        if current_state and current_state["status"] == "processing":
+            write_job_state(
+                status_path,
+                make_job_state(
+                    status_value="failed",
+                    zip_path=None,
+                    files_generated=current_state["files_generated"],
+                    rows_skipped=current_state["rows_skipped"],
+                    warnings=current_state["warnings"],
+                    error=message,
+                ),
+            )
+        logger.error("Usage report job %s subprocess failed: %s", job_id, message)
 
-        with _jobs_lock:
-            _jobs[job_id].update({
-                "status": "complete" if result["success"] else "failed",
-                "zip_path": result.get("zip_path"),
-                "files_generated": result["files_generated"],
-                "rows_skipped": result["rows_skipped"],
-                "warnings": result["warnings"],
-                "error": result["warnings"][0] if not result["success"] and result["warnings"] else None,
-            })
-        logger.info(
-            "Usage report job %s finished: status=%s files_generated=%s rows_skipped=%s warnings=%s",
-            job_id,
-            "complete" if result["success"] else "failed",
-            result["files_generated"],
-            result["rows_skipped"],
-            len(result["warnings"]),
-        )
-    except Exception as exc:
-        _remove_path(os.path.join(job_dir, "reports.zip"))
-        _remove_tree(job_dir)
-        with _jobs_lock:
-            _jobs[job_id].update({
-                "status": "failed",
-                "error": str(exc),
-                "zip_path": None,
-            })
-        logger.exception("Usage report job %s crashed", job_id)
-    else:
-        _remove_path(master_list_path)
-        _remove_path(template_path)
 
-        with _jobs_lock:
-            status_value = _jobs[job_id]["status"]
-
-        if status_value != "complete":
-            _remove_tree(job_dir)
+def _start_background_generation(job_id: str, master_list_path: str, template_path: str, job_dir: str, status_path: str) -> None:
+    thread = threading.Thread(
+        target=_run_generation_subprocess,
+        args=(job_id, master_list_path, template_path, job_dir, status_path),
+        daemon=True,
+    )
+    thread.start()
 
 
 @router.post("/generate-reports")
@@ -115,12 +104,7 @@ async def generate_reports(
     master_list: UploadFile = File(...),
     template: UploadFile = File(...),
 ):
-    """Start per-builder report generation in the background.
-
-    Returns a job_id immediately.  Poll /generate-reports/{job_id}/status
-    until status is 'complete', then GET /generate-reports/{job_id}/download.
-    """
-    # Validate file types
+    """Start per-builder report generation in the background."""
     if not master_list.filename.endswith(".xlsx"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -133,32 +117,26 @@ async def generate_reports(
             detail="Template must be an .xlsm file.",
         )
 
-    # Create job and kick off background thread
     job_id = str(uuid.uuid4())
-    job_dir = tempfile.mkdtemp(prefix=f"bbg_usage_job_{job_id}_")
+    job_dir = _job_dir(job_id)
+    status_path = _status_path(job_id)
     master_list_path = os.path.join(job_dir, "master_list.xlsx")
     template_path = os.path.join(job_dir, "template.xlsm")
+
+    if os.path.exists(job_dir):
+        _remove_tree(job_dir)
+    os.makedirs(job_dir, exist_ok=True)
 
     try:
         _copy_upload_to_path(master_list, master_list_path)
         _copy_upload_to_path(template, template_path)
+        write_job_state(status_path, make_job_state(status_value="processing"))
     except Exception:
         _remove_tree(job_dir)
         raise
     finally:
         await master_list.close()
         await template.close()
-
-    with _jobs_lock:
-        _jobs[job_id] = {
-            "status": "processing",
-            "zip_path": None,
-            "job_dir": job_dir,
-            "files_generated": 0,
-            "rows_skipped": 0,
-            "warnings": [],
-            "error": None,
-        }
 
     logger.info(
         "Usage report job %s queued: master_list=%s template=%s job_dir=%s",
@@ -168,22 +146,14 @@ async def generate_reports(
         job_dir,
     )
 
-    thread = threading.Thread(
-        target=_run_generation,
-        args=(job_id, master_list_path, template_path, job_dir),
-        daemon=True,
-    )
-    thread.start()
-
+    _start_background_generation(job_id, master_list_path, template_path, job_dir, status_path)
     return {"job_id": job_id}
 
 
 @router.get("/generate-reports/{job_id}/status")
 async def report_status(job_id: str):
     """Poll this endpoint until status is 'complete' or 'failed'."""
-    with _jobs_lock:
-        job = _jobs.get(job_id)
-
+    job = _load_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found.")
 
@@ -198,10 +168,8 @@ async def report_status(job_id: str):
 
 @router.get("/generate-reports/{job_id}/download")
 async def report_download(job_id: str):
-    """Download the completed ZIP.  Cleans up temp file + job entry afterward."""
-    with _jobs_lock:
-        job = _jobs.get(job_id)
-
+    """Download the completed ZIP. Cleans up temp files afterward."""
+    job = _load_job(job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found.")
 
@@ -212,16 +180,13 @@ async def report_download(job_id: str):
     if not zip_path or not os.path.exists(zip_path):
         raise HTTPException(status_code=410, detail="ZIP file no longer available.")
 
-    # Build dynamic filename based on current quarter/year
     now = datetime.now()
     quarter = (now.month - 1) // 3 + 1
     year_short = now.strftime("%y")
     zip_filename = f"BBG_Usage_Reports_Q{quarter}_{year_short}.zip"
 
     def _cleanup():
-        _remove_tree(job["job_dir"])
-        with _jobs_lock:
-            _jobs.pop(job_id, None)
+        _remove_tree(_job_dir(job_id))
 
     return FileResponse(
         path=zip_path,

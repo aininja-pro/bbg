@@ -1,7 +1,6 @@
 """FastAPI application entry point for BBG Rebate Processing Tool."""
 import glob
 import os
-import shutil
 import tempfile
 from contextlib import asynccontextmanager
 
@@ -26,9 +25,6 @@ async def lifespan(app: FastAPI):
             os.unlink(path)
         except OSError:
             pass
-
-    for path in glob.glob(os.path.join(tempfile.gettempdir(), "bbg_usage_job_*")):
-        shutil.rmtree(path, ignore_errors=True)
 
     # Startup: Initialize database
     await init_db()

@@ -12,8 +12,11 @@ from app.routers import usage_reports
 from app.services.usage_report_generator import (
     MANIFEST_FILENAME,
     SHEET_PATH,
+    STATUS_FILENAME,
     WORKBOOK_PATH,
     generate_all_reports,
+    make_job_state,
+    write_job_state,
 )
 
 
@@ -47,10 +50,9 @@ def _create_template(path):
 
 
 @pytest.fixture(autouse=True)
-def clear_usage_jobs():
-    usage_reports._jobs.clear()
+def isolate_usage_jobs(tmp_path, monkeypatch):
+    monkeypatch.setattr(usage_reports.tempfile, "gettempdir", lambda: str(tmp_path))
     yield
-    usage_reports._jobs.clear()
 
 
 def test_generate_all_reports_batches_in_subprocesses(tmp_path):
@@ -105,35 +107,37 @@ def test_generate_reports_endpoint_keeps_job_api_and_streams_uploads_to_disk(mon
 
     captured = {}
 
-    def fake_generate_all_reports(master_list_path, template_path, job_dir, on_progress=None):
+    def fake_start_background_generation(job_id, master_list_path, template_path, job_dir, status_path):
         captured["master_list_path"] = master_list_path
         captured["template_path"] = template_path
         captured["job_dir"] = job_dir
+        captured["status_path"] = status_path
 
         with open(master_list_path, "rb") as master_file:
             captured["master_bytes"] = master_file.read()
         with open(template_path, "rb") as template_file:
             captured["template_bytes"] = template_file.read()
 
-        if on_progress:
-            on_progress(3)
-
         zip_path = os.path.join(job_dir, "reports.zip")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as archive:
             archive.writestr("dummy.txt", b"ok")
 
-        return {
-            "success": True,
-            "zip_path": zip_path,
-            "files_generated": 3,
-            "rows_skipped": 1,
-            "warnings": ["skipped one row"],
-        }
+        write_job_state(
+            status_path,
+            make_job_state(
+                status_value="complete",
+                zip_path=zip_path,
+                files_generated=3,
+                rows_skipped=1,
+                warnings=["skipped one row"],
+                error=None,
+            ),
+        )
 
     async def forbidden_read(self, *args, **kwargs):
         raise AssertionError("UploadFile.read() should not be called by the usage report endpoint")
 
-    monkeypatch.setattr(usage_reports, "generate_all_reports", fake_generate_all_reports)
+    monkeypatch.setattr(usage_reports, "_start_background_generation", fake_start_background_generation)
     monkeypatch.setattr(usage_reports.UploadFile, "read", forbidden_read)
 
     client = TestClient(app)
@@ -176,6 +180,7 @@ def test_generate_reports_endpoint_keeps_job_api_and_streams_uploads_to_disk(mon
     assert captured["template_bytes"] == b"template-bytes"
     assert captured["master_list_path"].endswith("master_list.xlsx")
     assert captured["template_path"].endswith("template.xlsm")
+    assert captured["status_path"].endswith(STATUS_FILENAME)
 
     download_response = client.get(f"/api/generate-reports/{job_id}/download")
     assert download_response.status_code == 200

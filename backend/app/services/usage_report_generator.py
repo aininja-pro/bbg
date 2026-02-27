@@ -6,8 +6,10 @@ including VBA macros, form control buttons, drawings, images, and formatting.
 Only the 3 target cells (B6, B7, C7) on the Usage-Reporting sheet are modified
 via direct string replacement — no XML parsing, zero risk of mangling the file.
 
-Memory-optimised: streams through the template ZIP entry-by-entry so only one
-decompressed entry is in RAM at a time.  The outer ZIP is written to a temp file.
+Memory-optimised for constrained environments (Render 2 GB).  All ZIP I/O is
+file-backed — Python's heap never holds more than one decompressed entry at a
+time, avoiding malloc fragmentation that would otherwise blow past 2 GB over
+700+ iterations.
 """
 
 import io
@@ -23,75 +25,73 @@ import openpyxl
 SHEET_PATH = "xl/worksheets/sheet2.xml"
 WORKBOOK_PATH = "xl/workbook.xml"
 
-# Exact XML strings for the 3 cells in the template (verified by inspection)
-B6_TEMPLATE = '<c r="B6" s="131"/>'
-B7_TEMPLATE = '<c r="B7" s="2" t="s"><v>44</v></c>'
-C7_TEMPLATE = '<c r="C7" s="2"/>'
+# Exact XML byte strings for the 3 cells in the template (verified by inspection).
+# Using bytes avoids a decode/encode round-trip on the large sheet XML.
+B6_TEMPLATE = b'<c r="B6" s="131"/>'
+B7_TEMPLATE = b'<c r="B7" s="2" t="s"><v>44</v></c>'
+C7_TEMPLATE = b'<c r="C7" s="2"/>'
+
+_CALC_PR_RE = re.compile(rb'<calcPr([^/]*)/>')
 
 
-def make_b6_xml(member_id):
-    """Build replacement XML for B6 with a numeric Member ID value."""
-    return f'<c r="B6" s="131"><v>{member_id}</v></c>'
+def _make_b6(member_id):
+    return f'<c r="B6" s="131"><v>{member_id}</v></c>'.encode()
 
 
-def make_b7_xml(builder_name):
-    """Build replacement XML for B7 with an inline string builder name."""
-    return f'<c r="B7" s="2" t="inlineStr"><is><t>{builder_name}</t></is></c>'
+def _make_b7(builder_name):
+    safe = escape(str(builder_name))
+    return f'<c r="B7" s="2" t="inlineStr"><is><t>{safe}</t></is></c>'.encode()
 
 
-def make_c7_xml(state):
-    """Build replacement XML for C7 with an inline string state value."""
-    return f'<c r="C7" s="2" t="inlineStr"><is><t>{state}</t></is></c>'
+def _make_c7(state):
+    safe = escape(str(state))
+    return f'<c r="C7" s="2" t="inlineStr"><is><t>{safe}</t></is></c>'.encode()
 
 
-def _build_report(template_bytes, member_id, builder_name, state):
-    """Build a single XLSM by streaming through the template ZIP.
+def _build_report_to_file(template_path, xlsm_path, member_id, builder_name, state):
+    """Build a single XLSM from the template on disk, write result to xlsm_path.
 
-    Reads one entry at a time from the template, optionally modifies it,
-    and writes it to the output.  Only one decompressed entry is in memory
-    at any point — total peak RAM is the size of the largest single entry.
+    All ZIP I/O is file-backed.  The only Python-heap allocations are individual
+    decompressed entries (one at a time) and the small replacement byte strings.
     """
-    safe_name = escape(str(builder_name))
-    safe_state = escape(str(state))
+    b6 = _make_b6(member_id)
+    b7 = _make_b7(builder_name)
+    c7 = _make_c7(state)
 
-    output_buffer = io.BytesIO()
-
-    with zipfile.ZipFile(io.BytesIO(template_bytes), "r") as zin:
-        with zipfile.ZipFile(output_buffer, "w", zipfile.ZIP_DEFLATED) as zout:
+    with zipfile.ZipFile(template_path, "r") as zin:
+        with zipfile.ZipFile(xlsm_path, "w", zipfile.ZIP_DEFLATED) as zout:
             for item in zin.infolist():
                 data = zin.read(item.filename)
 
                 if item.filename == SHEET_PATH:
-                    xml_str = data.decode("utf-8")
-                    del data
-                    xml_str = xml_str.replace(B6_TEMPLATE, make_b6_xml(member_id), 1)
-                    xml_str = xml_str.replace(B7_TEMPLATE, make_b7_xml(safe_name), 1)
-                    xml_str = xml_str.replace(C7_TEMPLATE, make_c7_xml(safe_state), 1)
-                    data = xml_str.encode("utf-8")
-                    del xml_str
+                    data = data.replace(B6_TEMPLATE, b6, 1)
+                    data = data.replace(B7_TEMPLATE, b7, 1)
+                    data = data.replace(C7_TEMPLATE, c7, 1)
                 elif item.filename == WORKBOOK_PATH:
-                    xml_str = data.decode("utf-8")
-                    del data
-                    xml_str = re.sub(
-                        r'<calcPr([^/]*)/>',
-                        r'<calcPr\1 fullCalcOnLoad="1"/>',
-                        xml_str,
-                        count=1,
-                    )
-                    data = xml_str.encode("utf-8")
-                    del xml_str
+                    data = _CALC_PR_RE.sub(rb'<calcPr\1 fullCalcOnLoad="1"/>', data, count=1)
 
                 zout.writestr(item, data)
                 del data
 
-    xlsm_bytes = output_buffer.getvalue()
-    output_buffer.close()
-    return xlsm_bytes
-
 
 def generate_single_report(template_bytes, member_id, builder_name, state):
     """Generate a single XLSM report (legacy interface for standalone use)."""
-    return _build_report(template_bytes, member_id, builder_name, state)
+    # Write template to a temp file for the file-backed path
+    tfd, tpath = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_tpl_")
+    ofd, opath = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_out_")
+    try:
+        os.write(tfd, template_bytes)
+        os.close(tfd)
+        os.close(ofd)
+        _build_report_to_file(tpath, opath, member_id, builder_name, state)
+        with open(opath, "rb") as f:
+            return f.read()
+    finally:
+        for p in (tpath, opath):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
 
 
 def parse_master_list(master_list_bytes):
@@ -146,21 +146,13 @@ def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
     Orchestrate full report generation: parse the master list, generate each
     report sequentially, and bundle everything into a single ZIP on disk.
 
-    Memory profile: only one builder's XLSM is in memory at a time (~1.5 MB).
-    The template ZIP (7.6 MB compressed) is re-read from a bytes buffer per
-    builder — fast since it's in-memory, and avoids caching 75-150 MB of
-    decompressed XML.
+    Memory profile: the template lives on disk as a temp file.  Each builder's
+    XLSM is written to a reusable temp file then copied into the outer ZIP.
+    Python's heap never holds more than one decompressed ZIP entry at a time.
 
     Args:
         on_progress: optional callback(files_generated: int) called after each
                      builder so the caller can report live progress.
-
-    Returns dict with:
-      - success: bool
-      - zip_path: str (path to temp ZIP file) or None on total failure
-      - files_generated: int
-      - rows_skipped: int
-      - warnings: list of strings
     """
     # Parse the master list then free the bytes
     builders, warnings = parse_master_list(master_list_bytes)
@@ -175,9 +167,19 @@ def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
             "warnings": warnings or ["No valid builder rows found in the Master Builder List."],
         }
 
-    # Create a temp file for the outer ZIP (avoids holding everything in RAM)
-    fd, zip_path = tempfile.mkstemp(suffix=".zip", prefix="bbg_reports_")
-    os.close(fd)
+    # Write template to a temp file so all ZIP reads are file-backed
+    tpl_fd, tpl_path = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_tpl_")
+    os.write(tpl_fd, template_bytes)
+    os.close(tpl_fd)
+    del template_bytes
+
+    # Reusable temp file for each inner XLSM
+    xlsm_fd, xlsm_path = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_xlsm_")
+    os.close(xlsm_fd)
+
+    # Outer ZIP written to disk
+    zip_fd, zip_path = tempfile.mkstemp(suffix=".zip", prefix="bbg_reports_")
+    os.close(zip_fd)
 
     try:
         files_generated = 0
@@ -185,15 +187,15 @@ def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zout:
             for builder in builders:
                 try:
-                    report_bytes = _build_report(
-                        template_bytes,
+                    _build_report_to_file(
+                        tpl_path,
+                        xlsm_path,
                         builder["member_id"],
                         builder["builder_name"],
                         builder["state"],
                     )
-                    filename = f"{builder['file_name']}.xlsm"
-                    zout.writestr(filename, report_bytes)
-                    del report_bytes
+                    # Add the file-backed XLSM to the outer ZIP (no Python bytes copy)
+                    zout.write(xlsm_path, arcname=f"{builder['file_name']}.xlsm")
                     files_generated += 1
 
                     if on_progress:
@@ -204,10 +206,16 @@ def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
                         f"Failed to generate report — {exc}"
                     )
     except Exception:
-        # Clean up temp file on failure
         if os.path.exists(zip_path):
             os.unlink(zip_path)
         raise
+    finally:
+        # Clean up working temp files
+        for p in (tpl_path, xlsm_path):
+            try:
+                os.unlink(p)
+            except OSError:
+                pass
 
     if files_generated == 0:
         os.unlink(zip_path)

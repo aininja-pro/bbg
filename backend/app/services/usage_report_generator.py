@@ -1,22 +1,27 @@
 """
 Generate per-builder Usage Report XLSM files from the Master Builder List.
 
-Uses a byte-copy + string replacement approach to preserve ALL template elements
-including VBA macros, form control buttons, drawings, images, and formatting.
-Only the 3 target cells (B6, B7, C7) on the Usage-Reporting sheet are modified
-via direct string replacement — no XML parsing, zero risk of mangling the file.
+The generation path is optimized for constrained environments:
+- uploads are parsed from disk
+- builder reports are created in short-lived subprocess batches
+- batch output is staged on disk and zipped incrementally
 
-Memory-optimised for constrained environments (Render 2 GB).  All ZIP I/O is
-file-backed — Python's heap never holds more than one decompressed entry at a
-time, avoiding malloc fragmentation that would otherwise blow past 2 GB over
-700+ iterations.
+That keeps the API server process from accumulating allocator fragmentation
+across hundreds of XLSM generations on Render's 2 GB instances.
 """
 
-import io
+from __future__ import annotations
+
+import argparse
+import json
 import os
 import re
+import shutil
+import subprocess
+import sys
 import tempfile
 import zipfile
+from typing import Callable
 from xml.sax.saxutils import escape
 
 import openpyxl
@@ -24,6 +29,8 @@ import openpyxl
 # The Usage-Reporting sheet is sheet2.xml in the ZIP
 SHEET_PATH = "xl/worksheets/sheet2.xml"
 WORKBOOK_PATH = "xl/workbook.xml"
+MANIFEST_FILENAME = "builders.json"
+FINAL_ZIP_FILENAME = "reports.zip"
 
 # Exact XML byte strings for the 3 cells in the template (verified by inspection).
 # Using bytes avoids a decode/encode round-trip on the large sheet XML.
@@ -32,6 +39,16 @@ B7_TEMPLATE = b'<c r="B7" s="2" t="s"><v>44</v></c>'
 C7_TEMPLATE = b'<c r="C7" s="2"/>'
 
 _CALC_PR_RE = re.compile(rb'<calcPr([^/]*)/>')
+
+
+def _get_default_batch_size() -> int:
+    try:
+        return max(1, int(os.getenv("USAGE_REPORT_BATCH_SIZE", "50")))
+    except ValueError:
+        return 50
+
+
+DEFAULT_BATCH_SIZE = _get_default_batch_size()
 
 
 def _make_b6(member_id):
@@ -49,11 +66,7 @@ def _make_c7(state):
 
 
 def _build_report_to_file(template_path, xlsm_path, member_id, builder_name, state):
-    """Build a single XLSM from the template on disk, write result to xlsm_path.
-
-    All ZIP I/O is file-backed.  The only Python-heap allocations are individual
-    decompressed entries (one at a time) and the small replacement byte strings.
-    """
+    """Build a single XLSM from the template on disk, write result to xlsm_path."""
     b6 = _make_b6(member_id)
     b7 = _make_b7(builder_name)
     c7 = _make_c7(state)
@@ -71,12 +84,10 @@ def _build_report_to_file(template_path, xlsm_path, member_id, builder_name, sta
                     data = _CALC_PR_RE.sub(rb'<calcPr\1 fullCalcOnLoad="1"/>', data, count=1)
 
                 zout.writestr(item, data)
-                del data
 
 
 def generate_single_report(template_bytes, member_id, builder_name, state):
     """Generate a single XLSM report (legacy interface for standalone use)."""
-    # Write template to a temp file for the file-backed path
     tfd, tpath = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_tpl_")
     ofd, opath = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_out_")
     try:
@@ -84,32 +95,32 @@ def generate_single_report(template_bytes, member_id, builder_name, state):
         os.close(tfd)
         os.close(ofd)
         _build_report_to_file(tpath, opath, member_id, builder_name, state)
-        with open(opath, "rb") as f:
-            return f.read()
+        with open(opath, "rb") as generated_file:
+            return generated_file.read()
     finally:
-        for p in (tpath, opath):
+        for path in (tpath, opath):
             try:
-                os.unlink(p)
+                os.unlink(path)
             except OSError:
                 pass
 
 
-def parse_master_list(master_list_bytes):
+def parse_master_list(master_list_path):
     """
-    Parse the Master Builder List XLSX and return validated builder rows.
+    Parse the Master Builder List XLSX on disk and return validated builder rows.
 
     Returns (builders, warnings) where:
       - builders: list of dicts with member_id, builder_name, state, file_name
       - warnings: list of human-readable warning strings for skipped rows
     """
-    wb = openpyxl.load_workbook(io.BytesIO(master_list_bytes), data_only=True)
+    wb = openpyxl.load_workbook(master_list_path, data_only=True, read_only=True)
     ws = wb.active
 
     builders = []
     warnings = []
 
     for row_num, row in enumerate(ws.iter_rows(min_row=2, max_col=6, values_only=True), start=2):
-        member_id, builder_name, state, name, tm, file_name = row
+        member_id, builder_name, state, _name, _tm, file_name = row
 
         # Skip completely empty rows
         if member_id is None and builder_name is None:
@@ -127,7 +138,7 @@ def parse_master_list(master_list_bytes):
             missing.append("File Name")
 
         if missing:
-            warnings.append(f"Row {row_num}: Skipped — missing {', '.join(missing)}")
+            warnings.append(f"Row {row_num}: Skipped - missing {', '.join(missing)}")
             continue
 
         builders.append({
@@ -141,23 +152,125 @@ def parse_master_list(master_list_bytes):
     return builders, warnings
 
 
-def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
+def _write_json(path: str, payload) -> None:
+    with open(path, "w", encoding="utf-8") as json_file:
+        json.dump(payload, json_file)
+
+
+def _read_json(path: str):
+    with open(path, "r", encoding="utf-8") as json_file:
+        return json.load(json_file)
+
+
+def _load_builders_slice(manifest_path: str, start: int, end: int):
+    builders = _read_json(manifest_path)
+    return builders[start:end]
+
+
+def _batch_result_path(job_dir: str, batch_index: int) -> str:
+    return os.path.join(job_dir, f"batch_{batch_index:04d}.json")
+
+
+def _batch_output_dir(job_dir: str, batch_index: int) -> str:
+    return os.path.join(job_dir, f"batch_{batch_index:04d}")
+
+
+def _run_batch_subprocess(
+    template_path: str,
+    manifest_path: str,
+    output_dir: str,
+    result_path: str,
+    start: int,
+    end: int,
+) -> dict:
+    command = [
+        sys.executable,
+        os.path.abspath(__file__),
+        "batch",
+        "--template",
+        template_path,
+        "--manifest",
+        manifest_path,
+        "--output-dir",
+        output_dir,
+        "--result-path",
+        result_path,
+        "--start",
+        str(start),
+        "--end",
+        str(end),
+    ]
+
+    try:
+        subprocess.run(command, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        stderr = (exc.stderr or "").strip()
+        stdout = (exc.stdout or "").strip()
+        message = stderr or stdout or f"batch exited with code {exc.returncode}"
+        raise RuntimeError(message) from exc
+
+    if not os.path.exists(result_path):
+        raise RuntimeError("batch completed without a result file")
+
+    return _read_json(result_path)
+
+
+def _write_batch_reports(
+    template_path: str,
+    manifest_path: str,
+    output_dir: str,
+    start: int,
+    end: int,
+) -> dict:
+    os.makedirs(output_dir, exist_ok=True)
+    builders = _load_builders_slice(manifest_path, start, end)
+
+    warnings = []
+    generated_files = []
+
+    for builder in builders:
+        output_name = f"{builder['file_name']}.xlsm"
+        output_path = os.path.join(output_dir, output_name)
+
+        try:
+            _build_report_to_file(
+                template_path,
+                output_path,
+                builder["member_id"],
+                builder["builder_name"],
+                builder["state"],
+            )
+            generated_files.append(output_name)
+        except Exception as exc:
+            warnings.append(
+                f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
+                f"Failed to generate report - {exc}"
+            )
+
+    return {
+        "files_generated": len(generated_files),
+        "generated_files": generated_files,
+        "warnings": warnings,
+    }
+
+
+def generate_all_reports(
+    master_list_path: str,
+    template_path: str,
+    job_dir: str,
+    on_progress: Callable[[int], None] | None = None,
+    batch_size: int | None = None,
+):
     """
-    Orchestrate full report generation: parse the master list, generate each
-    report sequentially, and bundle everything into a single ZIP on disk.
+    Orchestrate full report generation from disk-backed inputs.
 
-    Memory profile: the template lives on disk as a temp file.  Each builder's
-    XLSM is written to a reusable temp file then copied into the outer ZIP.
-    Python's heap never holds more than one decompressed ZIP entry at a time.
-
-    Args:
-        on_progress: optional callback(files_generated: int) called after each
-                     builder so the caller can report live progress.
+    Each batch runs in a short-lived subprocess and writes its XLSMs into a
+    batch directory. The parent process then streams those files into the final
+    ZIP and deletes the batch directory before launching the next subprocess.
     """
-    # Parse the master list then free the bytes
-    builders, warnings = parse_master_list(master_list_bytes)
-    del master_list_bytes
+    os.makedirs(job_dir, exist_ok=True)
 
+    builders, warnings = parse_master_list(master_list_path)
     if not builders:
         return {
             "success": False,
@@ -167,55 +280,56 @@ def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
             "warnings": warnings or ["No valid builder rows found in the Master Builder List."],
         }
 
-    # Write template to a temp file so all ZIP reads are file-backed
-    tpl_fd, tpl_path = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_tpl_")
-    os.write(tpl_fd, template_bytes)
-    os.close(tpl_fd)
-    del template_bytes
+    manifest_path = os.path.join(job_dir, MANIFEST_FILENAME)
+    _write_json(manifest_path, builders)
 
-    # Reusable temp file for each inner XLSM
-    xlsm_fd, xlsm_path = tempfile.mkstemp(suffix=".xlsm", prefix="bbg_xlsm_")
-    os.close(xlsm_fd)
-
-    # Outer ZIP written to disk
-    zip_fd, zip_path = tempfile.mkstemp(suffix=".zip", prefix="bbg_reports_")
-    os.close(zip_fd)
+    zip_path = os.path.join(job_dir, FINAL_ZIP_FILENAME)
+    effective_batch_size = max(1, batch_size or DEFAULT_BATCH_SIZE)
+    files_generated = 0
 
     try:
-        files_generated = 0
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as batch_archive:
+            for batch_index, start in enumerate(range(0, len(builders), effective_batch_size)):
+                end = min(start + effective_batch_size, len(builders))
+                output_dir = _batch_output_dir(job_dir, batch_index)
+                result_path = _batch_result_path(job_dir, batch_index)
 
-        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_STORED) as zout:
-            for builder in builders:
                 try:
-                    _build_report_to_file(
-                        tpl_path,
-                        xlsm_path,
-                        builder["member_id"],
-                        builder["builder_name"],
-                        builder["state"],
+                    batch_result = _run_batch_subprocess(
+                        template_path=template_path,
+                        manifest_path=manifest_path,
+                        output_dir=output_dir,
+                        result_path=result_path,
+                        start=start,
+                        end=end,
                     )
-                    # Add the file-backed XLSM to the outer ZIP (no Python bytes copy)
-                    zout.write(xlsm_path, arcname=f"{builder['file_name']}.xlsm")
-                    files_generated += 1
+                finally:
+                    try:
+                        os.unlink(result_path)
+                    except OSError:
+                        pass
 
-                    if on_progress:
-                        on_progress(files_generated)
-                except Exception as exc:
-                    warnings.append(
-                        f"Row for '{builder['builder_name']}' (ID {builder['member_id']}): "
-                        f"Failed to generate report — {exc}"
-                    )
+                warnings.extend(batch_result["warnings"])
+
+                for output_name in batch_result["generated_files"]:
+                    output_path = os.path.join(output_dir, output_name)
+                    if os.path.exists(output_path):
+                        batch_archive.write(output_path, arcname=output_name)
+
+                files_generated += batch_result["files_generated"]
+                if on_progress:
+                    on_progress(files_generated)
+
+                shutil.rmtree(output_dir, ignore_errors=True)
     except Exception:
         if os.path.exists(zip_path):
             os.unlink(zip_path)
         raise
     finally:
-        # Clean up working temp files
-        for p in (tpl_path, xlsm_path):
-            try:
-                os.unlink(p)
-            except OSError:
-                pass
+        try:
+            os.unlink(manifest_path)
+        except OSError:
+            pass
 
     if files_generated == 0:
         os.unlink(zip_path)
@@ -228,3 +342,39 @@ def generate_all_reports(master_list_bytes, template_bytes, on_progress=None):
         "rows_skipped": len(warnings),
         "warnings": warnings,
     }
+
+
+def _parse_args(argv: list[str]):
+    parser = argparse.ArgumentParser(description="Usage report batch worker")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    batch_parser = subparsers.add_parser("batch", help="Generate one batch of XLSM files")
+    batch_parser.add_argument("--template", required=True)
+    batch_parser.add_argument("--manifest", required=True)
+    batch_parser.add_argument("--output-dir", required=True)
+    batch_parser.add_argument("--result-path", required=True)
+    batch_parser.add_argument("--start", required=True, type=int)
+    batch_parser.add_argument("--end", required=True, type=int)
+
+    return parser.parse_args(argv)
+
+
+def _run_cli(argv: list[str]) -> int:
+    args = _parse_args(argv)
+
+    if args.command == "batch":
+        result = _write_batch_reports(
+            template_path=args.template,
+            manifest_path=args.manifest,
+            output_dir=args.output_dir,
+            start=args.start,
+            end=args.end,
+        )
+        _write_json(args.result_path, result)
+        return 0
+
+    raise ValueError(f"Unsupported command: {args.command}")
+
+
+if __name__ == "__main__":
+    sys.exit(_run_cli(sys.argv[1:]))

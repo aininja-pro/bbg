@@ -6,10 +6,11 @@ from GET /download/{job_id}.  This avoids Render's request-timeout limit.
 """
 
 import os
+import shutil
 import threading
+import tempfile
 import uuid
 from datetime import datetime
-from functools import partial
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, status
 from fastapi.responses import FileResponse
@@ -27,14 +28,39 @@ _jobs: dict = {}
 _jobs_lock = threading.Lock()
 
 
-def _run_generation(job_id: str, master_list_bytes: bytes, template_bytes: bytes):
+def _remove_path(path: str | None) -> None:
+    if not path:
+        return
+
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+def _remove_tree(path: str | None) -> None:
+    if path:
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def _copy_upload_to_path(upload: UploadFile, destination_path: str) -> None:
+    with open(destination_path, "wb") as destination:
+        shutil.copyfileobj(upload.file, destination, length=1024 * 1024)
+
+
+def _run_generation(job_id: str, master_list_path: str, template_path: str, job_dir: str):
     """Run report generation in a background thread and update the job store."""
     def _on_progress(files_generated):
         with _jobs_lock:
             _jobs[job_id]["files_generated"] = files_generated
 
     try:
-        result = generate_all_reports(master_list_bytes, template_bytes, on_progress=_on_progress)
+        result = generate_all_reports(
+            master_list_path=master_list_path,
+            template_path=template_path,
+            job_dir=job_dir,
+            on_progress=_on_progress,
+        )
 
         with _jobs_lock:
             _jobs[job_id].update({
@@ -46,11 +72,23 @@ def _run_generation(job_id: str, master_list_bytes: bytes, template_bytes: bytes
                 "error": result["warnings"][0] if not result["success"] and result["warnings"] else None,
             })
     except Exception as exc:
+        _remove_path(os.path.join(job_dir, "reports.zip"))
+        _remove_tree(job_dir)
         with _jobs_lock:
             _jobs[job_id].update({
                 "status": "failed",
                 "error": str(exc),
+                "zip_path": None,
             })
+    else:
+        _remove_path(master_list_path)
+        _remove_path(template_path)
+
+        with _jobs_lock:
+            status_value = _jobs[job_id]["status"]
+
+        if status_value != "complete":
+            _remove_tree(job_dir)
 
 
 @router.post("/generate-reports")
@@ -76,16 +114,27 @@ async def generate_reports(
             detail="Template must be an .xlsm file.",
         )
 
-    # Read both files into memory
-    master_list_bytes = await master_list.read()
-    template_bytes = await template.read()
-
     # Create job and kick off background thread
     job_id = str(uuid.uuid4())
+    job_dir = tempfile.mkdtemp(prefix=f"bbg_usage_job_{job_id}_")
+    master_list_path = os.path.join(job_dir, "master_list.xlsx")
+    template_path = os.path.join(job_dir, "template.xlsm")
+
+    try:
+        _copy_upload_to_path(master_list, master_list_path)
+        _copy_upload_to_path(template, template_path)
+    except Exception:
+        _remove_tree(job_dir)
+        raise
+    finally:
+        await master_list.close()
+        await template.close()
+
     with _jobs_lock:
         _jobs[job_id] = {
             "status": "processing",
             "zip_path": None,
+            "job_dir": job_dir,
             "files_generated": 0,
             "rows_skipped": 0,
             "warnings": [],
@@ -94,7 +143,7 @@ async def generate_reports(
 
     thread = threading.Thread(
         target=_run_generation,
-        args=(job_id, master_list_bytes, template_bytes),
+        args=(job_id, master_list_path, template_path, job_dir),
         daemon=True,
     )
     thread.start()
@@ -143,10 +192,7 @@ async def report_download(job_id: str):
     zip_filename = f"BBG_Usage_Reports_Q{quarter}_{year_short}.zip"
 
     def _cleanup():
-        try:
-            os.unlink(zip_path)
-        except OSError:
-            pass
+        _remove_tree(job["job_dir"])
         with _jobs_lock:
             _jobs.pop(job_id, None)
 

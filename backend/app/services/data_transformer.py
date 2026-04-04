@@ -327,6 +327,7 @@ class DataTransformer:
             'postal code': 'zip_postal',
             'multi-unit/comm': 'address_type',
             'multi-unit': 'address_type',
+            'single family/multi-unit': 'address_type',
             'qty': 'quantity',
             'quantity': 'quantity',
         }

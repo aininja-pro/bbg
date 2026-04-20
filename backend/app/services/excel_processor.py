@@ -1,21 +1,23 @@
 """Excel file processing service for BBG rebate files."""
 from typing import Optional, Dict, Any, List, Tuple
 from pathlib import Path
-from datetime import datetime
 import openpyxl
-from openpyxl.worksheet.worksheet import Worksheet
 
 from app.utils.exceptions import ExcelProcessingError
 
 
 class ExcelProcessor:
-    """Processes BBG rebate Excel files (.xlsm)."""
+    """Processes BBG rebate Excel files (.xlsm) in streaming (read-only) mode."""
 
     # Keywords to detect header row
     HEADER_KEYWORDS = [
         "date", "job code", "job name", "address", "city",
         "state", "zip", "postal", "product", "qty", "quantity"
     ]
+
+    # Number of leading rows to cache for random-access parsing (metadata,
+    # header detection, active-product identification).
+    _TOP_ROW_CACHE_SIZE = 30
 
     def __init__(self, file_path: str):
         """Initialize processor with file path.
@@ -25,10 +27,16 @@ class ExcelProcessor:
         """
         self.file_path = Path(file_path)
         self.workbook: Optional[openpyxl.Workbook] = None
-        self.reformatter_sheet: Optional[Worksheet] = None
-        self.programs_products_sheet: Optional[Worksheet] = None
+        self.reformatter_sheet_name: Optional[str] = None
+        self.programs_products_sheet_name: Optional[str] = None
         self.metadata: Dict[str, Any] = {}
-        self.file_products: Dict[str, Dict[str, Any]] = {}  # Product lookup from this file
+        self.file_products: Dict[str, Dict[str, Any]] = {}
+        self.headers: List[Any] = []  # Header row values, for data_transformer
+
+        # Cache of first N rows of Usage-Reporting sheet (as tuples of values).
+        # Populated by find_usage_reporting_sheet. Enables random-access parsing
+        # of metadata / header / product rows without leaving streaming mode.
+        self._top_rows: List[Tuple] = []
 
     def open_file(self) -> None:
         """Open the Excel file and validate it exists."""
@@ -36,33 +44,66 @@ class ExcelProcessor:
             raise ExcelProcessingError(f"File not found: {self.file_path}")
 
         if not self.file_path.suffix.lower() in ['.xlsm', '.xlsx']:
-            raise ExcelProcessingError(f"Invalid file type: {self.file_path.suffix}. Expected .xlsm or .xlsx")
+            raise ExcelProcessingError(
+                f"Invalid file type: {self.file_path.suffix}. Expected .xlsm or .xlsx"
+            )
 
         try:
-            # Load workbook with data_only=True to get calculated values
+            # read_only=True streams rows instead of materializing a Python Cell
+            # object for every cell in the sheet's used range. Essential for
+            # files whose used range is inflated (e.g. formatting extending to
+            # Excel's 1,048,576-row limit) -- those would otherwise consume
+            # hundreds of MB to GB at open time.
             self.workbook = openpyxl.load_workbook(
                 self.file_path,
                 data_only=True,
-                read_only=False
+                read_only=True,
             )
         except Exception as e:
             raise ExcelProcessingError(f"Failed to open Excel file: {str(e)}")
 
+    @property
+    def reformatter_sheet(self):
+        """The Usage-Reporting sheet (read-only, for streaming iteration)."""
+        if not self.workbook or not self.reformatter_sheet_name:
+            return None
+        return self.workbook[self.reformatter_sheet_name]
+
+    @property
+    def programs_products_sheet(self):
+        """The Programs-Products sheet (read-only), if found."""
+        if not self.workbook or not self.programs_products_sheet_name:
+            return None
+        return self.workbook[self.programs_products_sheet_name]
+
     def find_usage_reporting_sheet(self) -> None:
-        """Locate the 'Usage-Reporting' sheet with the actual data."""
+        """Locate the 'Usage-Reporting' sheet and cache its top rows."""
         if not self.workbook:
             raise ExcelProcessingError("Workbook not loaded. Call open_file() first.")
 
-        # Try to find Usage-Reporting sheet (case-insensitive)
         for sheet_name in self.workbook.sheetnames:
             sheet_lower = sheet_name.lower()
             if 'usage' in sheet_lower and 'report' in sheet_lower:
-                self.reformatter_sheet = self.workbook[sheet_name]
+                self.reformatter_sheet_name = sheet_name
+                ws = self.workbook[sheet_name]
+                self._top_rows = list(
+                    ws.iter_rows(max_row=self._TOP_ROW_CACHE_SIZE, values_only=True)
+                )
                 return
 
         raise ExcelProcessingError(
-            "Usage-Reporting sheet not found. Expected a sheet with 'usage' and 'report' in the name."
+            "Usage-Reporting sheet not found. Expected a sheet with "
+            "'usage' and 'report' in the name."
         )
+
+    def _get_cell(self, row: int, col: int) -> Any:
+        """Get a cell's value from the cached top rows (1-indexed)."""
+        if row < 1 or row > len(self._top_rows):
+            return None
+        row_tuple = self._top_rows[row - 1]
+        if col < 1 or col > len(row_tuple):
+            return None
+        return row_tuple[col - 1]
 
     def extract_metadata(self) -> Dict[str, str]:
         """Extract metadata from cells B6 (bbg_member_id) and B7 (member_name).
@@ -74,27 +115,23 @@ class ExcelProcessor:
         Returns:
             Dictionary with bbg_member_id and member_name (ID may be None for old format)
         """
-        if not self.reformatter_sheet:
+        if not self._top_rows:
             raise ExcelProcessingError("Usage-Reporting sheet not loaded.")
 
-        # Extract B6 and B7
-        bbg_member_id = self.reformatter_sheet['B6'].value
-        member_name = self.reformatter_sheet['B7'].value
+        bbg_member_id = self._get_cell(6, 2)  # B6
+        member_name = self._get_cell(7, 2)    # B7
 
-        # Validate member name exists (required in both formats)
         if not member_name:
             raise ExcelProcessingError("Cell B7 (Member Name) is empty")
 
-        # Handle OLD format: B6 is blank, need to lookup ID by name later
         if not bbg_member_id:
-            # Old format - store as None, will be looked up during enrichment
+            # Old format - ID will be looked up by name during enrichment.
             self.metadata = {
                 'bbg_member_id': None,
                 'member_name': str(member_name).strip(),
-                'format': 'OLD'  # Flag for old format
+                'format': 'OLD'
             }
         else:
-            # New format - has ID in B6
             self.metadata = {
                 'bbg_member_id': str(bbg_member_id).strip(),
                 'member_name': str(member_name).strip(),
@@ -112,24 +149,23 @@ class ExcelProcessor:
         Returns:
             Row number (1-indexed) where headers are found
         """
-        if not self.reformatter_sheet:
+        if not self._top_rows:
             raise ExcelProcessingError("Reformatter sheet not loaded.")
 
-        # Search first N rows for header keywords
-        for row_num in range(1, max_rows + 1):
-            row_values = []
-            for cell in self.reformatter_sheet[row_num]:
-                if cell.value:
-                    row_values.append(str(cell.value).lower())
+        limit = min(max_rows, len(self._top_rows))
+        for row_num in range(1, limit + 1):
+            row = self._top_rows[row_num - 1]
+            row_values = [str(v).lower() for v in row if v is not None and v != '']
 
-            # Check if this row contains header keywords
             matches = sum(
                 1 for keyword in self.HEADER_KEYWORDS
                 if any(keyword in val for val in row_values)
             )
 
-            # If we find at least 3 keyword matches, assume this is the header row
             if matches >= 3:
+                # Cache header values so the transformer doesn't need random
+                # cell access on the (streaming-only) worksheet.
+                self.headers = list(row)
                 return row_num
 
         raise ExcelProcessingError(
@@ -146,33 +182,29 @@ class ExcelProcessor:
         Returns:
             Dictionary mapping column index to dict with product_id and distributor
         """
-        if not self.reformatter_sheet:
+        if not self._top_rows:
             raise ExcelProcessingError("Usage-Reporting sheet not loaded.")
 
-        active_products = {}
+        active_products: Dict[int, Dict[str, str]] = {}
 
-        # Row 2 indicates active products (value = 1)
-        # Row 5 contains distributor/subcontractor names
-        # Row 7 contains product IDs
-        row_2 = self.reformatter_sheet[2]
-        row_5 = self.reformatter_sheet[5]
-        row_7 = self.reformatter_sheet[7]
+        # Row 2 = active flags, row 5 = distributor names, row 7 = product IDs.
+        row_2 = self._top_rows[1] if len(self._top_rows) > 1 else ()
+        row_5 = self._top_rows[4] if len(self._top_rows) > 4 else ()
+        row_7 = self._top_rows[6] if len(self._top_rows) > 6 else ()
 
-        # Iterate through all columns
-        max_col = self.reformatter_sheet.max_column
+        max_col = max(len(row_2), len(row_5), len(row_7))
         for col_idx in range(1, max_col + 1):
-            active_flag = row_2[col_idx - 1].value if col_idx <= len(row_2) else None
-            distributor = row_5[col_idx - 1].value if col_idx <= len(row_5) else None
-            product_id = row_7[col_idx - 1].value if col_idx <= len(row_7) else None
+            active_flag = row_2[col_idx - 1] if col_idx <= len(row_2) else None
+            distributor = row_5[col_idx - 1] if col_idx <= len(row_5) else None
+            product_id = row_7[col_idx - 1] if col_idx <= len(row_7) else None
 
-            # Check if this column is active (Row 2 = 1 or "1") AND has a product ID in Row 7
-            # Handle both numeric 1 and string "1"
-            is_active = (active_flag == 1 or
-                        active_flag == 1.0 or
-                        str(active_flag).strip() == '1')
+            is_active = (
+                active_flag == 1
+                or active_flag == 1.0
+                or str(active_flag).strip() == '1'
+            )
 
             if is_active and product_id:
-                # Validate it's a real product ID (numeric)
                 try:
                     if isinstance(product_id, (int, float)):
                         pid_str = str(int(product_id))
@@ -181,17 +213,17 @@ class ExcelProcessor:
                     else:
                         continue  # Skip non-numeric product IDs
 
-                    # Store product info with distributor
                     active_products[col_idx] = {
                         'product_id': pid_str,
                         'distributor': str(distributor).strip() if distributor else None
                     }
-                except:
+                except Exception:
                     pass  # Skip invalid entries
 
         if not active_products:
             raise ExcelProcessingError(
-                "No active products found. Expected Row 2 = 1 for active columns and numeric product IDs in Row 7."
+                "No active products found. Expected Row 2 = 1 for active columns "
+                "and numeric product IDs in Row 7."
             )
 
         return active_products
@@ -205,44 +237,41 @@ class ExcelProcessor:
         if not self.workbook:
             raise ExcelProcessingError("Workbook not loaded.")
 
-        # Find Programs-Products sheet
         programs_sheet = None
         for sheet_name in self.workbook.sheetnames:
             if 'program' in sheet_name.lower() and 'product' in sheet_name.lower():
+                self.programs_products_sheet_name = sheet_name
                 programs_sheet = self.workbook[sheet_name]
                 break
 
         if not programs_sheet:
-            # If no Programs-Products sheet, return empty dict
             return {}
 
-        self.programs_products_sheet = programs_sheet
-        products = {}
+        products: Dict[str, Dict[str, Any]] = {}
 
-        # Read using cell references directly (more reliable than iter_rows)
-        # Row 1 = headers, Row 2+ = data
-        max_row = programs_sheet.max_row
+        # Stream rows; row 1 = headers, row 2+ = data.
+        # Columns: A (program), B (product_id), C (product_name), D (proof_point).
+        for row_idx, row in enumerate(programs_sheet.iter_rows(values_only=True), start=1):
+            if row_idx == 1:
+                continue
 
-        for row_num in range(2, max_row + 1):  # Start at row 2 (skip headers)
-            program = programs_sheet.cell(row_num, 1).value  # Column A
-            product_id = programs_sheet.cell(row_num, 2).value  # Column B
-            product_name = programs_sheet.cell(row_num, 3).value  # Column C
-            proof_point = programs_sheet.cell(row_num, 4).value  # Column D
+            program = row[0] if len(row) > 0 else None
+            product_id = row[1] if len(row) > 1 else None
+            product_name = row[2] if len(row) > 2 else None
+            proof_point = row[3] if len(row) > 3 else None
 
             # Skip empty rows
             if not product_id or not product_name:
                 continue
 
-            # Skip header rows that might be repeated (Program="Product ID" is a header)
-            if str(program).strip() == 'Product ID' or str(program).strip() == 'Program':
+            # Skip repeated header rows
+            if str(program).strip() in ('Product ID', 'Program'):
                 continue
 
-            # Convert product_id to string
             if isinstance(product_id, (int, float)):
                 product_id_str = str(int(product_id))
             else:
                 product_id_str = str(product_id).strip()
-
 
             products[product_id_str] = {
                 'program_name': str(program).strip() if program else None,
@@ -254,14 +283,7 @@ class ExcelProcessor:
         return products
 
     def get_column_letter(self, col_idx: int) -> str:
-        """Convert column index to Excel column letter (e.g., 1 -> A, 27 -> AA).
-
-        Args:
-            col_idx: Column index (1-indexed)
-
-        Returns:
-            Excel column letter
-        """
+        """Convert column index to Excel column letter (e.g., 1 -> A, 27 -> AA)."""
         return openpyxl.utils.get_column_letter(col_idx)
 
     def close(self) -> None:
@@ -269,12 +291,12 @@ class ExcelProcessor:
         if self.workbook:
             self.workbook.close()
             self.workbook = None
-            self.reformatter_sheet = None
+            self.reformatter_sheet_name = None
+            self.programs_products_sheet_name = None
+            self._top_rows = []
 
     def __enter__(self):
-        """Context manager entry."""
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit - cleanup."""
         self.close()

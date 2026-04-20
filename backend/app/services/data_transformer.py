@@ -64,9 +64,15 @@ class DataTransformer:
         data = []
         headers = []
 
-        # Extract headers
-        for cell in sheet[header_row]:
-            headers.append(cell.value if cell.value else f"Column_{cell.column}")
+        # Extract headers via streaming iter_rows (read_only-compatible).
+        header_values = next(
+            sheet.iter_rows(min_row=header_row, max_row=header_row, values_only=True),
+            None,
+        )
+        if header_values is None:
+            raise TransformationError(f"Header row {header_row} not found in sheet")
+        for col_idx, value in enumerate(header_values, start=1):
+            headers.append(value if value else f"Column_{col_idx}")
 
         # Infer names for blank headers in base columns (A–G only).
         # Product columns beyond G are handled by active_products detection.
@@ -91,12 +97,19 @@ class DataTransformer:
                     'message': f"Column {col_letter} has a blank header{inferred_suffix}"
                 })
 
-        # Extract data rows (starting after header)
+        # Extract data rows (starting after header).
+        # Early-exit after a run of consecutive blank rows protects against
+        # files whose sheet range is inflated down to Excel's 1,048,576-row
+        # limit (common when formatting is applied to entire columns).
+        BLANK_ROW_EXIT_THRESHOLD = 200
+        consecutive_blank = 0
         for row in sheet.iter_rows(min_row=header_row + 1, values_only=True):
-            # Skip empty rows
             if all(cell is None or cell == '' for cell in row):
+                consecutive_blank += 1
+                if consecutive_blank >= BLANK_ROW_EXIT_THRESHOLD:
+                    break
                 continue
-
+            consecutive_blank = 0
             data.append(row)
 
         if not data:

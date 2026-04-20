@@ -6,11 +6,13 @@ import zipfile
 import gc
 import base64
 import time
+from asyncio import Semaphore
 from typing import List
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status, Query
 from fastapi.responses import FileResponse, StreamingResponse, Response
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.background import BackgroundTask
 import io
 import pandas as pd
 
@@ -22,6 +24,19 @@ from app.schemas.processed_file import ProcessedFileCreate, ProcessedFileRespons
 from app.models.processed_file import ProcessedFile
 
 router = APIRouter(prefix="/api", tags=["File Processing"])
+
+
+def _safe_unlink(path: str) -> None:
+    try:
+        if path and os.path.exists(path):
+            os.unlink(path)
+    except Exception:
+        pass
+
+
+# Guards against two heavy batch runs racing and doubling RAM pressure on the
+# 2 GB Render instance. One batch in flight at a time; additional callers queue.
+_batch_semaphore = Semaphore(1)
 
 
 @router.post("/upload")
@@ -185,6 +200,11 @@ async def batch_process(
     Returns:
         ZIP file with individual CSVs OR single merged CSV
     """
+    async with _batch_semaphore:
+        return await _batch_process_impl(files, output_mode, db)
+
+
+async def _batch_process_impl(files, output_mode, db):
     if not files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -210,72 +230,63 @@ async def batch_process(
 
     try:
         if output_mode == "merged":
-            # Memory-efficient merged mode: process and concatenate one at a time
-            merged_chunks = []
+            # Memory-efficient merged mode: stream each file's CSV to a disk tempfile
+            # instead of holding all DataFrames in memory before concatenation.
             successful_count = 0
 
-            for file in files:
-                # Save temp file
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
-                    temp_path = temp_file.name
-                    temp_files.append(temp_path)
-                    content = await file.read()
-                    temp_file.write(content)
+            merged_csv = tempfile.NamedTemporaryFile(
+                mode='w', suffix='.csv', delete=False, newline='', encoding='utf-8'
+            )
+            merged_csv_path = merged_csv.name
+            temp_files.append(merged_csv_path)
+            first = True
 
-                # Process file - disable preview to reduce memory
-                pipeline = ProcessingPipeline(db)
-                result = await pipeline.process_file(temp_path, include_preview=False)
+            try:
+                for file in files:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                        temp_path = temp_file.name
+                        temp_files.append(temp_path)
+                        content = await file.read()
+                        temp_file.write(content)
 
-                if result['success']:
-                    df = pipeline.get_dataframe()
-                    merged_chunks.append(df)
-                    successful_count += 1
+                    pipeline = ProcessingPipeline(db)
+                    result = await pipeline.process_file(temp_path, include_preview=False)
 
-                # Force cleanup of pipeline and temp variables
-                del pipeline
-                if 'df' in locals():
-                    del df
-                gc.collect()
+                    if result['success']:
+                        df = pipeline.get_dataframe()
+                        df.to_csv(merged_csv, index=False, header=first)
+                        first = False
+                        successful_count += 1
+                        del df
 
-                # Delete temp file immediately after processing
-                if temp_path and os.path.exists(temp_path):
-                    try:
-                        os.unlink(temp_path)
-                        temp_files.remove(temp_path)
-                    except:
-                        pass
+                    del pipeline
+                    gc.collect()
 
-            if not merged_chunks:
+                    if temp_path and os.path.exists(temp_path):
+                        try:
+                            os.unlink(temp_path)
+                            temp_files.remove(temp_path)
+                        except:
+                            pass
+            finally:
+                merged_csv.close()
+
+            if successful_count == 0:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="No files were successfully processed"
                 )
 
-            # Concatenate all chunks
-            merged_df = pd.concat(merged_chunks, ignore_index=True)
-
-            # Clear chunks from memory
-            del merged_chunks
-            gc.collect()
-
-            # Create CSV
-            csv_buffer = io.StringIO()
-            merged_df.to_csv(csv_buffer, index=False)
-            csv_buffer.seek(0)
-
             timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
             filename = f"Batch_Merged_{successful_count}_files_{timestamp}.csv"
 
-            # Clear merged_df from memory before returning
-            del merged_df
-            gc.collect()
-
-            return StreamingResponse(
-                iter([csv_buffer.getvalue()]),
+            # Remove from temp_files so finally-block doesn't delete it before send.
+            temp_files.remove(merged_csv_path)
+            return FileResponse(
+                merged_csv_path,
                 media_type="text/csv",
-                headers={
-                    "Content-Disposition": f"attachment; filename={filename}"
-                }
+                filename=filename,
+                background=BackgroundTask(_safe_unlink, merged_csv_path),
             )
 
         else:  # output_mode == "zip" - MEMORY OPTIMIZED
@@ -507,6 +518,11 @@ async def batch_process_with_cache(
 
     Returns a job_id that can be used to download the result instantly.
     """
+    async with _batch_semaphore:
+        return await _batch_process_with_cache_impl(files, output_mode, db)
+
+
+async def _batch_process_with_cache_impl(files, output_mode, db):
     if not files:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -550,53 +566,62 @@ async def batch_process_with_cache(
 
     try:
         if output_mode == "merged":
-            # Process and merge all files
-            merged_chunks = []
+            # Stream each file's CSV to a disk tempfile instead of accumulating
+            # DataFrames; the full CSV is only loaded once at the end for DB write.
+            total_rows = 0
 
-            for file in files:
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
-                    temp_path = temp_file.name
-                    temp_files.append(temp_path)
-                    content = await file.read()
-                    temp_file.write(content)
+            merged_csv = tempfile.NamedTemporaryFile(
+                mode='w', suffix='.csv', delete=False, newline='', encoding='utf-8'
+            )
+            merged_csv_path = merged_csv.name
+            temp_files.append(merged_csv_path)
+            first = True
 
-                pipeline = ProcessingPipeline(db)
-                result = await pipeline.process_file(temp_path, include_preview=False)
+            try:
+                for file in files:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsm') as temp_file:
+                        temp_path = temp_file.name
+                        temp_files.append(temp_path)
+                        content = await file.read()
+                        temp_file.write(content)
 
-                if result['success']:
-                    df = pipeline.get_dataframe()
-                    merged_chunks.append(df)
+                    pipeline = ProcessingPipeline(db)
+                    result = await pipeline.process_file(temp_path, include_preview=False)
 
-                del pipeline
-                gc.collect()
+                    if result['success']:
+                        df = pipeline.get_dataframe()
+                        df.to_csv(merged_csv, index=False, header=first)
+                        first = False
+                        total_rows += len(df)
+                        del df
 
-            if not merged_chunks:
+                    del pipeline
+                    gc.collect()
+            finally:
+                merged_csv.close()
+
+            if total_rows == 0:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="No files were successfully processed"
                 )
 
-            # Merge all DataFrames
-            merged_df = pd.concat(merged_chunks, ignore_index=True)
-            del merged_chunks
-            gc.collect()
-
-            # Convert to CSV
-            csv_buffer = io.StringIO()
-            merged_df.to_csv(csv_buffer, index=False)
-            csv_data = csv_buffer.getvalue()
+            # Load the merged CSV once for DB storage.
+            with open(merged_csv_path, 'r', encoding='utf-8') as f:
+                csv_data = f.read()
 
             processing_time = int(time.time() - start_time)
 
-            # Update database
             await ProcessedFileRepository.update_processed_data(
                 db=db,
                 job_id=job_id,
                 processed_data=csv_data,
-                total_rows=len(merged_df),
+                total_rows=total_rows,
                 file_size_bytes=len(csv_data.encode('utf-8')),
                 processing_time_seconds=processing_time
             )
+            del csv_data
+            gc.collect()
 
         else:  # output_mode == "zip"
             # Process files and create ZIP

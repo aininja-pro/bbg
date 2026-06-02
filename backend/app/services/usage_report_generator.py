@@ -36,13 +36,36 @@ MANIFEST_FILENAME = "builders.json"
 FINAL_ZIP_FILENAME = "reports.zip"
 STATUS_FILENAME = "status.json"
 
-# Exact XML byte strings for the 3 cells in the template (verified by inspection).
-# Using bytes avoids a decode/encode round-trip on the large sheet XML.
-B6_TEMPLATE = b'<c r="B6" s="131"/>'
-B7_TEMPLATE = b'<c r="B7" s="2" t="s"><v>44</v></c>'
-C7_TEMPLATE = b'<c r="C7" s="2"/>'
-
 _CALC_PR_RE = re.compile(rb'<calcPr([^/]*)/>')
+
+# Match the three injection cells by their reference, regardless of the style
+# index or shared-string pointer the template currently uses. Earlier versions
+# hardcoded exact byte strings (e.g. s="131", <v>44</v>); those broke silently
+# whenever the template was re-created and Excel re-numbered styles/strings,
+# producing reports with all the spreadsheets but no data. Matching on
+# r="B6"/B7/C7 survives template edits.
+_STYLE_RE = re.compile(rb's="\d+"')
+
+
+def _cell_re(ref: str):
+    # Matches either a self-closing cell (<c r="B6" s="130"/>) or one with
+    # content (<c r="B7" ...><v>42</v></c>), capturing its attributes so the
+    # existing style index can be preserved.
+    return re.compile(
+        rb'<c r="' + ref.encode() + rb'"([^>]*?)(?:/>|>.*?</c>)',
+        re.DOTALL,
+    )
+
+
+_B6_RE = _cell_re("B6")
+_B7_RE = _cell_re("B7")
+_C7_RE = _cell_re("C7")
+
+
+def _style_attr(attrs: bytes) -> bytes:
+    """Return the cell's ` s="N"` style attribute (with leading space), or b''."""
+    match = _STYLE_RE.search(attrs)
+    return b" " + match.group(0) if match else b""
 
 
 def _get_default_batch_size() -> int:
@@ -56,35 +79,42 @@ def _get_default_batch_size() -> int:
 DEFAULT_BATCH_SIZE = _get_default_batch_size()
 
 
-def _make_b6(member_id):
-    return f'<c r="B6" s="131"><v>{member_id}</v></c>'.encode()
+def _make_b6(style: bytes, member_id) -> bytes:
+    return b'<c r="B6"' + style + b'><v>' + str(member_id).encode() + b'</v></c>'
 
 
-def _make_b7(builder_name):
-    safe = escape(str(builder_name))
-    return f'<c r="B7" s="2" t="inlineStr"><is><t>{safe}</t></is></c>'.encode()
+def _make_b7(style: bytes, builder_name) -> bytes:
+    safe = escape(str(builder_name)).encode()
+    return b'<c r="B7"' + style + b' t="inlineStr"><is><t>' + safe + b'</t></is></c>'
 
 
-def _make_c7(state):
-    safe = escape(str(state))
-    return f'<c r="C7" s="2" t="inlineStr"><is><t>{safe}</t></is></c>'.encode()
+def _make_c7(style: bytes, state) -> bytes:
+    safe = escape(str(state)).encode()
+    return b'<c r="C7"' + style + b' t="inlineStr"><is><t>' + safe + b'</t></is></c>'
+
+
+def _replace_cell(data: bytes, pattern, ref: str, build_value) -> bytes:
+    match = pattern.search(data)
+    if match is None:
+        raise ValueError(
+            f"Template cell {ref} not found in {SHEET_PATH}; the "
+            "Usage-Reporting template layout may have changed."
+        )
+    style = _style_attr(match.group(1))
+    return data[: match.start()] + build_value(style) + data[match.end() :]
 
 
 def _build_report_to_file(template_path, xlsm_path, member_id, builder_name, state):
     """Build a single XLSM from the template on disk, write result to xlsm_path."""
-    b6 = _make_b6(member_id)
-    b7 = _make_b7(builder_name)
-    c7 = _make_c7(state)
-
     with zipfile.ZipFile(template_path, "r") as zin:
         with zipfile.ZipFile(xlsm_path, "w", zipfile.ZIP_DEFLATED) as zout:
             for item in zin.infolist():
                 data = zin.read(item.filename)
 
                 if item.filename == SHEET_PATH:
-                    data = data.replace(B6_TEMPLATE, b6, 1)
-                    data = data.replace(B7_TEMPLATE, b7, 1)
-                    data = data.replace(C7_TEMPLATE, c7, 1)
+                    data = _replace_cell(data, _B6_RE, "B6", lambda s: _make_b6(s, member_id))
+                    data = _replace_cell(data, _B7_RE, "B7", lambda s: _make_b7(s, builder_name))
+                    data = _replace_cell(data, _C7_RE, "C7", lambda s: _make_c7(s, state))
                 elif item.filename == WORKBOOK_PATH:
                     data = _CALC_PR_RE.sub(rb'<calcPr\1 fullCalcOnLoad="1"/>', data, count=1)
 

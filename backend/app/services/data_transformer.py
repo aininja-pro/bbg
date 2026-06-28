@@ -6,6 +6,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from openpyxl.utils import get_column_letter
 from app.utils.exceptions import TransformationError
+from app.utils.text_cleaner import clean_text_field, clean_zip_postal
 
 
 class DataTransformer:
@@ -363,6 +364,26 @@ class DataTransformer:
 
         return df
 
+    def clean_text_fields(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Clean address and related text fields imported from spreadsheets."""
+        text_columns = [
+            "address1",
+            "address2",
+            "city",
+            "state",
+            "job_code",
+            "job_name",
+            "address_type",
+        ]
+
+        for column in text_columns:
+            if column in df.columns:
+                df[column] = df[column].apply(clean_text_field)
+
+        if "zip_postal" in df.columns:
+            df["zip_postal"] = df["zip_postal"].apply(clean_zip_postal)
+
+        return df
 
     def add_placeholder_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """Add any missing columns with null values.
@@ -412,6 +433,9 @@ class DataTransformer:
 
         # Step 3: Standardize column names (Date → confirmed_occupancy)
         df = self.standardize_columns(df)
+
+        # Step 3b: Clean address and related text fields
+        df = self.clean_text_fields(df)
 
         # Step 4: Unpivot products
         df = self.unpivot_products(df, active_products, metadata)

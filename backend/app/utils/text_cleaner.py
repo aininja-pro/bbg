@@ -5,7 +5,9 @@ import unicodedata
 from typing import Any
 
 # Strip characters that are not typical in US street addresses.
-_ADDRESS_DISALLOWED = re.compile(r"[^A-Za-z0-9\s#.,\-/']")
+# Note: '#' is intentionally excluded from the allow-list so it is stripped
+# along with other stray symbols (per client request).
+_ADDRESS_DISALLOWED = re.compile(r"[^A-Za-z0-9\s.,\-/']")
 
 # Unicode space-like characters often pasted from Word, PDFs, or web forms.
 _UNICODE_SPACE_CHARS = (
@@ -42,7 +44,7 @@ def clean_text_field(value: Any) -> Any:
     - Normalizes invisible Unicode spaces to regular spaces
     - Removes control characters and odd symbols
     - Collapses repeated whitespace
-    - Preserves common address punctuation (#, -, ., ,, /, ')
+    - Preserves common address punctuation (-, ., ,, /, ')
     """
     if _is_blank(value):
         return None if value is None else ""

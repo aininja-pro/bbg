@@ -20,12 +20,18 @@ class TestCleanTextField:
         assert clean_text_field("123\u200bMain\u200bSt") == "123 Main St"
 
     def test_preserves_common_address_punctuation(self):
-        assert clean_text_field("Apt #4, 123 Main St.") == "Apt #4, 123 Main St."
+        assert clean_text_field("Apt 4, 123 Main St.") == "Apt 4, 123 Main St."
         assert clean_text_field("1234-56 Oak/Elm Dr") == "1234-56 Oak/Elm Dr"
+
+    def test_removes_hash_character(self):
+        assert clean_text_field("#1200 Central Ave SE") == "1200 Central Ave SE"
+        assert clean_text_field("Albuquerque#") == "Albuquerque"
+        assert clean_text_field("Apt #4") == "Apt 4"
 
     def test_removes_weird_symbols(self):
         assert clean_text_field("123 Main St™") == "123 Main St"
         assert clean_text_field("123 Main St★") == "123 Main St"
+        assert clean_text_field("%$8200 Menaul Blvd NE") == "8200 Menaul Blvd NE"
 
     def test_handles_blank_values(self):
         assert clean_text_field(None) is None

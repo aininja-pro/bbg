@@ -1,5 +1,5 @@
 """API endpoints for lookup table management."""
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -29,6 +29,53 @@ from app.schemas.lookup import (
 )
 
 router = APIRouter(prefix="/api/lookups", tags=["Lookups"])
+
+
+def _get_csv_value(row: dict, *column_names: str) -> str:
+    """Return the first non-empty value for any of the given CSV column names."""
+    for name in column_names:
+        value = row.get(name)
+        if value is not None:
+            stripped = str(value).strip()
+            if stripped:
+                return stripped
+    return ""
+
+
+def _parse_active_flag(row: dict) -> Optional[int]:
+    """Parse active flag from numeric or Yes/No CSV values."""
+    value = _get_csv_value(row, "Company Active Flag", "Active", "active_flag")
+    if not value:
+        return None
+
+    normalized = value.lower()
+    if normalized in ("yes", "y", "true"):
+        return 1
+    if normalized in ("no", "n", "false"):
+        return 0
+
+    try:
+        return int(value)
+    except ValueError:
+        return None
+
+
+def _parse_member_row(row: dict) -> TradeNetMemberCreate:
+    """Map a CSV row to TradeNetMemberCreate, supporting multiple header formats."""
+    member_name = _get_csv_value(
+        row, "Member Name", "Company Name", "Full Company Name", "member_name"
+    )
+    bbg_member_id = _get_csv_value(row, "BBG Member ID", "Buying Group ID", "bbg_member_id") or None
+    member_status = _get_csv_value(row, "Status", "Member Status", "member_status") or None
+
+    return TradeNetMemberCreate(
+        tradenet_company_id=_get_csv_value(row, "TradeNet Company ID", "tradenet_company_id"),
+        bbg_member_id=bbg_member_id,
+        member_name=member_name,
+        territory_manager=_get_csv_value(row, "Territory Manager", "territory_manager") or None,
+        member_status=member_status,
+        active_flag=_parse_active_flag(row),
+    )
 
 
 # TradeNet Members Endpoints
@@ -293,28 +340,7 @@ async def bulk_upload_members(
 
         for row_num, row in enumerate(csv_reader, start=2):
             try:
-                # Map CSV columns to simple schema
-                # Use "Company Name" if available, otherwise "Full Company Name"
-                member_name = row.get('Company Name', '').strip() or row.get('Full Company Name', '').strip()
-
-                # Get Territory Manager from CSV (column 10)
-                territory_manager = row.get('Territory Manager', '').strip() or None
-
-                # Get Member Status from CSV (column 7)
-                member_status = row.get('Member Status', '').strip() or None
-
-                # Get Company Active Flag from CSV (column 11)
-                active_flag_str = row.get('Company Active Flag', '').strip()
-                active_flag = int(active_flag_str) if active_flag_str else None
-
-                member_data = TradeNetMemberCreate(
-                    tradenet_company_id=row.get('TradeNet Company ID', '').strip(),
-                    bbg_member_id=row.get('Buying Group ID', '').strip() or None,
-                    member_name=member_name,
-                    territory_manager=territory_manager,
-                    member_status=member_status,
-                    active_flag=active_flag,
-                )
+                member_data = _parse_member_row(row)
                 members.append(member_data)
             except Exception as e:
                 errors.append(f"Row {row_num}: {str(e)}")

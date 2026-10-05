@@ -129,7 +129,7 @@ export function RulesManager() {
           <div>
             <CardTitle>Business Rules Engine</CardTitle>
             <CardDescription>
-              Create flexible IF-THEN-ELSE rules on any field with AND/OR logic. Rules are applied in priority order.
+              If a column matches, update that column or create a new one. Number and date checks use the real value, not the way it looks on screen.
             </CardDescription>
           </div>
           <Button onClick={() => setIsModalOpen(true)}>
@@ -195,7 +195,10 @@ export function RulesManager() {
 
                                 // Helper to render a single condition
                                 const renderCondition = (cond) => (
-                                  <span className="font-mono">{cond.field} {cond.operator} {cond.value}</span>
+                                  <span className="font-mono">
+                                    {cond.field} {cond.operator} {cond.value}
+                                    {cond.value_to ? ` and ${cond.value_to}` : ''}
+                                  </span>
                                 );
 
                                 // Helper to render nested structure
@@ -288,7 +291,10 @@ export function RulesManager() {
                                            <span className="font-mono text-xs">{action.target_field}</span>
                                          </span>
                                        ) : (
-                                         <span className="font-mono text-xs">{action.field} = {action.value}</span>
+                                         <span className="font-mono text-xs">
+                                           {action.field} = {action.output_type === 'blank' ? '(blank)' : action.value}
+                                           {action.else_enabled ? `, otherwise ${action.else_output_type === 'blank' ? '(blank)' : action.else_value}` : ''}
+                                         </span>
                                        )}
                                      </span>
                                    ));

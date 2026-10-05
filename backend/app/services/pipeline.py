@@ -99,8 +99,17 @@ class ProcessingPipeline:
                     'pp_prod_purchase', 'tradenet_company_id'
                 ]
 
-            # Only keep columns that exist in the dataframe
-            df = df[[col for col in output_columns if col in df.columns]]
+            # Keep the standard columns, then any new columns a rule created.
+            # Helper columns (names starting with _) and lookup-only fields stay out.
+            hidden_columns = {'product_name', 'proof_point', 'product_column'}
+            selected = [col for col in output_columns if col in df.columns]
+            extra_columns = [
+                col for col in df.columns
+                if col not in selected
+                and not str(col).startswith('_')
+                and col not in hidden_columns
+            ]
+            df = df[selected + extra_columns]
 
             self.result = df
 

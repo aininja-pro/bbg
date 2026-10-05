@@ -1,6 +1,8 @@
 """Data enrichment service using lookup tables."""
+from datetime import datetime, date
 from typing import List, Dict, Any, Optional
 import pandas as pd
+from dateutil.parser import ParserError, parse as parse_date
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -128,67 +130,228 @@ class DataEnricher:
 
         return df
 
-    def _evaluate_operator(self, field_value: Any, operator: str, compare_value: Any) -> bool:
+    def _is_blank(self, value: Any) -> bool:
+        """Return True when a cell is empty. Blank is not the same as zero."""
+        if value is None:
+            return True
+        try:
+            if pd.isna(value):
+                return True
+        except (TypeError, ValueError):
+            pass
+        return str(value).strip() == ''
+
+    def _parse_number(self, value: Any, treat_blank_as_zero: bool = False) -> Optional[float]:
+        """Turn a cell into a number.
+
+        Blank or non-numeric cells stay unmatched unless the rule specifically
+        says to treat them as zero.
+        """
+        if isinstance(value, bool):
+            return None
+        if self._is_blank(value):
+            return 0.0 if treat_blank_as_zero else None
+        if isinstance(value, (int, float)):
+            return float(value)
+        try:
+            return float(str(value).strip().replace(',', ''))
+        except (ValueError, TypeError):
+            return 0.0 if treat_blank_as_zero else None
+
+    def _parse_calendar_date(self, value: Any) -> Optional[date]:
+        """Read a real calendar day from a cell or a rule value.
+
+        9/30/2026, 09/30/26, and 2026-09-30 are the same day. Plain numbers
+        are not treated as dates.
+        """
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, date):
+            return value
+        if isinstance(value, pd.Timestamp):
+            return value.date()
+        if self._is_blank(value):
+            return None
+
+        text = str(value).strip()
+        if not any(separator in text for separator in ('/', '-', '.')):
+            return None
+
+        try:
+            # Month first, so 7/1/2026 is July 1, not January 7.
+            return parse_date(text, dayfirst=False, yearfirst=False).date()
+        except (ParserError, ValueError, OverflowError, TypeError):
+            return None
+
+    def _compare_numbers(
+        self,
+        field_value: Any,
+        operator: str,
+        compare_value: Any,
+        treat_blank_as_zero: bool = False,
+    ) -> bool:
+        """Compare two numbers. Blank or text does not count as zero by default."""
+        left = self._parse_number(field_value, treat_blank_as_zero)
+        right = self._parse_number(compare_value, treat_blank_as_zero=False)
+        if left is None or right is None:
+            return False
+
+        if operator in ('equals', '=', '=='):
+            return left == right
+        if operator in ('not_equals', '!=', '<>'):
+            return left != right
+        if operator in ('greater_than', '>'):
+            return left > right
+        if operator in ('less_than', '<'):
+            return left < right
+        if operator in ('greater_or_equal', '>='):
+            return left >= right
+        if operator in ('less_or_equal', '<='):
+            return left <= right
+        return False
+
+    def _compare_dates(
+        self,
+        field_value: Any,
+        operator: str,
+        compare_value: Any,
+        compare_value_to: Any = None,
+    ) -> bool:
+        """Compare calendar days. A blank date does not match."""
+        left = self._parse_calendar_date(field_value)
+        if left is None:
+            return False
+
+        if operator in ('date_between', 'date_outside'):
+            start = self._parse_calendar_date(compare_value)
+            end = self._parse_calendar_date(compare_value_to)
+            if start is None or end is None:
+                return False
+            if end < start:
+                start, end = end, start
+            # Between includes both end dates. Outside is every other day.
+            inside = start <= left <= end
+            return inside if operator == 'date_between' else not inside
+
+        right = self._parse_calendar_date(compare_value)
+        if right is None:
+            return False
+        if operator == 'date_equals':
+            return left == right
+        if operator == 'date_not_equals':
+            return left != right
+        if operator == 'date_before':
+            return left < right
+        if operator == 'date_before_or_equal':
+            return left <= right
+        if operator == 'date_after':
+            return left > right
+        if operator == 'date_after_or_equal':
+            return left >= right
+        return False
+
+    def _evaluate_operator(
+        self,
+        field_value: Any,
+        operator: str,
+        compare_value: Any,
+        comparison_type: Optional[str] = None,
+        treat_blank_as_zero: bool = False,
+        compare_value_to: Any = None,
+    ) -> bool:
         """Evaluate a single operator condition.
 
         Args:
             field_value: The actual field value from the row
             operator: The comparison operator
             compare_value: The value to compare against
+            comparison_type: 'text', 'number', or 'date' when the rule says so
+            treat_blank_as_zero: Only for number rules, and only when chosen
+            compare_value_to: Second date for between / outside rules
 
         Returns:
             True if condition matches, False otherwise
         """
         try:
-            # Handle None/empty values
-            if field_value is None:
-                field_value = ""
+            date_operators = {
+                'date_equals', 'date_not_equals', 'date_before', 'date_before_or_equal',
+                'date_after', 'date_after_or_equal', 'date_between', 'date_outside',
+            }
+            number_operators = {
+                'greater_than', 'less_than', 'greater_or_equal', 'less_or_equal',
+                '>', '<', '>=', '<=',
+            }
 
-            field_str = str(field_value).strip()
+            if operator in ('is_empty', 'is_not_empty'):
+                blank = self._is_blank(field_value)
+                return blank if operator == 'is_empty' else not blank
+
+            if comparison_type == 'date' or operator in date_operators:
+                return self._compare_dates(field_value, operator, compare_value, compare_value_to)
+
+            if comparison_type == 'number' or operator in number_operators:
+                return self._compare_numbers(
+                    field_value, operator, compare_value, treat_blank_as_zero
+                )
+
+            if self._is_blank(field_value):
+                field_str = ''
+            else:
+                field_str = str(field_value).strip()
 
             # Text operators
-            if operator == "equals":
+            if operator == 'equals':
                 return field_str == str(compare_value)
-            elif operator == "not_equals":
+            elif operator == 'not_equals':
                 return field_str != str(compare_value)
-            elif operator == "contains":
+            elif operator == 'contains':
                 return str(compare_value) in field_str
-            elif operator == "not_contains":
+            elif operator == 'not_contains':
                 return str(compare_value) not in field_str
-            elif operator == "starts_with":
+            elif operator == 'starts_with':
                 return field_str.startswith(str(compare_value))
-            elif operator == "ends_with":
+            elif operator == 'ends_with':
                 return field_str.endswith(str(compare_value))
-            elif operator == "is_empty":
-                return field_str == ""
-            elif operator == "is_not_empty":
-                return field_str != ""
-
-            # Numeric operators
-            elif operator in ["greater_than", "less_than", "greater_or_equal", "less_or_equal"]:
-                try:
-                    field_num = float(field_value)
-                    compare_num = float(compare_value)
-                    if operator == "greater_than":
-                        return field_num > compare_num
-                    elif operator == "less_than":
-                        return field_num < compare_num
-                    elif operator == "greater_or_equal":
-                        return field_num >= compare_num
-                    elif operator == "less_or_equal":
-                        return field_num <= compare_num
-                except (ValueError, TypeError):
-                    return False
 
             # List operators
-            elif operator == "in":
+            elif operator == 'in':
                 return field_value in compare_value  # compare_value should be a list
-            elif operator == "not_in":
+            elif operator == 'not_in':
                 return field_value not in compare_value
 
             return False
         except Exception:
             return False
+
+    def _coerce_output_value(self, value: Any, output_type: Optional[str]) -> Any:
+        """Turn the rule's output into text, a number, True/False, or blank."""
+        if output_type == 'blank':
+            return ''
+        if output_type == 'boolean':
+            if isinstance(value, bool):
+                return value
+            return str(value).strip().lower() in ('true', 'yes', '1')
+        if output_type == 'number':
+            if value is None or str(value).strip() == '':
+                return ''
+            number = float(str(value).replace(',', ''))
+            if number.is_integer():
+                return int(number)
+            return number
+        if value is None:
+            return ''
+        return value
+
+    def _write_cell(self, df: pd.DataFrame, idx: Any, field: Any, value: Any, output_type: Optional[str] = None) -> None:
+        """Write a value into a column, creating the column when it is new."""
+        if field is None:
+            return
+        column_name = str(field).strip()
+        if not column_name or column_name.startswith('_'):
+            return
+        if column_name not in df.columns:
+            df[column_name] = ''
+        df.at[idx, column_name] = self._coerce_output_value(value, output_type)
 
     def _evaluate_condition(self, row_data: Dict[str, Any], condition: Dict[str, Any]) -> bool:
         """Evaluate a condition (supports old, current, and nested formats).
@@ -237,7 +400,14 @@ class DataEnricher:
             operator = condition.get('operator')
             value = condition.get('value')
             field_value = row_data.get(field)
-            return self._evaluate_operator(field_value, operator, value)
+            return self._evaluate_operator(
+                field_value,
+                operator,
+                value,
+                comparison_type=condition.get('comparison_type'),
+                treat_blank_as_zero=bool(condition.get('treat_blank_as_zero')),
+                compare_value_to=condition.get('value_to'),
+            )
 
         # CURRENT FLAT FORMAT: Flexible conditions with AND/OR logic
         # Kept for backward compatibility during migration
@@ -252,7 +422,14 @@ class DataEnricher:
                 value = rule_condition.get('value')
 
                 field_value = row_data.get(field)
-                result = self._evaluate_operator(field_value, operator, value)
+                result = self._evaluate_operator(
+                    field_value,
+                    operator,
+                    value,
+                    comparison_type=rule_condition.get('comparison_type'),
+                    treat_blank_as_zero=bool(rule_condition.get('treat_blank_as_zero')),
+                    compare_value_to=rule_condition.get('value_to'),
+                )
                 results.append(result)
 
             # Apply logic
@@ -482,6 +659,16 @@ class DataEnricher:
             else:
                 continue  # Skip if no actions
 
+            # Create any new output columns before writing row by row.
+            for action in actions_list:
+                if action.get('type', 'set_value') != 'move_column':
+                    target_field = action.get('field')
+                    if target_field and str(target_field).strip() not in df.columns:
+                        df[str(target_field).strip()] = ''
+            else_field = else_action.get('field') if else_action else None
+            if else_field and str(else_field).strip() not in df.columns:
+                df[str(else_field).strip()] = ''
+
             # Apply rule to each row
             for idx, row in df.iterrows():
                 row_data = row.to_dict()
@@ -500,30 +687,63 @@ class DataEnricher:
                             target_field = action.get('target_field')
                             clear_source = action.get('clear_source', True)
 
-                            if source_field and target_field:
+                            if source_field and target_field and source_field in df.columns:
                                 source_value = df.at[idx, source_field]
-                                df.at[idx, target_field] = source_value
+                                self._write_cell(df, idx, target_field, source_value, None)
 
                                 # Clear source if requested
                                 if clear_source:
                                     df.at[idx, source_field] = ''
 
                         else:
-                            # Set field to value
-                            target_field = action.get('field')
+                            # Create the column if it is new, or update it if it exists.
+                            # Older rules with no value are left alone.
+                            output_type = action.get('output_type')
                             value = action.get('value')
-
-                            if target_field and value is not None:
-                                df.at[idx, target_field] = value
+                            if output_type == 'blank' or value is not None:
+                                self._write_cell(
+                                    df,
+                                    idx,
+                                    action.get('field'),
+                                    value,
+                                    output_type,
+                                )
 
                 else:
-                    # Condition didn't match - apply ELSE action if exists
+                    # Each column can have its own "if not met" value, including blank.
+                    for action in actions_list:
+                        if action.get('type', 'set_value') == 'move_column':
+                            continue
+                        if action.get('else_enabled'):
+                            self._write_cell(
+                                df,
+                                idx,
+                                action.get('field'),
+                                action.get('else_value', ''),
+                                action.get('else_output_type') or action.get('output_type'),
+                            )
+
+                    # Older rules store one ELSE for the whole rule.
                     if else_action:
                         target_field = else_action.get('field')
                         else_value = else_action.get('value')
                         # Handle $(field_name) references - keep original value
-                        if target_field and else_value and not (else_value.startswith('$(') and else_value.endswith(')')):
-                            df.at[idx, target_field] = else_value
+                        if (
+                            target_field
+                            and else_value is not None
+                            and not (
+                                isinstance(else_value, str)
+                                and else_value.startswith('$(')
+                                and else_value.endswith(')')
+                            )
+                        ):
+                            self._write_cell(
+                                df,
+                                idx,
+                                target_field,
+                                else_value,
+                                else_action.get('output_type'),
+                            )
 
         return df
 

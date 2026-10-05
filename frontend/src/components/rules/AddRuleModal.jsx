@@ -44,6 +44,48 @@ const NUMERIC_OPERATORS = [
 
 const NUMERIC_FIELDS = ['bbg_member_id', 'quantity', 'tradenet_supplier_id', 'tradenet_company_id']
 
+const DATE_FIELDS = ['confirmed_occupancy']
+
+const DATE_OPERATORS = [
+  { value: 'date_equals', label: 'Date equals' },
+  { value: 'date_not_equals', label: 'Date does not equal' },
+  { value: 'date_before', label: 'Date is before' },
+  { value: 'date_before_or_equal', label: 'Date is before or equal to' },
+  { value: 'date_after', label: 'Date is after' },
+  { value: 'date_after_or_equal', label: 'Date is after or equal to' },
+  { value: 'date_between', label: 'Date is between two dates' },
+  { value: 'date_outside', label: 'Date is outside two dates' },
+]
+
+const FIELD_LABELS = {
+  confirmed_occupancy: 'confirmed_occupancy (report date)',
+  quantity: 'quantity',
+}
+
+const RANGE_OPERATORS = ['date_between', 'date_outside']
+
+function getFieldType(field) {
+  if (DATE_FIELDS.includes(field)) return 'date'
+  if (NUMERIC_FIELDS.includes(field)) return 'number'
+  return 'text'
+}
+
+function fieldLabel(field) {
+  return FIELD_LABELS[field] || field
+}
+
+function blankSetAction(field = 'supplier_name') {
+  return {
+    type: 'set_value',
+    field,
+    value: '',
+    output_type: 'text',
+    else_enabled: false,
+    else_value: '',
+    else_output_type: 'text',
+  }
+}
+
 export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, existingRules = [] }) {
   const [ruleName, setRuleName] = useState('')
   const [ruleGroup, setRuleGroup] = useState('')
@@ -52,9 +94,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
   const [conditionItems, setConditionItems] = useState([
     { type: 'condition', field: 'product_id', operator: 'contains', value: '' }
   ])
-  const [actions, setActions] = useState([
-    { type: 'set_value', field: 'supplier_name', value: '' }
-  ])
+  const [actions, setActions] = useState([blankSetAction()])
   const [hasElse, setHasElse] = useState(false)
   const [elseValue, setElseValue] = useState('')
   const [error, setError] = useState(null)
@@ -118,20 +158,26 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     setRuleGroup('')
     setConditionLogic('AND')
     setConditionItems([{ type: 'condition', field: 'product_id', operator: 'contains', value: '' }])
-    setActions([{ type: 'set_value', field: 'supplier_name', value: '' }])
+    setActions([blankSetAction()])
     setHasElse(false)
     setElseValue('')
     setError(null)
   }
 
   const addAction = () => {
-    setActions([...actions, { type: 'set_value', field: 'supplier_name', value: '' }])
+    setActions([...actions, blankSetAction()])
   }
 
   const removeAction = (index) => {
     if (actions.length > 1) {
       setActions(actions.filter((_, i) => i !== index))
     }
+  }
+
+  const patchAction = (index, patch) => {
+    const newActions = [...actions]
+    newActions[index] = { ...newActions[index], ...patch }
+    setActions(newActions)
   }
 
   const updateAction = (index, field, value) => {
@@ -148,11 +194,7 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
           clear_source: true
         }
       } else if (value === 'set_value') {
-        newActions[index] = {
-          type: 'set_value',
-          field: 'supplier_name',
-          value: ''
-        }
+        newActions[index] = blankSetAction()
       }
     }
 
@@ -182,10 +224,23 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     }
   }
 
+  // Keep the operator valid when the field type changes (text, number, or date).
+  const applyConditionChange = (condition, field, value) => {
+    const next = { ...condition, [field]: value }
+    if (field === 'field') {
+      const operators = getOperatorsForField(value)
+      if (!operators.some((op) => op.value === next.operator)) {
+        next.operator = operators[0].value
+      }
+      next.comparison_type = getFieldType(value)
+    }
+    return next
+  }
+
   // Update a condition at root level
   const updateCondition = (index, field, value) => {
     const updated = [...conditionItems]
-    updated[index] = { ...updated[index], [field]: value }
+    updated[index] = applyConditionChange(updated[index], field, value)
     setConditionItems(updated)
   }
 
@@ -218,12 +273,40 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
   const updateGroupCondition = (groupIndex, conditionIndex, field, value) => {
     const updated = [...conditionItems]
     const group = updated[groupIndex]
-    group.children[conditionIndex] = { ...group.children[conditionIndex], [field]: value }
+    group.children[conditionIndex] = applyConditionChange(group.children[conditionIndex], field, value)
     setConditionItems(updated)
   }
 
   const getOperatorsForField = (field) => {
-    return NUMERIC_FIELDS.includes(field) ? NUMERIC_OPERATORS : TEXT_OPERATORS
+    const fieldType = getFieldType(field)
+    if (fieldType === 'date') return DATE_OPERATORS
+    if (fieldType === 'number') return NUMERIC_OPERATORS
+    return TEXT_OPERATORS
+  }
+
+  const stampConditionTypes = (items) => items.map((item) => {
+    if (item.type === 'group') {
+      return { ...item, children: stampConditionTypes(item.children || []) }
+    }
+    return {
+      ...item,
+      comparison_type: getFieldType(item.field),
+      treat_blank_as_zero: getFieldType(item.field) === 'number' ? !!item.treat_blank_as_zero : false,
+    }
+  })
+
+  const outputError = (label, outputType, value) => {
+    if (outputType === 'blank') return null
+    if (outputType === 'boolean') {
+      if (!['True', 'False'].includes(value)) return `${label}: choose True or False`
+      return null
+    }
+    if (outputType === 'number') {
+      if (value === '' || Number.isNaN(Number(value))) return `${label}: enter a number`
+      return null
+    }
+    if (!String(value || '').trim()) return `${label}: value is required`
+    return null
   }
 
   const handleSave = async () => {
@@ -240,7 +323,11 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
         const itemPath = path ? `${path} > Condition ${i + 1}` : `Condition ${i + 1}`
 
         if (item.type === 'condition') {
-          if (!item.value && !['is_empty', 'is_not_empty'].includes(item.operator)) {
+          if (RANGE_OPERATORS.includes(item.operator)) {
+            if (!item.value || !item.value_to) {
+              return `${itemPath}: enter both dates`
+            }
+          } else if (!item.value && !['is_empty', 'is_not_empty'].includes(item.operator)) {
             return `${itemPath}: Value is required`
           }
         } else if (item.type === 'group') {
@@ -263,11 +350,20 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     // Validate all actions (apply defaults if missing)
     const validatedActions = actions.map(action => {
       if (action.type === 'set_value') {
-        return {
+        const outputType = action.output_type || 'text'
+        const saved = {
           type: 'set_value',
-          field: action.field || 'supplier_name',
-          value: action.value || ''
+          field: (action.field || '').trim(),
+          value: outputType === 'blank' ? '' : (action.value ?? ''),
+          output_type: outputType,
         }
+        if (action.else_enabled) {
+          const elseType = action.else_output_type || 'text'
+          saved.else_enabled = true
+          saved.else_value = elseType === 'blank' ? '' : (action.else_value ?? '')
+          saved.else_output_type = elseType
+        }
+        return saved
       } else if (action.type === 'move_column') {
         return {
           type: 'move_column',
@@ -284,9 +380,25 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
       const action = validatedActions[i]
 
       if (action.type === 'set_value') {
-        if (!action.value.trim()) {
-          setError(`Action ${i + 1}: Value is required`)
+        if (!action.field) {
+          setError(`Action ${i + 1}: choose a column or type a new column name`)
           return
+        }
+        if (action.field.startsWith('_')) {
+          setError(`Action ${i + 1}: column name cannot start with _`)
+          return
+        }
+        const valueError = outputError(`Action ${i + 1}`, action.output_type, action.value)
+        if (valueError) {
+          setError(valueError)
+          return
+        }
+        if (action.else_enabled) {
+          const elseError = outputError(`Action ${i + 1} (if not met)`, action.else_output_type, action.else_value)
+          if (elseError) {
+            setError(elseError)
+            return
+          }
         }
       } else if (action.type === 'move_column') {
         if (action.source_field === action.target_field) {
@@ -313,14 +425,14 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
         condition: {
           type: 'group',
           logic: conditionLogic,
-          children: conditionItems
+          children: stampConditionTypes(conditionItems)
         },
         then_actions: validatedActions
       }
     }
 
     // Add ELSE action if enabled
-    if (hasElse && elseValue) {
+    if (hasElse) {
       // Get first set_value action's field for else
       const firstSetValueAction = validatedActions.find(a => a.type === 'set_value')
       const thenField = firstSetValueAction?.field || 'supplier_name'
@@ -340,9 +452,68 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
     }
   }
 
+  const changeOutputType = (index, typeKey, valueKey, outputType, currentValue) => {
+    const patch = { [typeKey]: outputType }
+    if (outputType === 'boolean' && !['True', 'False'].includes(currentValue)) {
+      patch[valueKey] = 'True'
+    }
+    if (outputType === 'blank') {
+      patch[valueKey] = ''
+    }
+    patchAction(index, patch)
+  }
+
+  const renderOutputEditor = (label, outputType, value, onTypeChange, onValueChange) => (
+    <div className="grid grid-cols-2 gap-2">
+      <div>
+        <label className="block text-xs text-gray-600 mb-1">{label}</label>
+        <select
+          value={outputType}
+          onChange={(e) => onTypeChange(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          <option value="text">Text</option>
+          <option value="number">Number</option>
+          <option value="boolean">True / False</option>
+          <option value="blank">Leave blank</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-xs text-gray-600 mb-1">Value</label>
+        {outputType === 'boolean' ? (
+          <select
+            value={value === 'False' ? 'False' : 'True'}
+            onChange={(e) => onValueChange(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+          >
+            <option value="True">True</option>
+            <option value="False">False</option>
+          </select>
+        ) : outputType === 'blank' ? (
+          <input
+            type="text"
+            value=""
+            disabled
+            placeholder="This column will be left blank"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-500"
+          />
+        ) : (
+          <input
+            type={outputType === 'number' ? 'number' : 'text'}
+            value={value}
+            onChange={(e) => onValueChange(e.target.value)}
+            placeholder={outputType === 'number' ? 'For example 1' : 'For example Review'}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+        )}
+      </div>
+    </div>
+  )
+
   // Render a single condition row
   const renderCondition = (condition, index, onUpdate, onRemove, canRemove) => (
-    <div key={index} className="flex items-start space-x-2">
+    <div key={index} className="space-y-1">
+      <div className="flex items-start space-x-2">
       <div className="flex-1 flex gap-2">
         {/* Field */}
         <select
@@ -351,11 +522,11 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
         >
           {AVAILABLE_FIELDS.map(field => (
-            <option key={field} value={field}>{field}</option>
+            <option key={field} value={field}>{fieldLabel(field)}</option>
           ))}
         </select>
 
-        {/* Operator */}
+        {/* Operator — only the ones that make sense for this kind of column */}
         <select
           value={condition.operator}
           onChange={(e) => onUpdate(index, 'operator', e.target.value)}
@@ -372,7 +543,16 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
             type="text"
             value={condition.value}
             onChange={(e) => onUpdate(index, 'value', e.target.value)}
-            placeholder="Value"
+            placeholder={RANGE_OPERATORS.includes(condition.operator) ? 'Start date, like 7/1/2026' : 'Value'}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+        )}
+        {RANGE_OPERATORS.includes(condition.operator) && (
+          <input
+            type="text"
+            value={condition.value_to || ''}
+            onChange={(e) => onUpdate(index, 'value_to', e.target.value)}
+            placeholder="End date, like 9/30/2026"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
           />
         )}
@@ -388,6 +568,19 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+      )}
+      </div>
+
+      {getFieldType(condition.field) === 'number' && (
+        <label className="flex items-center space-x-2 text-xs text-gray-600">
+          <input
+            type="checkbox"
+            checked={!!condition.treat_blank_as_zero}
+            onChange={(e) => onUpdate(index, 'treat_blank_as_zero', e.target.checked)}
+            className="w-4 h-4 rounded"
+          />
+          <span>Treat blank or non-numeric values as zero</span>
+        </label>
       )}
     </div>
   )
@@ -571,7 +764,12 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
           {/* THEN Actions (Multiple) */}
           <div className="border border-green-200 rounded-lg p-4 bg-green-50">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900">THEN Actions</h3>
+              <div>
+                <h3 className="font-semibold text-gray-900">THEN Actions</h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  Update a column that already exists, or type a new column name to create one.
+                </p>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
@@ -600,35 +798,70 @@ export function AddRuleModal({ isOpen, onClose, onSave, editingRule = null, exis
                         onChange={(e) => updateAction(index, 'type', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                       >
-                        <option value="set_value">Set Field to Value</option>
+                        <option value="set_value">Create or update a column</option>
                         <option value="move_column">Move Column Data</option>
                       </select>
 
                       {/* Set Value Fields */}
                       {action.type === 'set_value' && (
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-3">
                           <div>
-                            <label className="block text-xs text-gray-600 mb-1">Field</label>
+                            <label className="block text-xs text-gray-600 mb-1">Column</label>
                             <select
-                              value={action.field || 'supplier_name'}
-                              onChange={(e) => updateAction(index, 'field', e.target.value)}
+                              value={AVAILABLE_FIELDS.includes(action.field) ? action.field : '__new__'}
+                              onChange={(e) => {
+                                const choice = e.target.value
+                                if (choice === '__new__') {
+                                  const next = [...actions]
+                                  next[index] = { ...next[index], field: '' }
+                                  setActions(next)
+                                } else {
+                                  updateAction(index, 'field', choice)
+                                }
+                              }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                             >
                               {AVAILABLE_FIELDS.map(field => (
-                                <option key={field} value={field}>{field}</option>
+                                <option key={field} value={field}>{fieldLabel(field)}</option>
                               ))}
+                              <option value="__new__">Create a new column</option>
                             </select>
+                            {!AVAILABLE_FIELDS.includes(action.field) && (
+                              <input
+                                type="text"
+                                value={action.field || ''}
+                                onChange={(e) => updateAction(index, 'field', e.target.value)}
+                                placeholder="New column name, for example Multiple Quantity"
+                                className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                              />
+                            )}
                           </div>
-                          <div>
-                            <label className="block text-xs text-gray-600 mb-1">Value</label>
+
+                          {renderOutputEditor(
+                            'Value when the condition is met',
+                            action.output_type || 'text',
+                            action.value || '',
+                            (outputType) => changeOutputType(index, 'output_type', 'value', outputType, action.value || ''),
+                            (nextValue) => updateAction(index, 'value', nextValue),
+                          )}
+
+                          <label className="flex items-center space-x-2 text-sm text-gray-700">
                             <input
-                              type="text"
-                              value={action.value || ''}
-                              onChange={(e) => updateAction(index, 'value', e.target.value)}
-                              placeholder="Enter value"
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                              type="checkbox"
+                              checked={!!action.else_enabled}
+                              onChange={(e) => updateAction(index, 'else_enabled', e.target.checked)}
+                              className="w-4 h-4 rounded"
                             />
-                          </div>
+                            <span>Also set a value when the condition is not met</span>
+                          </label>
+
+                          {action.else_enabled && renderOutputEditor(
+                            'Value when the condition is not met',
+                            action.else_output_type || 'text',
+                            action.else_value || '',
+                            (outputType) => changeOutputType(index, 'else_output_type', 'else_value', outputType, action.else_value || ''),
+                            (nextValue) => updateAction(index, 'else_value', nextValue),
+                          )}
                         </div>
                       )}
 

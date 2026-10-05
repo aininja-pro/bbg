@@ -1,12 +1,63 @@
 """Data transformation service for unpivoting and enriching rebate data."""
 from typing import List, Dict, Any, Optional
 from datetime import datetime
+import re
 import pandas as pd
 from openpyxl.worksheet.worksheet import Worksheet
 
 from openpyxl.utils import get_column_letter
 from app.utils.exceptions import TransformationError
 from app.utils.text_cleaner import clean_text_field, clean_zip_postal
+
+
+def normalize_column_header(name: Any) -> str:
+    """Make a spreadsheet header easy to compare.
+
+    Lowercase, trim, and treat "Single Family / Multi-unit" the same as
+    "single family/multi-unit".
+    """
+    text = str(name).lower().strip()
+    text = text.replace('_', ' ')
+    text = re.sub(r'\s*/\s*', '/', text)
+    text = re.sub(r'\s+', ' ', text)
+    return text
+
+
+# Column G is the address-type column. Builders use several different headings
+# for it. All of these must be recognized as address_type during import.
+ADDRESS_TYPE_HEADERS = {
+    'multi-unit/comm',
+    'multi-unit',
+    'multi unit',
+    'residential',
+    'single family/multi-unit',
+    'single family/multi unit',
+    'single-family/multi-unit',
+}
+
+
+def is_address_type_header(name: Any) -> bool:
+    """Return True when a header is one of the known address-type labels."""
+    return normalize_column_header(name) in ADDRESS_TYPE_HEADERS
+
+
+# Words that identify the home/job columns (not the product columns).
+BASE_COLUMN_HINTS = [
+    'date', 'jobcode', 'job code', 'job_code',
+    'address', 'city', 'state', 'zip', 'postal',
+    'multi-unit', 'comm', 'address_type', 'occupancy',
+    'residential', 'single family',
+]
+
+
+def is_base_data_column(column_name: Any) -> bool:
+    """Return True when this column is home data, not a product quantity."""
+    if column_name in ('_date_sort', '_product_order'):
+        return True
+    if is_address_type_header(column_name):
+        return True
+    col_lower = normalize_column_header(column_name)
+    return any(hint in col_lower for hint in BASE_COLUMN_HINTS)
 
 
 class DataTransformer:
@@ -182,27 +233,13 @@ class DataTransformer:
 
         df.columns = new_column_names
 
-        # Expected base column names (case-insensitive matching)
-        expected_base_columns = [
-            'date', 'jobcode', 'job code', 'job_code',
-            'address', 'city', 'state', 'zip', 'postal',
-            'multi-unit', 'comm', 'address_type', 'occupancy',
-            '_date_sort', '_product_order'  # Include sorting columns
-        ]
-
-        # Select only the base columns that exist in the DataFrame
+        # Select only the base columns that exist in the DataFrame.
+        # This includes column G even when its heading is Residential,
+        # Multi-Unit, or Single Family/Multi-unit.
         base_columns = []
         for col in df.columns:
-            if col not in product_columns and col is not None:
-                # Always include sorting columns
-                if col in ['_date_sort', '_product_order']:
-                    base_columns.append(col)
-                    continue
-
-                # Check if this column name matches expected base columns
-                col_lower = str(col).lower().strip()
-                if any(expected in col_lower for expected in expected_base_columns):
-                    base_columns.append(col)
+            if col not in product_columns and col is not None and is_base_data_column(col):
+                base_columns.append(col)
 
         # If we didn't find enough base columns, just take the first N columns that aren't products
         if len(base_columns) < 5:
@@ -341,17 +378,23 @@ class DataTransformer:
             'postal code': 'zip_postal',
             'multi-unit/comm': 'address_type',
             'multi-unit': 'address_type',
+            'multi unit': 'address_type',
+            'residential': 'address_type',
             'single family/multi-unit': 'address_type',
+            'single family/multi unit': 'address_type',
+            'single-family/multi-unit': 'address_type',
             'qty': 'quantity',
             'quantity': 'quantity',
         }
 
-        # Rename columns (case-insensitive)
+        # Rename columns (case-insensitive, ignoring extra spaces around "/")
         new_columns = {}
         for col in df.columns:
-            col_lower = str(col).lower().strip()
-            if col_lower in column_mapping:
-                new_columns[col] = column_mapping[col_lower]
+            col_key = normalize_column_header(col)
+            if col_key in column_mapping:
+                new_columns[col] = column_mapping[col_key]
+            elif is_address_type_header(col):
+                new_columns[col] = 'address_type'
 
         if new_columns:
             df = df.rename(columns=new_columns)

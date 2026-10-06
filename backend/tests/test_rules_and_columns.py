@@ -5,6 +5,7 @@ from app.services.data_enricher import DataEnricher
 from app.services.data_transformer import (
     DataTransformer,
     is_base_data_column,
+    mark_column_g_as_address_type,
 )
 
 
@@ -37,6 +38,24 @@ def test_column_g_headings_become_address_type():
     residential = transformer.standardize_columns(frame[["Residential"]].copy())
     assert residential["address_type"].tolist()[0] == "RESIDENTIAL"
     assert residential["address_type"].tolist()[1] == "Townhome"
+
+
+def test_renaming_column_g_still_makes_it_the_address_type_column():
+    """Column G is address type even when the heading is not one we listed."""
+    headers = [
+        "Date",
+        "Job Code",
+        "Address",
+        "City",
+        "State",
+        "Zip",
+        "Dwelling Type",
+    ]
+    renamed = mark_column_g_as_address_type(headers)
+    assert renamed[6] == "address_type"
+    assert renamed[0] == "Date"
+    # The other columns are left alone.
+    assert renamed[5] == "Zip"
 
 
 def test_column_g_is_kept_as_home_data():

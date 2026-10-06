@@ -194,6 +194,11 @@ class ExcelProcessor:
 
         max_col = max(len(row_2), len(row_5), len(row_7))
         for col_idx in range(1, max_col + 1):
+            # Columns A–G are the home fields. Column G is address type even
+            # when a builder renames it, so it is never a product column.
+            if col_idx <= 7:
+                continue
+
             active_flag = row_2[col_idx - 1] if col_idx <= len(row_2) else None
             distributor = row_5[col_idx - 1] if col_idx <= len(row_5) else None
             product_id = row_7[col_idx - 1] if col_idx <= len(row_7) else None

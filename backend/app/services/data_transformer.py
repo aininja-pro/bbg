@@ -14,9 +14,14 @@ def normalize_column_header(name: Any) -> str:
     """Make a spreadsheet header easy to compare.
 
     Lowercase, trim, and treat "Single Family / Multi-unit" the same as
-    "single family/multi-unit".
+    "single family/multi-unit". Also folds line breaks and unusual slash
+    characters, which show up when a heading is wrapped in the cell.
     """
-    text = str(name).lower().strip()
+    text = str(name)
+    text = text.replace('\u00a0', ' ').replace('\n', ' ').replace('\r', ' ')
+    for slash in ('\u2044', '\u2215', '\uff0f', '\\'):
+        text = text.replace(slash, '/')
+    text = text.lower().strip()
     text = text.replace('_', ' ')
     text = re.sub(r'\s*/\s*', '/', text)
     text = re.sub(r'\s+', ' ', text)
@@ -39,6 +44,19 @@ ADDRESS_TYPE_HEADERS = {
 def is_address_type_header(name: Any) -> bool:
     """Return True when a header is one of the known address-type labels."""
     return normalize_column_header(name) in ADDRESS_TYPE_HEADERS
+
+
+# Column G (the 7th column) is the address-type column in the Usage-Reporting
+# sheet. Builders rename that heading. The column is still address type.
+COLUMN_G_INDEX = 6
+
+
+def mark_column_g_as_address_type(headers: List[Any]) -> List[Any]:
+    """Return headers with column G labeled as the address-type column."""
+    renamed = list(headers)
+    if len(renamed) > COLUMN_G_INDEX:
+        renamed[COLUMN_G_INDEX] = 'address_type'
+    return renamed
 
 
 # Words that identify the home/job columns (not the product columns).
@@ -148,6 +166,13 @@ class DataTransformer:
                     'inferred_name': inferred_name,
                     'message': f"Column {col_letter} has a blank header{inferred_suffix}"
                 })
+
+        # Column G stays the address-type column even when its heading changes.
+        headers = mark_column_g_as_address_type(headers)
+        for warning in self.warnings:
+            if warning.get('column_position') == 7 and not warning.get('inferred_name'):
+                warning['inferred_name'] = 'address_type'
+                warning['message'] = "Column G has a blank header — inferred as 'address_type'"
 
         # Extract data rows (starting after header).
         # Early-exit after a run of consecutive blank rows protects against

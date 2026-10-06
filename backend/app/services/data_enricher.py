@@ -659,15 +659,9 @@ class DataEnricher:
             else:
                 continue  # Skip if no actions
 
-            # Create any new output columns before writing row by row.
-            for action in actions_list:
-                if action.get('type', 'set_value') != 'move_column':
-                    target_field = action.get('field')
-                    if target_field and str(target_field).strip() not in df.columns:
-                        df[str(target_field).strip()] = ''
-            else_field = else_action.get('field') if else_action else None
-            if else_field and str(else_field).strip() not in df.columns:
-                df[str(else_field).strip()] = ''
+            # A new column is created only when a row is actually written.
+            # If the check never passes, and there is no "when not met" value,
+            # the column is left out of the file.
 
             # Apply rule to each row
             for idx, row in df.iterrows():

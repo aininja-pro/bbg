@@ -140,6 +140,35 @@ def test_quantity_rule_creates_a_column_and_updates_an_existing_one():
     assert result["quantity"].tolist()[3] == "Hide"
 
 
+def test_new_column_is_left_out_when_the_check_never_passes():
+    """Quantity Check > 3 should not add a column when every quantity is 3 or less.
+
+    The column appears only for a row that passes. Rows that fail stay blank.
+    """
+    enricher = DataEnricher(db=None)
+    enricher.supplier_rules = [FakeRule({
+        "condition": {
+            "type": "condition",
+            "field": "quantity",
+            "operator": "greater_than",
+            "value": "3",
+            "comparison_type": "number",
+        },
+        "then_actions": [{
+            "type": "set_value",
+            "field": "Quantity Check",
+            "value": "True",
+            "output_type": "boolean",
+        }],
+    })]
+
+    no_match = enricher.apply_flexible_rules(pd.DataFrame({"quantity": [1, 2, 3]}))
+    assert "Quantity Check" not in no_match.columns
+
+    mixed = enricher.apply_flexible_rules(pd.DataFrame({"quantity": [1, 4]}))
+    assert mixed["Quantity Check"].tolist() == ["", True]
+
+
 def test_blank_number_is_not_zero_unless_the_rule_says_so():
     enricher = DataEnricher(db=None)
 

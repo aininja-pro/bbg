@@ -58,6 +58,31 @@ def test_renaming_column_g_still_makes_it_the_address_type_column():
     assert renamed[5] == "Zip"
 
 
+def test_repeated_product_headings_do_not_crash_unpivot():
+    """Two columns with the same name must not stop the file from processing.
+
+    Column G is kept by position, even when the heading is a new phrase.
+    """
+    transformer = DataTransformer()
+    frame = pd.DataFrame([[
+        "9/30/26", "J1", "16784 Wilden Dr", "Clive", "IA", "50235",
+        "RESIDENTIAL", 1, 2, 4,
+    ]], columns=[
+        "Date", "JobCode", "Address", "City", "State", "Zip",
+        "Residential or Multi-Unit",
+        "Certainteed 3 Tab Shingles  - Single Family",
+        "Certainteed 3 Tab Shingles  - Single Family",
+        "Humidifier",
+    ])
+    result = transformer.unpivot_products(
+        frame,
+        {10: {"product_id": "5419", "distributor": "Test"}},
+        {"bbg_member_id": "1399", "member_name": "Covenant"},
+    )
+    assert result.iloc[0, 6] == "RESIDENTIAL"
+    assert result["quantity"].tolist() == [4]
+
+
 def test_column_g_is_kept_as_home_data():
     assert is_base_data_column("Residential")
     assert is_base_data_column("Multi-Unit")

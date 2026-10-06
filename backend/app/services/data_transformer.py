@@ -35,6 +35,7 @@ ADDRESS_TYPE_HEADERS = {
     'multi-unit',
     'multi unit',
     'residential',
+    'residential or multi-unit',
     'single family/multi-unit',
     'single family/multi unit',
     'single-family/multi-unit',
@@ -64,8 +65,26 @@ BASE_COLUMN_HINTS = [
     'date', 'jobcode', 'job code', 'job_code',
     'address', 'city', 'state', 'zip', 'postal',
     'multi-unit', 'comm', 'address_type', 'occupancy',
-    'residential', 'single family',
+    'residential',
 ]
+
+
+def make_column_names_unique(names: List[Any]) -> List[str]:
+    """Give every column its own name.
+
+    Rebate files repeat headings such as "Drywall" and "Windows". Pandas
+    cannot unpivot a sheet while two columns share a name.
+    """
+    seen = {}
+    unique = []
+    for name in names:
+        key = "" if name is None else str(name)
+        seen[key] = seen.get(key, 0) + 1
+        if seen[key] == 1:
+            unique.append(key)
+        else:
+            unique.append(f"{key}__{seen[key]}")
+    return unique
 
 
 def is_base_data_column(column_name: Any) -> bool:
@@ -213,6 +232,9 @@ class DataTransformer:
         Returns:
             Long-format DataFrame with one row per product per transaction
         """
+        # Repeated headings ("Drywall", "Windows") must be unique before unpivot.
+        new_column_names = make_column_names_unique(list(df.columns))
+
         # Get product column names from indices (preserve Excel column order)
         product_columns = []
         product_id_map = {}
@@ -223,58 +245,33 @@ class DataTransformer:
         sorted_products = sorted(active_products.items(), key=lambda x: x[0])
 
         for order_num, (col_idx, product_info) in enumerate(sorted_products):
-            if col_idx - 1 < len(df.columns):
-                col_name = df.columns[col_idx - 1]  # Convert 1-indexed to 0-indexed
-
-                # Make column name unique by appending product_id if duplicate
-                # This prevents overwrites when multiple columns have same name (e.g., "Cabinets")
-                unique_col_name = f"{col_name}_{product_info['product_id']}"
-
+            pos = col_idx - 1  # Excel columns are 1-indexed
+            if pos < len(new_column_names):
+                # Include the column number so two columns with the same heading
+                # and the same product id do not collapse into one name.
+                unique_col_name = f"{new_column_names[pos]}_{product_info['product_id']}_{col_idx}"
+                new_column_names[pos] = unique_col_name
                 product_columns.append(unique_col_name)
                 product_id_map[unique_col_name] = product_info['product_id']
                 distributor_map[unique_col_name] = product_info.get('distributor')
-                # Store the Excel column order for sorting
                 product_order_map[product_info['product_id']] = order_num
 
         if not product_columns:
             raise TransformationError("No product columns found to unpivot")
 
-        # Rename columns in DataFrame to match unique names
-        # Build rename map: old col_name → unique col_name
-        rename_map = {}
-        for col_idx, product_info in active_products.items():
-            if col_idx - 1 < len(df.columns):
-                old_name = df.columns[col_idx - 1]
-                new_name = f"{old_name}_{product_info['product_id']}"
-                rename_map[old_name] = new_name
-
-        # Rename duplicate columns in DataFrame
-        # But we need to handle this carefully because rename() will fail if there are actual duplicates
-        # Instead, let's rename by position
-        new_column_names = list(df.columns)
-        for col_idx, product_info in active_products.items():
-            if col_idx - 1 < len(new_column_names):
-                new_column_names[col_idx - 1] = f"{new_column_names[col_idx - 1]}_{product_info['product_id']}"
-
         df.columns = new_column_names
 
-        # Select only the base columns that exist in the DataFrame.
-        # This includes column G even when its heading is Residential,
-        # Multi-Unit, or Single Family/Multi-unit.
+        # Home data is columns A–G. Column G is the address type even when the
+        # heading says something new. Later columns are products, so a heading
+        # like "Single Family" must not be pulled in as home data.
         base_columns = []
-        for col in df.columns:
-            if col not in product_columns and col is not None and is_base_data_column(col):
-                base_columns.append(col)
-
-        # If we didn't find enough base columns, just take the first N columns that aren't products
-        if len(base_columns) < 5:
-            # Fallback: take first 10 non-product columns
-            base_columns = []
-            for col in df.columns[:20]:  # Check first 20 columns
-                if col not in product_columns and col is not None and str(col).strip():
-                    base_columns.append(col)
-                if len(base_columns) >= 10:
-                    break
+        for pos in range(min(7, len(df.columns))):
+            name = df.columns[pos]
+            if name not in product_columns:
+                base_columns.append(name)
+        for helper in ('_date_sort', '_product_order'):
+            if helper in list(df.columns) and helper not in base_columns and helper not in product_columns:
+                base_columns.append(helper)
 
         # Unpivot using pandas melt
         try:
@@ -405,6 +402,7 @@ class DataTransformer:
             'multi-unit': 'address_type',
             'multi unit': 'address_type',
             'residential': 'address_type',
+            'residential or multi-unit': 'address_type',
             'single family/multi-unit': 'address_type',
             'single family/multi unit': 'address_type',
             'single-family/multi-unit': 'address_type',
